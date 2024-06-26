@@ -1,0 +1,24 @@
+version: '3.8'
+
+services:
+  api:
+    container_name: api
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    ports:
+      - "5005:5005"
+    volumes:
+      - ./api:/usr/app
+      - /usr/app/node_modules
+      
+  client:
+    container_name: client
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    ports:
+      - "3005:3005"
+    volumes:
+      - ./client:/app
+      - /app/node_modules

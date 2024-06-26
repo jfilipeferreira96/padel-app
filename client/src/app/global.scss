@@ -1,0 +1,222 @@
+/* fontes */
+@font-face {
+  font-family: 'DIN Round Pro';
+  src: url('/fonts/DINRoundPro.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Feather Bold';
+  src: url('/fonts/FeatherBold.ttf') format('truetype');
+  font-weight: bold;
+  font-style: normal;
+}
+
+.specialheader{
+  font-size: 34px;
+  line-height: 1.3;
+  margin: 0;
+  font-family: Greycliff CF, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji;
+  font-weight: 900;
+}
+
+.productheader{
+  font-size: 34px;
+  line-height: 1.3;
+  margin: 0;
+  font-family: Greycliff CF, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji;
+  font-weight: 900;
+}
+
+.productcategory{
+  font-family: Greycliff CF, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji;
+
+}
+
+.specialinput{
+  input{
+    background-color: light-dark(rgb(249 250 251 ), var(--mantine-color-dark-6));
+    border-width: 1.5px;
+    border-radius: 0.2rem;
+    flex-grow: 1;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    padding-top: 1.2rem;
+    padding-bottom: 1.2rem;
+    font-size: 16px
+  }
+  
+  input:disabled{
+    opacity: 0.9;
+    color: var(--mantine-color-bright);
+  }
+  //password
+  .mantine-PasswordInput-input{
+    background-color: light-dark(rgb(249 250 251 ), var(--mantine-color-dark-6));
+    border-width: 1.5px;
+    border-radius: 0.2rem;
+    flex-grow: 1;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    padding-top: 1.2rem;
+    padding-bottom: 1.2rem;
+  }
+
+   textarea{
+    background-color: light-dark(rgb(249 250 251 ), var(--mantine-color-dark-6));
+    border-width: 1.5px;
+    border-radius: 0.2rem;
+    flex-grow: 1;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    padding-top: 1.2rem;
+    padding-bottom: 1.2rem;
+    font-size: 16px
+  }
+
+  button{
+    background-color: light-dark(rgb(249 250 251 ), var(--mantine-color-dark-6));
+    border-width: 1.5px;
+    border-radius: 0.2rem;
+    flex-grow: 1;
+    font-size: 16px
+  }
+  .mantine-NumberInput-controls{
+    margin-left: 0px;
+    margin-right: 0px;
+  }
+}
+
+//#1A1B1E
+.mantine-AppShell-main {
+  background-color: light-dark(var(--mantine-color-gray-0), var(--mantine-color-dark-7));
+}
+
+@media (min-width: 769px) {
+  .mantine-AppShell-main {
+    position: relative;
+    top: var(--_section-top, var(--app-shell-header-offset, 0));
+    width: 100%;
+  }
+}
+
+@media (max-width: 769px) {
+  .mantine-AppShell-main {
+    top: 0px;
+    position: relative;
+    width: 100%;
+  }
+
+  .mantine-AppShell-navbar nav{
+    width: 100vw;
+  }
+}
+
+
+.SectionTitle_title__2yKdH:after {
+    bottom: calc(-.875rem* var(--mantine-scale));
+    border-bottom: 5px solid var(--title-color);
+}
+
+.headerdots:after, [dir=rtl] .headerdots:before {
+    right: calc(-1.375rem* var(--mantine-scale));
+    border-right: 5px solid var(--title-color);
+}
+.headerdots:after, .headerdots:before {
+    content: "";
+    position: absolute;
+    width: calc(.625rem* var(--mantine-scale));
+    height: calc(.625rem* var(--mantine-scale));
+}
+
+.headerdots:before {
+    top: calc(-.875rem* var(--mantine-scale));
+    left: calc(-1.375rem* var(--mantine-scale));
+    border-left: 5px solid var(--title-color);
+    border-top: 5px solid var(--title-color);
+}
+
+.headerdots:after, .headerdots:before {
+    content: "";
+    position: absolute;
+    width: calc(.625rem* var(--mantine-scale));
+    height: calc(.625rem* var(--mantine-scale));
+}
+
+.mantine-Badge-label{
+  font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji;
+}
+
+table{
+  text-align: center!important;
+  th,
+  tr {
+    text-align: center!important;
+  }
+}
+
+.specialbackground{
+  background: rgb(30,20,90)!important;
+  background: linear-gradient(90deg, rgba(30,20,90,1) 0%, rgba(63,25,69,1) 34%, rgba(117,43,54,1) 59%, rgba(243,75,2,1) 88%)!important;
+}
+
+.cartinput{
+  input{
+    background-color: light-dark(rgb(249 250 251 ), var(--mantine-color-dark-6));
+    border-width: 1.5px;
+    border-radius: 0.2rem;
+    flex-grow: 1;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    padding-top: 1.5rem;
+    padding-bottom: 1.5rem;
+    font-size: 16px;
+    font-weight: 900;
+    text-align: center;
+  }
+
+  .mantine-NumberInput-section{
+    cursor:pointer;
+    &:hover{
+      color: var(--mantine-color-blue-filled);
+    }
+  }
+
+
+}  
+.smaller{
+  input{
+    padding-left: 0rem!important;
+    padding-right: 0rem!important;
+    padding-top: 1.3rem!important;
+    padding-bottom: 1.3rem!important;
+  }
+  .mantine-NumberInput-section{
+    width: 22px;
+  }
+}
+
+
+.mantine-Carousel-control button{
+  border-radius: 0.5rem!important;
+}
+
+.mantine-Carousel-controls button{
+  position: relative;
+  background-color: transparent;
+  color: var(--mantine-color-blue-2);
+  border: 0;
+  height: calc(3.125rem* var(--mantine-scale));
+  width: calc(2.125rem* var(--mantine-scale));
+}
+
+@media (min-width: 1024px) {
+  .mantine-Carousel-controls button:nth-child(1) {
+    right: 42px;
+  }
+
+  .mantine-Carousel-controls button:nth-child(2) {
+    left: 42px;
+  }
+}
