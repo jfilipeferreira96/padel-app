@@ -6,16 +6,17 @@
     "dev": "next dev -p 3005",
     "build": "next build",
     "start": "NODE_ENV=production node server.js",
-    "lint": "next lint"
+    "lint": "next lint",
+    "export": "next build && next export"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.3.2",
     "@mantine/carousel": "^7.10.2",
     "@mantine/code-highlight": "^7.0.2",
-    "@mantine/core": "^7.1.7",
+    "@mantine/core": "7.11.0",
     "@mantine/dates": "^7.0.0",
     "@mantine/form": "^7.0.0",
-    "@mantine/hooks": "^7.1.7",
+    "@mantine/hooks": "^7.11.0",
     "@mantine/modals": "^7.0.0",
     "@mantine/notifications": "^7.0.2",
     "@mantine/nprogress": "^7.0.0",
