@@ -118,9 +118,10 @@ class UserController {
       }
 
       const hashedPassword = await bcrypt.hash(password, 10);
+      const formattedBirthdate = birthdate ? new Date(birthdate).toISOString().slice(0, 19).replace("T", " ") : null;
 
       const insertQuery = "INSERT INTO users (password, email, first_name, last_name, birthdate, user_type) VALUES (?, ?, ?, ?, ?, ?)";
-      const newUser = await db.query(insertQuery, [hashedPassword, email, first_name, last_name, birthdate, "player"]);
+      const newUser = await db.query(insertQuery, [hashedPassword, email, first_name, last_name, formattedBirthdate, "player"]);
 
       const accessToken = UserController.generateAccessToken({
         id: newUser.rows.insertId,
@@ -380,7 +381,8 @@ class UserController {
       SET email = ?, first_name = ?, last_name = ?, birthdate = ?, user_type = ?
       WHERE user_id = ?
     `;
-      const { rows } = await db.query(updateQuery, [email, first_name, last_name, birthdate, user_type, userId]);
+      const formattedBirthdate = birthdate ? new Date(birthdate).toISOString().slice(0, 19).replace("T", " ") : null;
+      const { rows } = await db.query(updateQuery, [email, first_name, last_name, formattedBirthdate, user_type, userId]);
 
       return res.status(200).json({
         status: true,
@@ -468,7 +470,8 @@ class UserController {
       }
       if (birthdate) {
         updateFields.push("birthdate = ?");
-        updateValues.push(birthdate);
+        const formattedBirthdate = new Date(birthdate).toISOString().slice(0, 19).replace("T", " ");
+        updateValues.push(formattedBirthdate);
       }
       if (password) {
         const hashedPassword = await bcrypt.hash(password, 10);
