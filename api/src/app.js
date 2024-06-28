@@ -27,7 +27,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 // CORS configuration
 const corsOptions = {
-  origin: ["http://localhost:3005", "https://localhost:3005"],
+  origin: ["http://localhost:3005", "https://localhost:3005", "https://app.pro-padel.pt/", "https://app.pro-padel.pt", "http://app.pro-padel.pt", , "http://app.pro-padel.pt/"],
   credentials: true,
 };
 app.use(cors(corsOptions));
