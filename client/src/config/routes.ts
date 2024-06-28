@@ -1,5 +1,5 @@
 
-const host = process.env.NEXT_PUBLIC_API_URL; 
+const host = process.env.NEXT_PUBLIC_API; 
 
 export const endpoints = {
   host: host,
