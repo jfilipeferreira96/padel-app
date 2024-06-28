@@ -11,7 +11,7 @@ import { routes } from "@/config/routes";
 const data = [
   { label: "Validações de Entradas", icon: IconFingerprint, url: routes.dashboard.validations },
   { label: "Registo de Entradas", icon: IconLicense, url: routes.dashboard.entries },
-  { label: "Cartões Offpick", icon: IconCards, url: routes.dashboard.offpick },
+  { label: "Cartões Offpeak", icon: IconCards, url: routes.dashboard.offpeak },
   /*   { label: "Produtos", icon: IconBrandProducthunt, url: routes.dashboard.products },
   { label: "Vendas", icon: IconShoppingCart, url: routes.dashboard.orders }, */
   { label: "Utilizadores do Sistema", icon: IconUser, url: routes.dashboard.users },

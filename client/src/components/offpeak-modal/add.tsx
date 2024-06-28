@@ -4,7 +4,7 @@ import { notifications } from "@mantine/notifications";
 import { useCallback, useEffect, useState } from "react";
 import { z } from "zod";
 import { useDisclosure } from "@mantine/hooks";
-import { addOffpickCard, monthOptions, OffpickCardData } from "@/services/offpick.service";
+import { addOffpeakCard, monthOptions, OffpeakCardData } from "@/services/offpeak.service";
 
 const schema = z.object({
   name: z.string().min(1, { message: "O nome do cartão é obrigatório" }),
@@ -19,7 +19,7 @@ interface Props {
   fetchData: () => Promise<void>;
 }
 
-export default function AddOffpickCardModal(props: Props) {
+export default function AddOffpeakModal(props: Props) {
   const { isModalOpen, setIsModalOpen, fetchData } = props;
   const [opened, { open, close }] = useDisclosure(false);
 
@@ -41,7 +41,7 @@ export default function AddOffpickCardModal(props: Props) {
 
   const form = useForm({
     initialValues: {
-      name: "Cartão Off Pick - ",
+      name: "Cartão Off Peak - ",
       month: new Date().getMonth() + 1,
       year: new Date().getFullYear(),
       is_active: "1",
@@ -49,13 +49,13 @@ export default function AddOffpickCardModal(props: Props) {
     validate: zodResolver(schema),
   });
 
-  const onSubmitHandler = useCallback(async (data: Partial<OffpickCardData>) => {
+  const onSubmitHandler = useCallback(async (data: Partial<OffpeakCardData>) => {
     try {
-      const response = await addOffpickCard(data);
+      const response = await addOffpeakCard(data);
       if (response.status) {
         notifications.show({
           title: "Sucesso",
-          message: "Cartão de offpick adicionado com sucesso",
+          message: "Cartão de offpeak adicionado com sucesso",
           color: "green",
         });
         fetchData().finally(close);
@@ -69,7 +69,7 @@ export default function AddOffpickCardModal(props: Props) {
     } catch (error) {
       notifications.show({
         title: "Erro",
-        message: "Ocorreu um erro ao adicionar o cartão de offpick",
+        message: "Ocorreu um erro ao adicionar o cartão de offpeak",
         color: "red",
       });
     }
@@ -83,7 +83,7 @@ export default function AddOffpickCardModal(props: Props) {
   };
 
   return (
-    <Modal opened={opened} onClose={close} title="Adicionar Cartão de Offpick" size="md">
+    <Modal opened={opened} onClose={close} title="Adicionar Cartão de Offpeak" size="md">
       <form onSubmit={form.onSubmit((values) => onSubmitHandler(values))}>
         <TextInput className="specialinput" label="Nome" placeholder="Insira o nome do cartão" required {...form.getInputProps("name")} mb={"sm"} />
 

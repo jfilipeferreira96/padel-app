@@ -26,7 +26,7 @@ class UserController {
             SELECT u.*, 
             (
               SELECT CONCAT('[', GROUP_CONCAT(JSON_OBJECT(
-                'offpick_card_id', uoc.offpick_card_id,
+                'offpeak_card_id', uoc.offpeak_card_id,
                 'name', oc.name,
                 'month', oc.month,
                 'year', oc.year,
@@ -34,12 +34,12 @@ class UserController {
                 'assigned_by_first_name', IFNULL(au.first_name, ''),
                 'assigned_by_last_name', IFNULL(au.last_name, ''),
                 'assigned_at', uoc.assigned_at
-              )), ']') AS offpicks
-              FROM user_offpick_cards uoc
-              JOIN offpick_cards oc ON uoc.offpick_card_id = oc.offpick_card_id
+              )), ']') AS offpeaks
+              FROM user_offpeak_cards uoc
+              JOIN offpeak_cards oc ON uoc.offpeak_card_id = oc.offpeak_card_id
               LEFT JOIN users au ON uoc.assigned_by = au.user_id
               WHERE uoc.user_id = u.user_id
-          ) AS offpicks
+          ) AS offpeaks
             FROM users u
             WHERE u.email = ?
         `;
@@ -79,7 +79,7 @@ class UserController {
         last_name: user.last_name,
         birthdate: user.birthdate,
         locations,
-        offpicks: JSON.parse(user.offpicks || "[]"),
+        offpeaks: JSON.parse(user.offpeaks || "[]"),
       });
 
       return res.json({
@@ -92,7 +92,7 @@ class UserController {
           last_name: user.last_name,
           birthdate: user.birthdate,
           locations,
-          offpicks: JSON.parse(user.offpicks || "[]"),
+          offpeaks: JSON.parse(user.offpeaks || "[]"),
         },
         accessToken,
       });
@@ -129,7 +129,7 @@ class UserController {
         first_name: first_name,
         last_name: last_name,
         birthdate: birthdate,
-        offpicks: [],
+        offpeaks: [],
       });
 
       return res.status(201).json({
@@ -139,7 +139,7 @@ class UserController {
           email: email,
         },
         accessToken,
-        offpicks: [],
+        offpeaks: [],
       });
     } catch (ex) {
       Logger.error("An error occurred during registration.", ex);
@@ -196,7 +196,7 @@ class UserController {
             SELECT u.*, 
             (
               SELECT CONCAT('[', GROUP_CONCAT(JSON_OBJECT(
-                'offpick_card_id', uoc.offpick_card_id,
+                'offpeak_card_id', uoc.offpeak_card_id,
                 'name', oc.name,
                 'month', oc.month,
                 'year', oc.year,
@@ -204,12 +204,12 @@ class UserController {
                 'assigned_by_first_name', IFNULL(au.first_name, ''),
                 'assigned_by_last_name', IFNULL(au.last_name, ''),
                 'assigned_at', uoc.assigned_at
-              )), ']') AS offpicks
-              FROM user_offpick_cards uoc
-              JOIN offpick_cards oc ON uoc.offpick_card_id = oc.offpick_card_id
+              )), ']') AS offpeaks
+              FROM user_offpeak_cards uoc
+              JOIN offpeak_cards oc ON uoc.offpeak_card_id = oc.offpeak_card_id
               LEFT JOIN users au ON uoc.assigned_by = au.user_id
               WHERE uoc.user_id = u.user_id
-          ) AS offpicks
+          ) AS offpeaks
             FROM users u
             WHERE u.user_id = ?
         `;
@@ -222,7 +222,7 @@ class UserController {
 
       const user = {
         ...rows[0],
-        offpicks: JSON.parse(rows[0].offpicks),
+        offpeaks: JSON.parse(rows[0].offpeaks),
       };
 
       return res.status(200).json(user);
@@ -240,7 +240,7 @@ class UserController {
             SELECT u.*, 
             (
               SELECT CONCAT('[', GROUP_CONCAT(JSON_OBJECT(
-                  'offpick_card_id', uoc.offpick_card_id,
+                  'offpeak_card_id', uoc.offpeak_card_id,
                   'name', oc.name,
                   'month', oc.month,
                   'year', oc.year,
@@ -248,12 +248,12 @@ class UserController {
                   'assigned_by_first_name', IFNULL(au.first_name, ''),
                   'assigned_by_last_name', IFNULL(au.last_name, ''),
                   'assigned_at', uoc.assigned_at
-                )), ']') AS offpicks
-                FROM user_offpick_cards uoc
-                JOIN offpick_cards oc ON uoc.offpick_card_id = oc.offpick_card_id
+                )), ']') AS offpeaks
+                FROM user_offpeak_cards uoc
+                JOIN offpeak_cards oc ON uoc.offpeak_card_id = oc.offpeak_card_id
                 LEFT JOIN users au ON uoc.assigned_by = au.user_id
                 WHERE uoc.user_id = u.user_id
-            ) AS offpicks
+            ) AS offpeaks
             FROM users u
             WHERE 1 = 1
         `;
@@ -304,7 +304,7 @@ class UserController {
 
       const users = rows.map((row) => ({
         ...row,
-        offpicks: JSON.parse(row.offpicks),
+        offpeaks: JSON.parse(row.offpeaks),
       }));
 
       return res.status(200).json({

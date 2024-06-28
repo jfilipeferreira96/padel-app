@@ -3,21 +3,21 @@ import React, { useState, useEffect } from "react";
 import { Text, Title, Center, Loader, UnstyledButton, Box, Image, rem } from "@mantine/core";
 import classes from "./classes.module.css";
 import { useSession } from "@/providers/SessionProvider";
-import { getUser, OffpickCard, UserData } from "@/services/user.service";
-import { getAllOffpickCards } from "@/services/offpick.service";
+import { getUser, OffpeakCard, UserData } from "@/services/user.service";
+import { getAllOffpeakCards } from "@/services/offpeak.service";
 import { IconChevronDown, IconChevronLeft, IconChevronUp } from "@tabler/icons-react";
 import { Carousel } from "@mantine/carousel";
 import "@mantine/carousel/styles.css";
 import { IconChevronRight } from "@tabler/icons-react";
 
-function Offpicks() {
+function Offpeaks() {
   const { user } = useSession();
-  const [userOffPicks, setUserOffpicks] = useState<OffpickCard[]>([]);
-  const [offpickCards, setOffpickCards] = useState<OffpickCard[]>([]);
+  const [userOffPeaks, setUserOffpeaks] = useState<OffpeakCard[]>([]);
+  const [offpeakCards, setOffpeakCards] = useState<OffpeakCard[]>([]);
   const [uniqueYears, setUniqueYears] = useState<number[]>([]);
   const [currentYear, setCurrentYear] = useState<number>(new Date().getFullYear());
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [userOffPicksIds, setuserOffPicksIds] = useState<number[]>([]);
+  const [userOffPeaksIds, setuserOffPeaksIds] = useState<number[]>([]);
 
   const fetchData = async () => {
     setIsLoading(true);
@@ -31,18 +31,18 @@ function Offpicks() {
       };
 
       // Faz os dois fetches simultaneamente usando Promise.all
-      const [offpickCardsResponse, userData] = await Promise.all([getAllOffpickCards(pagination), getUser(user.id)]);
+      const [offpeakCardsResponse, userData] = await Promise.all([getAllOffpeakCards(pagination), getUser(user.id)]);
 
-      // Trata a resposta de getAllOffpickCards
-      if (offpickCardsResponse.status) {
-        const sortedCards: OffpickCard[] = offpickCardsResponse.data.sort((a: OffpickCard, b: OffpickCard) => {
+      // Trata a resposta de getAllOffpeakCards
+      if (offpeakCardsResponse.status) {
+        const sortedCards: OffpeakCard[] = offpeakCardsResponse.data.sort((a: OffpeakCard, b: OffpeakCard) => {
           if (a.year === b.year) {
             return a.month - b.month;
           }
           return b.year - a.year;
         });
 
-        setOffpickCards(sortedCards);
+        setOffpeakCards(sortedCards);
 
         const years = Array.from(new Set(sortedCards.map((card) => card.year)));
         setUniqueYears(years);
@@ -55,9 +55,9 @@ function Offpicks() {
       // Trata a resposta de getUser
       if (userData) {
         const userResponse: UserData = userData;
-        if (userResponse?.offpicks) {
-          const userOffPicksIds = userResponse?.offpicks.map((offpick) => offpick.offpick_card_id);
-          setuserOffPicksIds(userOffPicksIds);
+        if (userResponse?.offpeaks) {
+          const userOffPeaksIds = userResponse?.offpeaks.map((offpeak) => offpeak.offpeak_card_id);
+          setuserOffPeaksIds(userOffPeaksIds);
         }
       }
     } catch (error) {
@@ -71,7 +71,7 @@ function Offpicks() {
     fetchData();
   }, []);
 
-  const filteredCards = offpickCards.filter((card) => card.year === currentYear && card.is_active);
+  const filteredCards = offpeakCards.filter((card) => card.year === currentYear && card.is_active);
 
   const handleIncrementYear = () => {
     setCurrentYear((current) => {
@@ -98,7 +98,7 @@ function Offpicks() {
   return (
     <div>
       <Title mt={15} className="productheader">
-        Cartões Offpicks
+        Cartões Offpeaks
       </Title>
       <Box mt={20}>
         <div className={classes.position}>
@@ -129,11 +129,11 @@ function Offpicks() {
           previousControlIcon={<IconChevronLeft style={{ width: rem(22), height: rem(22)}} />}
         >
           {filteredCards.map((card) => {
-            const isUserCard = userOffPicksIds.includes(card.offpick_card_id);
+            const isUserCard = userOffPeaksIds.includes(card.offpeak_card_id);
 
             return (
-              <Carousel.Slide key={card.offpick_card_id}>
-                <Image src={`/off_peak/${card?.month}.png`} alt="Offpick" radius="md" height={250} className={isUserCard ? "" : classes.blur} />
+              <Carousel.Slide key={card.offpeak_card_id}>
+                <Image src={`/off_peak/${card?.month}.png`} alt="Offpeak" radius="md" height={250} className={isUserCard ? "" : classes.blur} />
               </Carousel.Slide>
             );
           })}
@@ -143,4 +143,4 @@ function Offpicks() {
   );
 }
 
-export default Offpicks;
+export default Offpeaks;

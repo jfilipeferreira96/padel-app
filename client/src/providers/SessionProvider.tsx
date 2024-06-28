@@ -14,7 +14,7 @@ export interface User {
   last_name: string;
   birthdate: string | Date;
   locations?: { location_id: number, location_name: string }[]
-  offpicks?: { offpick_card_id: number, name: string, valid_until: Date, month: number, year: number}[]
+  offpeaks?: { offpeak_card_id: number, name: string, valid_until: Date, month: number, year: number}[]
 }
 
 interface DecodedToken extends JwtPayload {
@@ -89,7 +89,7 @@ export const SessionProvider: React.FC<SessionProviderProps> = ({ children }) =>
           last_name: decodedToken.last_name,
           birthdate: decodedToken.birthdate,
           locations: decodedToken.locations,
-          offpicks: decodedToken?.offpicks ?? [],
+          offpeaks: decodedToken?.offpeaks ?? [],
         };
 
         sessionLogin(userData, accessToken, false);

@@ -1,27 +1,27 @@
 const express = require("express");
-const OffpickCardsController = require("../controllers/offpicks");
+const OffpeakCardsController = require("../controllers/offpeaks");
 const { authenticateToken } = require("../middleware/auth.middleware");
 
-const offpickCardsRoutes = express.Router();
+const offpeakCardsRoutes = express.Router();
 
-// Rotas para Offpick Cards
+// Rotas para Offpeak Cards
 
-// Rota responsável por adicionar um cartão offpick
-offpickCardsRoutes.post("/offpick-card", authenticateToken, OffpickCardsController.addOffpickCard);
+// Rota responsável por adicionar um cartão offpeak
+offpeakCardsRoutes.post("/offpeak-card", authenticateToken, OffpeakCardsController.addOffpeakCard);
 
-// Rota responsável por retornar todos os cartões offpick COM PAGINAÇÃO
-offpickCardsRoutes.post("/offpick-cards", authenticateToken, OffpickCardsController.getAllOffpickCards);
+// Rota responsável por retornar todos os cartões offpeak COM PAGINAÇÃO
+offpeakCardsRoutes.post("/offpeak-cards", authenticateToken, OffpeakCardsController.getAllOffpeakCards);
 
-// Rota responsável por obter um único cartão offpick
-offpickCardsRoutes.get("/offpick-card/:id", authenticateToken, OffpickCardsController.getOffpickCard);
+// Rota responsável por obter um único cartão offpeak
+offpeakCardsRoutes.get("/offpeak-card/:id", authenticateToken, OffpeakCardsController.getOffpeakCard);
 
-// Rota responsável por atualizar um cartão offpick existente
-offpickCardsRoutes.put("/offpick-card/:id", authenticateToken, OffpickCardsController.updateOffpickCard);
+// Rota responsável por atualizar um cartão offpeak existente
+offpeakCardsRoutes.put("/offpeak-card/:id", authenticateToken, OffpeakCardsController.updateOffpeakCard);
 
-// Rota responsável por excluir um cartão offpick
-offpickCardsRoutes.delete("/offpick-card/:id", authenticateToken, OffpickCardsController.deleteOffpickCard);
+// Rota responsável por excluir um cartão offpeak
+offpeakCardsRoutes.delete("/offpeak-card/:id", authenticateToken, OffpeakCardsController.deleteOffpeakCard);
 
-// Rota responsável por associar um cartão offpick a um usuário
-offpickCardsRoutes.post("/offpick-card/assign", authenticateToken, OffpickCardsController.assignOffpickCard);
+// Rota responsável por associar um cartão offpeak a um usuário
+offpeakCardsRoutes.post("/offpeak-card/assign", authenticateToken, OffpeakCardsController.assignOffpeakCard);
 
-module.exports = offpickCardsRoutes;
+module.exports = offpeakCardsRoutes;

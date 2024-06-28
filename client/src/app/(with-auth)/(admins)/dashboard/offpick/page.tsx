@@ -3,18 +3,18 @@ import React, { useState, useEffect } from "react";
 import { Card, Table, Checkbox, Pagination as MantinePagination, Center, Text, Select, Flex, Badge, SimpleGrid, Skeleton, Grid, Tooltip, ActionIcon, rem, Group, Button, Modal } from "@mantine/core";
 import { IconEye, IconPencil, IconPlus, IconTrash } from "@tabler/icons-react";
 import { notifications } from "@mantine/notifications";
-import { deleteOffpickCard, getAllOffpickCards, monthOptions } from "@/services/offpick.service";
-import AddOffpickModal from "@/components/offpick-modal/add";
+import { deleteOffpeakCard, getAllOffpeakCards, monthOptions } from "@/services/offpeak.service";
 import { useDisclosure } from "@mantine/hooks";
-import EditOffpickModal from "@/components/offpick-modal/edit";
 import { usePathname } from "next/navigation";
+import EditOffpeakModal from "@/components/offpeak-modal/edit";
+import AddOffpeakModal from "@/components/offpeak-modal/add";
 
 function getBadge(isActive: number) {
   return isActive === 1 ? { name: "Ativo", color: "blue" } : { name: "Inativo", color: "gray" };
 }
 
-interface OffpickCard {
-  offpick_card_id: number;
+interface OffpeakCard {
+  offpeak_card_id: number;
   name: string;
   month: number;
   year: number;
@@ -22,7 +22,7 @@ interface OffpickCard {
   created_at: string;
 }
 
-function CardsOffpick() {
+function CardsOffpeak() {
   const pathname = usePathname();
   const [selectedRows, setSelectedRows] = useState<number[]>([]);
   const [activePage, setActivePage] = useState<number>(1);
@@ -30,7 +30,7 @@ function CardsOffpick() {
     const storedValue = localStorage.getItem(pathname);
     return storedValue ? parseInt(storedValue) : 10;
   });
-  const [offpickCards, setOffpickCards] = useState<OffpickCard[]>([]);
+  const [offpeakCards, setOffpeakCards] = useState<OffpeakCard[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [totalElements, setTotalElements] = useState<number>(0);
   const [isModalOpenAdd, setIsModalOpenAdd] = useState<boolean>(false);
@@ -49,7 +49,7 @@ function CardsOffpick() {
         order: "DESC",
       };
 
-      const response = await getAllOffpickCards(pagination);
+      const response = await getAllOffpeakCards(pagination);
      
       if (response.status) {
         // Sort the data by year and then by month
@@ -59,7 +59,7 @@ function CardsOffpick() {
           }
           return b.year - a.year;
         });
-        setOffpickCards(sortedCards);
+        setOffpeakCards(sortedCards);
         setTotalElements(response.pagination.total || 0);
         setActivePage(response.pagination.page || 1);
       }
@@ -79,7 +79,7 @@ function CardsOffpick() {
     setActivePage(page);
   };
 
-  const handleEditClick = (productId: number) => {
+  const handleEditCleak = (productId: number) => {
     setEditCardId(productId);
     setIsModalOpenEdit(true);
   };
@@ -95,8 +95,8 @@ function CardsOffpick() {
   const initialIndex = (activePage - 1) * elementsPerPage;
   const finalIndex = initialIndex + elementsPerPage;
 
-  const rows = offpickCards?.map((card) => (
-    <Table.Tr key={card.offpick_card_id} bg={selectedRows.includes(card.offpick_card_id) ? "var(--mantine-color-blue-light)" : undefined}>
+  const rows = offpeakCards?.map((card) => (
+    <Table.Tr key={card.offpeak_card_id} bg={selectedRows.includes(card.offpeak_card_id) ? "var(--mantine-color-blue-light)" : undefined}>
       <Table.Td>
         <Badge variant="filled" size="md" fw={700} color={getBadge(card.is_active).color} style={{ minWidth: "110px" }}>
           {getBadge(card.is_active).name}
@@ -107,20 +107,20 @@ function CardsOffpick() {
       <Table.Td>{card.year}</Table.Td>
       <Table.Td>
         <Group gap={0} justify="center">
-          <Tooltip label={"Eliminar Cartão Offpick"} withArrow position="top">
+          <Tooltip label={"Eliminar Cartão Offpeak"} withArrow position="top">
             <ActionIcon
               variant="subtle"
               color="red"
               onClick={() => {
-                setDeleteCardId(card.offpick_card_id);
+                setDeleteCardId(card.offpeak_card_id);
                 open();
               }}
             >
               <IconTrash style={{ width: rem(20), height: rem(20) }} stroke={1.5} />
             </ActionIcon>
           </Tooltip>
-          <Tooltip label={"Editar Cartão Offpick"} withArrow position="top">
-            <ActionIcon variant="subtle" onClick={() => handleEditClick(card.offpick_card_id)}>
+          <Tooltip label={"Editar Cartão Offpeak"} withArrow position="top">
+            <ActionIcon variant="subtle" onClick={() => handleEditCleak(card.offpeak_card_id)}>
               <IconPencil size={20} stroke={1.5} />
             </ActionIcon>
           </Tooltip>
@@ -131,9 +131,9 @@ function CardsOffpick() {
 
   return (
     <>
-      <h1>Cartões Offpick</h1>
-      <AddOffpickModal isModalOpen={isModalOpenAdd} setIsModalOpen={setIsModalOpenAdd} fetchData={fetchData} />
-      <EditOffpickModal isModalOpen={isModalOpenEdit} setIsModalOpen={setIsModalOpenEdit} fetchData={fetchData} cardId={editCardId} />
+      <h1>Cartões Offpeak</h1>
+      <AddOffpeakModal isModalOpen={isModalOpenAdd} setIsModalOpen={setIsModalOpenAdd} fetchData={fetchData} />
+      <EditOffpeakModal isModalOpen={isModalOpenEdit} setIsModalOpen={setIsModalOpenEdit} fetchData={fetchData} cardId={editCardId} />
 
       <Modal opened={opened} onClose={close} withCloseButton={false}>
         <Center>
@@ -146,7 +146,7 @@ function CardsOffpick() {
           size="md"
           onClick={() => {
             if (deleteCardId) {
-              deleteOffpickCard(deleteCardId)
+              deleteOffpeakCard(deleteCardId)
                 .then((res: any) => {
                   if (res.status === true) {
                     notifications.show({
@@ -195,7 +195,7 @@ function CardsOffpick() {
               setIsModalOpenAdd(true);
             }}
           >
-            Adicionar Cartão Offpick
+            Adicionar Cartão Offpeak
           </Button>
         </Group>
 
@@ -214,7 +214,7 @@ function CardsOffpick() {
           </Table>
         </Table.ScrollContainer>
 
-        {offpickCards.length > 0 && (
+        {offpeakCards.length > 0 && (
           <Flex justify={"space-between"} mt={"lg"}>
             <Text>
               A mostrar {initialIndex + 1} a {Math.min(finalIndex, totalElements)} de {totalElements} elementos
@@ -227,4 +227,4 @@ function CardsOffpick() {
   );
 }
 
-export default CardsOffpick;
+export default CardsOffpeak;

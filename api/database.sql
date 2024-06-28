@@ -113,8 +113,8 @@ CREATE TABLE IF NOT EXISTS order_items (
     FOREIGN KEY (product_id) REFERENCES products(product_id) ON DELETE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS offpick_cards (
-    offpick_card_id INT AUTO_INCREMENT PRIMARY KEY,
+CREATE TABLE IF NOT EXISTS offpeak_cards (
+    offpeak_card_id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     month INT NOT NULL CHECK (month BETWEEN 1 AND 12),
     year INT NOT NULL,
@@ -123,43 +123,43 @@ CREATE TABLE IF NOT EXISTS offpick_cards (
     UNIQUE (year, name)
 );
 
-CREATE TABLE IF NOT EXISTS user_offpick_cards (
-    user_offpick_card_id INT AUTO_INCREMENT PRIMARY KEY,
+CREATE TABLE IF NOT EXISTS user_offpeak_cards (
+    user_offpeak_card_id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
-    offpick_card_id INT NOT NULL,
+    offpeak_card_id INT NOT NULL,
     assigned_by INT,
     assigned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
-    FOREIGN KEY (offpick_card_id) REFERENCES offpick_cards(offpick_card_id) ON DELETE CASCADE,
+    FOREIGN KEY (offpeak_card_id) REFERENCES offpeak_cards(offpeak_card_id) ON DELETE CASCADE,
     FOREIGN KEY (assigned_by) REFERENCES users(user_id) ON DELETE SET NULL
 );
 
-INSERT INTO offpick_cards (name, month, year, is_active)
+INSERT INTO offpeak_cards (name, month, year, is_active)
 VALUES 
-('Cartão Off Pick - Janeiro', 1, 2024, 1),
-('Cartão Off Pick - Fevereiro', 2, 2024, 1),
-('Cartão Off Pick - Março', 3, 2024, 1),
-('Cartão Off Pick - Abril', 4, 2024, 1),
-('Cartão Off Pick - Maio', 5, 2024, 1),
-('Cartão Off Pick - Junho', 6, 2024, 1),
-('Cartão Off Pick - Julho', 7, 2024, 1),
-('Cartão Off Pick - Agosto', 8, 2024, 1),
-('Cartão Off Pick - Setembro', 9, 2024, 1),
-('Cartão Off Pick - Outubro', 10, 2024, 1),
-('Cartão Off Pick - Novembro', 11, 2024, 1),
-('Cartão Off Pick - Dezembro', 12, 2024, 1),
-('Cartão Off Pick - Janeiro', 1, 2025, 1),
-('Cartão Off Pick - Fevereiro', 2, 2025, 1),
-('Cartão Off Pick - Março', 3, 2025, 1),
-('Cartão Off Pick - Abril', 4, 2025, 1),
-('Cartão Off Pick - Maio', 5, 2025, 1),
-('Cartão Off Pick - Junho', 6, 2025, 1),
-('Cartão Off Pick - Julho', 7, 2025, 1),
-('Cartão Off Pick - Agosto', 8, 2025, 1),
-('Cartão Off Pick - Setembro', 9, 2025, 1),
-('Cartão Off Pick - Outubro', 10, 2025, 1),
-('Cartão Off Pick - Novembro', 11, 2025, 1),
-('Cartão Off Pick - Dezembro', 12, 2025, 1);
+('Cartão Off Peak - Janeiro', 1, 2024, 1),
+('Cartão Off Peak - Fevereiro', 2, 2024, 1),
+('Cartão Off Peak - Março', 3, 2024, 1),
+('Cartão Off Peak - Abril', 4, 2024, 1),
+('Cartão Off Peak - Maio', 5, 2024, 1),
+('Cartão Off Peak - Junho', 6, 2024, 1),
+('Cartão Off Peak - Julho', 7, 2024, 1),
+('Cartão Off Peak - Agosto', 8, 2024, 1),
+('Cartão Off Peak - Setembro', 9, 2024, 1),
+('Cartão Off Peak - Outubro', 10, 2024, 1),
+('Cartão Off Peak - Novembro', 11, 2024, 1),
+('Cartão Off Peak - Dezembro', 12, 2024, 1),
+('Cartão Off Peak - Janeiro', 1, 2025, 1),
+('Cartão Off Peak - Fevereiro', 2, 2025, 1),
+('Cartão Off Peak - Março', 3, 2025, 1),
+('Cartão Off Peak - Abril', 4, 2025, 1),
+('Cartão Off Peak - Maio', 5, 2025, 1),
+('Cartão Off Peak - Junho', 6, 2025, 1),
+('Cartão Off Peak - Julho', 7, 2025, 1),
+('Cartão Off Peak - Agosto', 8, 2025, 1),
+('Cartão Off Peak - Setembro', 9, 2025, 1),
+('Cartão Off Peak - Outubro', 10, 2025, 1),
+('Cartão Off Peak - Novembro', 11, 2025, 1),
+('Cartão Off Peak - Dezembro', 12, 2025, 1);
 
 -- Testes:
 

@@ -69,6 +69,7 @@ export function HeaderMegaMenu() {
   const [drawerOpened, { toggle: toggleDrawer, close: closeDrawer }] = useDisclosure(false);
   const [linksOpened, { toggle: toggleLinks }] = useDisclosure(false);
   const [userMenuOpened, setUserMenuOpened] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const { user, logout } = useSession();
   const theme = useMantineTheme();
   const router = useRouter();
@@ -100,7 +101,8 @@ export function HeaderMegaMenu() {
           message: "Não foi possível carregar as configurações",
           color: "red",
         });
-      });
+      })
+      .finally(() => setIsLoading(false));
   }, []);
 
   const links = mockdata.map((item) => (
@@ -120,6 +122,10 @@ export function HeaderMegaMenu() {
       </Group>
     </UnstyledButton>
   ));
+
+  if (isLoading) {
+    return <></>;
+  }
 
   return (
     <Box pb={4} pt={10}>
@@ -171,7 +177,7 @@ export function HeaderMegaMenu() {
                   Ligas
                 </a>
               )}
-              <div className={classes.link} onClick={() => router.push(routes.offpicks.url)}>
+              <div className={classes.link} onClick={() => router.push(routes.offpeaks.url)}>
                 Cartões
               </div>
               {/*     <div className={classes.link} onClick={() => router.push(routes.store.url)}>
@@ -217,7 +223,9 @@ export function HeaderMegaMenu() {
                   >
                     {computedColorScheme === "light" ? "Modo noturno" : "Modo diurno"}
                   </Menu.Item>
-                  <Menu.Item leftSection={<IconSettings style={{ width: rem(16), height: rem(16) }} stroke={1.5} />} onClick={() => router.push(routes.account.url)}>Configurações da conta</Menu.Item>
+                  <Menu.Item leftSection={<IconSettings style={{ width: rem(16), height: rem(16) }} stroke={1.5} />} onClick={() => router.push(routes.account.url)}>
+                    Configurações da conta
+                  </Menu.Item>
                   <Menu.Item leftSection={<IconLogout style={{ width: rem(16), height: rem(16) }} stroke={1.5} />} onClick={logout}>
                     Terminar sessão
                   </Menu.Item>
@@ -252,7 +260,7 @@ export function HeaderMegaMenu() {
               Ligas
             </a>
           )}
-          <div className={classes.link} onClick={() => router.push(routes.offpicks.url)}>
+          <div className={classes.link} onClick={() => router.push(routes.offpeaks.url)}>
             Cartões
           </div>
           {/*  <div className={classes.link} onClick={() => router.push(routes.store.url)}>

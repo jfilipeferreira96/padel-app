@@ -2,7 +2,7 @@ import api from "@/config/api";
 import { endpoints } from "@/config/routes";
 import { Pagination } from "./dashboard.service";
 
-export interface OffpickCardData {
+export interface OffpeakCardData {
   name: string;
   month: number;
   year: number;
@@ -28,54 +28,54 @@ export const monthOptions = [
   { value: 12, label: "Dezembro" },
 ];
 
-export const getOffpickCard = async (offpickCardId: number) => {
+export const getOffpeakCard = async (offpeakCardId: number) => {
   try {
-    const response = await api.get(`${endpoints.getOffpickCard}/${offpickCardId}`);
+    const response = await api.get(`${endpoints.getOffpeakCard}/${offpeakCardId}`);
     return response.data;
   } catch (error) {
     throw error;
   }
 };
 
-export const getAllOffpickCards = async (pagination: Pagination) => {
+export const getAllOffpeakCards = async (pagination: Pagination) => {
   try {
-    const response = await api.post(endpoints.getAllOffpickCards, { pagination });
+    const response = await api.post(endpoints.getAllOffpeakCards, { pagination });
     return response.data;
   } catch (error) {
     throw error;
   }
 };
 
-export const addOffpickCard = async (data: Partial<OffpickCardData>) => {
+export const addOffpeakCard = async (data: Partial<OffpeakCardData>) => {
   try {
-    const response = await api.post(endpoints.addOffpickCard, data);
+    const response = await api.post(endpoints.addOffpeakCard, data);
     return response.data;
   } catch (error) {
     throw error;
   }
 };
 
-export const updateOffpickCard = async (offpickCardId: number, data: Partial<OffpickCardData>) => {
+export const updateOffpeakCard = async (offpeakCardId: number, data: Partial<OffpeakCardData>) => {
   try {
-    const response = await api.put(`${endpoints.updateOffpickCard}/${offpickCardId}`, data);
+    const response = await api.put(`${endpoints.updateOffpeakCard}/${offpeakCardId}`, data);
     return response.data;
   } catch (error) {
     throw error;
   }
 };
 
-export const deleteOffpickCard = async (offpickCardId: number) => {
+export const deleteOffpeakCard = async (offpeakCardId: number) => {
   try {
-    const response = await api.delete(`${endpoints.deleteOffpickCard}/${offpickCardId}`);
+    const response = await api.delete(`${endpoints.deleteOffpeakCard}/${offpeakCardId}`);
     return response.data;
   } catch (error) {
     throw error;
   }
 };
 
-export const assignOffpickCard = async (data: { user_id: number; offpick_card_ids: number[]; assigned_by: number}) => {
+export const assignOffpeakCard = async (data: { user_id: number; offpeak_card_ids: number[]; assigned_by: number}) => {
   try {
-    const response = await api.post(endpoints.assignOffpickCard, data);
+    const response = await api.post(endpoints.assignOffpeakCard, data);
     return response.data;
   } catch (error) {
     throw error;

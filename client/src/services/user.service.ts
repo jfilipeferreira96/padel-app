@@ -11,11 +11,11 @@ export interface UserData {
   user_type: UserType;
   password?: string;
   locations?: {label: string, value: number}[]
-  offpicks?: OffpickCard[]
+  offpeaks?: OffpeakCard[]
 }
 
-export interface OffpickCard {
-  offpick_card_id: number;
+export interface OffpeakCard {
+  offpeak_card_id: number;
   name: string;
   month: number;
   year: number;

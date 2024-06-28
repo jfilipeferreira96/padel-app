@@ -8,7 +8,7 @@ export function ArticleCardImage() {
       </Paper>
       <Box pl={5} pr={5}>
         <Group justify="space-between" mt="md" mb="xs" align="center">
-          <Text fw={500}>Cartão Off Pick - Janeiro</Text>
+          <Text fw={500}>Cartão Off Peak - Janeiro</Text>
         </Group>
 
         <Text fz="xl" fw={700} style={{ lineHeight: 1 }}>

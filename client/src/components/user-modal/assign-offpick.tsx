@@ -3,8 +3,8 @@ import { useEffect, useCallback, useState } from "react";
 import { Modal, Table, Text, Button, UnstyledButton, Center, Loader, Select, MultiSelect, Paper } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { notifications } from "@mantine/notifications";
-import { getUser, OffpickCard, updateUser, UserData } from "@/services/user.service";
-import { assignOffpickCard, getAllOffpickCards } from "@/services/offpick.service";
+import { getUser, OffpeakCard, updateUser, UserData } from "@/services/user.service";
+import { assignOffpeakCard, getAllOffpeakCards } from "@/services/offpeak.service";
 import { IconChevronDown, IconChevronUp } from "@tabler/icons-react";
 import classes from "./classes.module.css";
 import { useSession } from "@/providers/SessionProvider";
@@ -16,17 +16,17 @@ interface Props {
   fetchData: () => Promise<void>;
 }
 
-export default function AsignOffpickModal({ isModalOpen, setIsModalOpen, userId, fetchData }: Props) {
+export default function AsignOffpeakModal({ isModalOpen, setIsModalOpen, userId, fetchData }: Props) {
   const { user } = useSession();
   const [opened, { open, close }] = useDisclosure(false);
   const [userData, setUserData] = useState<UserData | null>(null);
-  const [offpickCards, setOffpickCards] = useState<OffpickCard[]>([]);
+  const [offpeakCards, setOffpeakCards] = useState<OffpeakCard[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [userOffPicksIds, setuserOffPicksIds] = useState<number[]>([]);
-  const [userOffpickCards, setUserOffpickCards] = useState<OffpickCard[]>([]);
+  const [userOffpeaksIds, setuserOffpeaksIds] = useState<number[]>([]);
+  const [userOffpeakCards, setUserOffpeakCards] = useState<OffpeakCard[]>([]);
   const [currentYear, setCurrentYear] = useState<number>(new Date().getFullYear());
   const [uniqueYears, setUniqueYears] = useState<number[]>([]);
-  const [selectedOffpickIds, setSelectedOffpickIds] = useState<number[]>([]);
+  const [selectedOffpeakIds, setSelectedOffpeakIds] = useState<number[]>([]);
 
   useEffect(() => {
     if (isModalOpen && userId) {
@@ -43,34 +43,34 @@ export default function AsignOffpickModal({ isModalOpen, setIsModalOpen, userId,
       //LIMPAR TODOS OS ESTADOS AQUI
       setIsModalOpen(false);
       setUserData(null);
-      setOffpickCards([]);
+      setOffpeakCards([]);
       setIsLoading(true); 
-      setuserOffPicksIds([]);
-      setUserOffpickCards([]);
+      setuserOffpeaksIds([]);
+      setUserOffpeakCards([]);
       setCurrentYear(new Date().getFullYear()); 
       setUniqueYears([]);
-      setSelectedOffpickIds([]); 
+      setSelectedOffpeakIds([]); 
     }
   }, [opened, setIsModalOpen]);
 
-  const filteredCards = offpickCards.filter((card) => card.year === currentYear && card.is_active);
-  const filteredUserCards = userOffpickCards.filter((card) => card.year === currentYear);
-  const availableCards = filteredCards.filter((card) => !userOffPicksIds.includes(card.offpick_card_id));
+  const filteredCards = offpeakCards.filter((card) => card.year === currentYear && card.is_active);
+  const filteredUserCards = userOffpeakCards.filter((card) => card.year === currentYear);
+  const availableCards = filteredCards.filter((card) => !userOffpeaksIds.includes(card.offpeak_card_id));
 
   const handleSelect = (value: string[] | null) => {
     if (value === null) {
-      setSelectedOffpickIds([]);
+      setSelectedOffpeakIds([]);
       return;
     }
 
     const ids: number[] = [];
     availableCards.forEach((option) => {
       if (value.includes(`${option.name} ${option.year}`)) {
-        ids.push(option.offpick_card_id);
+        ids.push(option.offpeak_card_id);
       }
     });
 
-    setSelectedOffpickIds(ids);
+    setSelectedOffpeakIds(ids);
   };
 
   const fetchUserData = async (userId: number) => {
@@ -85,18 +85,18 @@ export default function AsignOffpickModal({ isModalOpen, setIsModalOpen, userId,
       };
 
       // Faz os dois fetches simultaneamente usando Promise.all
-      const [offpickCardsResponse, userData] = await Promise.all([getAllOffpickCards(pagination), getUser(userId)]);
+      const [offpeakCardsResponse, userData] = await Promise.all([getAllOffpeakCards(pagination), getUser(userId)]);
       
-      // Trata a resposta de getAllOffpickCards
-      if (offpickCardsResponse.status) {
-        const sortedCards: OffpickCard[] = offpickCardsResponse.data.sort((a: OffpickCard, b: OffpickCard) => {
+      // Trata a resposta de getAllOffpeakCards
+      if (offpeakCardsResponse.status) {
+        const sortedCards: OffpeakCard[] = offpeakCardsResponse.data.sort((a: OffpeakCard, b: OffpeakCard) => {
           if (a.year === b.year) {
             return a.month - b.month;
           }
           return b.year - a.year;
         });
 
-        setOffpickCards(sortedCards);
+        setOffpeakCards(sortedCards);
 
         const years = Array.from(new Set(sortedCards.map((card) => card.year)));
         setUniqueYears(years);
@@ -109,10 +109,10 @@ export default function AsignOffpickModal({ isModalOpen, setIsModalOpen, userId,
       // Trata a resposta de getUser
       if (userData) {
         const userResponse: UserData = userData;
-        if (userResponse?.offpicks) {
-          setUserOffpickCards(userResponse?.offpicks);
-          const userOffPicksIds = userResponse?.offpicks.map((offpick) => offpick.offpick_card_id);
-          setuserOffPicksIds(userOffPicksIds);
+        if (userResponse?.offpeaks) {
+          setUserOffpeakCards(userResponse?.offpeaks);
+          const userOffpeaksIds = userResponse?.offpeaks.map((offpeak) => offpeak.offpeak_card_id);
+          setuserOffpeaksIds(userOffpeaksIds);
         }
       }
     } catch (error) {
@@ -129,11 +129,11 @@ export default function AsignOffpickModal({ isModalOpen, setIsModalOpen, userId,
   const onSubmit = async () => {
       try {
         if (!userId) return;
-        if (selectedOffpickIds.length === 0) return;
+        if (selectedOffpeakIds.length === 0) return;
 
-        const response = await assignOffpickCard({
+        const response = await assignOffpeakCard({
           user_id: userId,
-          offpick_card_ids: selectedOffpickIds,
+          offpeak_card_ids: selectedOffpeakIds,
           assigned_by: user.id
         });
 
@@ -228,13 +228,13 @@ export default function AsignOffpickModal({ isModalOpen, setIsModalOpen, userId,
             </Paper>
           ) : (
             <Paper shadow="xs" p="sm" withBorder>
-              <Text>Este utilizador não tem cartões offpick.</Text>
+              <Text>Este utilizador não tem cartões offpeak.</Text>
             </Paper>
           )}
 
           <MultiSelect
             mt={"md"}
-            label="Cartões offpick disponíveis"
+            label="Cartões offpeak disponíveis"
             data={availableCards.map((available) => `${available.name} ${available.year}`)}
             clearable
             onChange={handleSelect}

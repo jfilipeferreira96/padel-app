@@ -7,8 +7,8 @@ import AddUserModal from "@/components/user-modal/add";
 import { useDisclosure } from "@mantine/hooks";
 import EditUserModal from "@/components/user-modal/edit";
 import { notifications } from "@mantine/notifications";
-import AsignOffpickModal from "@/components/user-modal/assign-offpick";
 import { usePathname } from "next/navigation";
+import AsignOffpeakModal from "@/components/user-modal/assign-offpick";
 
 function getBadge(user_type: string){
   if (user_type === 'admin')
@@ -43,7 +43,7 @@ function Users() {
   const [totalElements, setTotalElements] = useState<number>(0);
   const [isModalOpenAdd, setIsModalOpenAdd] = useState<boolean>(false);
   const [isModalOpenEdit, setIsModalOpenEdit] = useState<boolean>(false);
-  const [isModalOpenOffpick, setIsModalOpenOffpick] = useState<boolean>(false);
+  const [isModalOpenOffpeak, setIsModalOpenOffpeak] = useState<boolean>(false);
   const [editUserId, setEditUserId] = useState<number | null>(null);
   const [deleteUserId, setDeleteUserId] = useState<number | null>(null);
   const [opened, { open, close }] = useDisclosure(false);
@@ -90,14 +90,14 @@ function Users() {
     setActivePage(page);
   };
 
-  const handleEditClick = (userId: number) => {
+  const handleEditCleak = (userId: number) => {
     setEditUserId(userId);
     setIsModalOpenEdit(true);
   };
 
-  const handleOffpick = (userId: number) =>{
+  const handleOffpeak = (userId: number) =>{
     setEditUserId(userId);
-    setIsModalOpenOffpick(true);
+    setIsModalOpenOffpeak(true);
   };
   
   const handleElementsPerPageChange = (value: string | null) => {
@@ -138,13 +138,13 @@ function Users() {
           </Tooltip>
 
           <Tooltip label={"Editar Perfil"} withArrow position="top">
-            <ActionIcon variant="subtle" onClick={() => handleEditClick(element.user_id)}>
+            <ActionIcon variant="subtle" onClick={() => handleEditCleak(element.user_id)}>
               <IconPencil size={20} stroke={1.5} />
             </ActionIcon>
           </Tooltip>
 
-          <Tooltip label={"Ver/Atribuir Offpicks"} withArrow position="top">
-            <ActionIcon color="green" variant="subtle" onClick={() => handleOffpick(element.user_id)}>
+          <Tooltip label={"Ver/Atribuir Offpeaks"} withArrow position="top">
+            <ActionIcon color="green" variant="subtle" onClick={() => handleOffpeak(element.user_id)}>
               <IconCards size={20} stroke={1.5} />
             </ActionIcon>
           </Tooltip>
@@ -160,7 +160,7 @@ function Users() {
       <AddUserModal isModalOpen={isModalOpenAdd} setIsModalOpen={setIsModalOpenAdd} fetchData={fetchData} />
       <EditUserModal isModalOpen={isModalOpenEdit} setIsModalOpen={setIsModalOpenEdit} fetchData={fetchData} userId={editUserId} />
 
-      <AsignOffpickModal isModalOpen={isModalOpenOffpick} setIsModalOpen={setIsModalOpenOffpick} fetchData={fetchData} userId={editUserId} />
+      <AsignOffpeakModal isModalOpen={isModalOpenOffpeak} setIsModalOpen={setIsModalOpenOffpeak} fetchData={fetchData} userId={editUserId} />
 
       <Modal opened={opened} onClose={close} withCloseButton={false}>
         <Center>

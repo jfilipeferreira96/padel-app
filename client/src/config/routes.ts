@@ -22,13 +22,13 @@ export const endpoints = {
   /*################## ACESSOS #############################*/
   acessosEntryRoute: `/api/acessos/entry`,
   acessosValidateRoute: `/api/acessos/validate`,
-  /*################## OFFPICKS #############################*/
-  getOffpickCard: "/api/offpick/offpick-card",
-  getAllOffpickCards: "/api/offpick/offpick-cards",
-  addOffpickCard: "/api/offpick/offpick-card",
-  updateOffpickCard: "/api/offpick/offpick-card",
-  deleteOffpickCard: "/api/offpick/offpick-card",
-  assignOffpickCard: "/api/offpick/offpick-card/assign",
+  /*################## OFFpeakS #############################*/
+  getOffpeakCard: "/api/offpeak/offpeak-card",
+  getAllOffpeakCards: "/api/offpeak/offpeak-cards",
+  addOffpeakCard: "/api/offpeak/offpeak-card",
+  updateOffpeakCard: "/api/offpeak/offpeak-card",
+  deleteOffpeakCard: "/api/offpeak/offpeak-card",
+  assignOffpeakCard: "/api/offpeak/offpeak-card/assign",
   /*################## Orders & Producuts #############################*/
   // Rotas para Produtos
   addProduct: `/api/orders/product`,
@@ -49,8 +49,8 @@ export const routes = {
   home: {
     url: "/home",
   },
-  offpicks: {
-    url: "/offpicks",
+  offpeaks: {
+    url: "/offpeaks",
   },
   account: {
     url: "/account",
@@ -72,7 +72,7 @@ export const routes = {
     url: "/dashboard",
     entries: "/dashboard/entries",
     products: "/dashboard/products",
-    offpick: "/dashboard/offpick",
+    offpeak: "/dashboard/offpeak",
     orders: "/dashboard/orders",
     users: "/dashboard/users",
     validations: "/dashboard/validations",

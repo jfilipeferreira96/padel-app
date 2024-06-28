@@ -5,7 +5,7 @@ import { Modal, TextInput, Button, Group, Radio, Select, NumberInput } from "@ma
 import { useDisclosure } from "@mantine/hooks";
 import { notifications } from "@mantine/notifications";
 import { z } from "zod";
-import { getOffpickCard, updateOffpickCard, OffpickCardData, monthOptions } from "@/services/offpick.service";
+import { getOffpeakCard, updateOffpeakCard, OffpeakCardData, monthOptions } from "@/services/offpeak.service";
 
 const schema = z.object({
   name: z.string().min(1, { message: "O nome do cartão é obrigatório" }),
@@ -21,7 +21,7 @@ interface Props {
   fetchData: () => Promise<void>;
 }
 
-export default function EditOffpickModal({ isModalOpen, setIsModalOpen, cardId, fetchData }: Props) {
+export default function EditOffpeakModal({ isModalOpen, setIsModalOpen, cardId, fetchData }: Props) {
   const [opened, { open, close }] = useDisclosure(false);
 
   useEffect(() => {
@@ -54,10 +54,10 @@ export default function EditOffpickModal({ isModalOpen, setIsModalOpen, cardId, 
     if (!cardId) return;
 
     try {
-      const response = await getOffpickCard(cardId);
+      const response = await getOffpeakCard(cardId);
       
       if (response.status) {
-        const cardData: OffpickCardData = response.data;
+        const cardData: OffpeakCardData = response.data;
         form.setValues({
           name: cardData.name,
           month: cardData.month,
@@ -75,16 +75,16 @@ export default function EditOffpickModal({ isModalOpen, setIsModalOpen, cardId, 
   };
 
   const onSubmitHandler = useCallback(
-    async (data: Partial<OffpickCardData>) => {
+    async (data: Partial<OffpeakCardData>) => {
       try {
         if (!cardId) return;
 
-        const response = await updateOffpickCard(cardId, data);
+        const response = await updateOffpeakCard(cardId, data);
 
         if (response.status) {
           notifications.show({
             title: "Sucesso",
-            message: "Cartão de offpick atualizado com sucesso",
+            message: "Cartão de offpeak atualizado com sucesso",
             color: "green",
           });
 
@@ -99,7 +99,7 @@ export default function EditOffpickModal({ isModalOpen, setIsModalOpen, cardId, 
       } catch (error) {
         notifications.show({
           title: "Erro",
-          message: "Ocorreu um erro ao atualizar o cartão de offpick",
+          message: "Ocorreu um erro ao atualizar o cartão de offpeak",
           color: "red",
         });
       }
@@ -115,7 +115,7 @@ export default function EditOffpickModal({ isModalOpen, setIsModalOpen, cardId, 
   };
 
   return (
-    <Modal opened={opened} onClose={close} title="Editar Cartão de Offpick" size="md">
+    <Modal opened={opened} onClose={close} title="Editar Cartão de Offpeak" size="md">
       <form onSubmit={form.onSubmit((values) => onSubmitHandler(values))}>
         <TextInput className="specialinput" label="Nome" placeholder="Insira o nome do cartão" required {...form.getInputProps("name")} mb={"sm"} />
 
