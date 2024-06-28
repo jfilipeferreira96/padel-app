@@ -60,7 +60,7 @@ const mockdata = [
   {
     icon: IconSquareRoundedNumber2,
     title: "Pro Padel - Lamas",
-    description: " R. xxxxxxxxxxx, 4535-xxx St. Maria de Lamas",
+    description: "Brevemente",
     href: "https://playtomic.io/propadel/218f0732-34ed-48c1-a6bc-0d4edad92da8",
   },
 ];

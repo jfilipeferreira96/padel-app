@@ -1,6 +1,6 @@
 "use client";
 import { login, LoginData } from "@/services/auth.service";
-import { TextInput, PasswordInput, Checkbox, Anchor, Paper, Title, Text, Container, Group, Button, Center } from "@mantine/core";
+import { TextInput, PasswordInput, Checkbox, Anchor, Paper, Title, Text, Container, Group, Button, Center, Flex, useComputedColorScheme } from "@mantine/core";
 import { useForm, zodResolver } from "@mantine/form";
 import { useRouter } from "next/navigation";
 import { useCallback } from "react";
@@ -9,6 +9,7 @@ import { routes } from "@/config/routes";
 import styled from "styled-components";
 import { useSession } from "@/providers/SessionProvider";
 import { z } from "zod";
+import Image from "next/image";
 
 const StyledPaper = styled(Paper)`
   width: 500px;
@@ -25,6 +26,7 @@ const schema = z.object({
 export default function IniciarSessao() {
   const { sessionLogin } = useSession();
   const router = useRouter();
+  const computedColorScheme = useComputedColorScheme("light", { getInitialValueInEffect: true });
 
   const onSubmitHandler = useCallback(async (data: LoginData) => {
     try {
@@ -66,7 +68,11 @@ export default function IniciarSessao() {
       <title>Iniciar Sessão</title>
 
       <form onSubmit={form.onSubmit((values) => onSubmitHandler(values))}>
-        <Title ta="center" mt={100} size="h1" className="specialheader">
+        <Flex align={"center"} justify={"center"} mt={100}>
+          <Image src={computedColorScheme === "light" ? "/logos/logo-propadel-1.png" : "/logos/logo-propadel-2.png"} alt="Logo" width={120} height={90} />
+        </Flex>
+
+        <Title ta="center" size="h1" className="specialheader">
           Bem-vindo!
         </Title>
 
@@ -85,7 +91,9 @@ export default function IniciarSessao() {
               Esqueceu-se da palavra-passe?
             </Anchor> */}
           </Group>
-          <Button fullWidth type="submit">Iniciar sessão</Button>
+          <Button fullWidth type="submit">
+            Iniciar sessão
+          </Button>
         </StyledPaper>
       </form>
     </Center>

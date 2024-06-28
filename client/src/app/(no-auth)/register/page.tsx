@@ -2,7 +2,7 @@
 import { routes } from "@/config/routes";
 import { useSession } from "@/providers/SessionProvider";
 import { register, RegisterData, UserType } from "@/services/auth.service";
-import { TextInput, PasswordInput, Anchor, Paper, Title, Text, Container, Group, Button, Input, Center, Radio, CheckIcon, CheckboxGroup } from "@mantine/core";
+import { TextInput, PasswordInput, Anchor, Paper, Title, Text, Container, Group, Button, Input, Center, Radio, CheckIcon, CheckboxGroup, Flex, useComputedColorScheme } from "@mantine/core";
 import { useForm, zodResolver } from "@mantine/form";
 import { notifications } from "@mantine/notifications";
 import { useRouter } from "next/navigation";
@@ -11,6 +11,7 @@ import styled from "styled-components";
 import { z } from "zod";
 import { DatePickerInput } from "@mantine/dates";
 import "@mantine/dates/styles.css";
+import Image from "next/image";
 
 const StyledPaper = styled(Paper)`
   width: 500px;
@@ -34,6 +35,7 @@ const schema = z.object({
 export default function Registar() {
   const router = useRouter();
   const { sessionLogin } = useSession();
+  const computedColorScheme = useComputedColorScheme("light", { getInitialValueInEffect: true });
 
   const form = useForm({
     initialValues: {
@@ -78,7 +80,11 @@ export default function Registar() {
     <Center>
       <form onSubmit={form.onSubmit((values) => onSubmitHandler(values))}>
         <title>Registo</title>
-        <Title ta="center" mt={100} className="specialheader">
+        <Flex align={"center"} justify={"center"} mt={100}>
+          <Image src={computedColorScheme === "light" ? "/logos/logo-propadel-1.png" : "/logos/logo-propadel-2.png"} alt="Logo" width={120} height={90} />
+        </Flex>
+
+        <Title ta="center" className="specialheader">
           Crie uma conta!
         </Title>
 

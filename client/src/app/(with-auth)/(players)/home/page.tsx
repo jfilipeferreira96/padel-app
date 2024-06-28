@@ -79,25 +79,6 @@ function Home() {
 
   return (
     <div>
-      <Card shadow="sm" padding="lg" radius="md" mt={20} withBorder p={20} /* className={classes.cardimagem} */>
-        <Title className={classes.titleversion2} ta="center" mb={30}>
-          <span className={classes.outline}>CARTÃO</span> <br />
-          <span className={classes.highlight}>JOGOS</span>
-        </Title>
-
-        <SimpleGrid cols={{ base: 2, xs: 2, sm: 5, md: 5, lg: 5 }} spacing={{ base: 5, sm: "xl" }} verticalSpacing={{ base: "sm", sm: "xl" }}>
-          {rackets.map((racket, index) => (
-            <div key={index} style={{ justifySelf: "center" }}>
-              <CartaoJogos number={index + 1} isFilled={racket.isFilled} />
-            </div>
-          ))}
-        </SimpleGrid>
-
-        <Text ta={"center"} mt="lg" fw={600} className={classes.label}>
-          Válido para jogos com duração de 1h30 em ambos os clubes Mozelos e Santa Maria de Lamas
-        </Text>
-      </Card>
-
       <Card shadow="sm" padding="lg" radius="md" mt={20} withBorder p={20}>
         <Card.Section>
           <div ref={qrRef} className={classes.qrcode}>
@@ -123,6 +104,25 @@ function Home() {
         <Button variant="gradient" gradient={{ from: "blue", to: "cyan", deg: 90 }} fullWidth mt="md" radius="md" rightSection={<IconDownload size={18} />} onClick={handleDownload}>
           Descarregue o seu Código QR
         </Button>
+      </Card>
+
+      <Card shadow="sm" padding="lg" radius="md" mt={20} withBorder p={20} /* className={classes.cardimagem} */>
+        <Title className={classes.titleversion2} ta="center" mb={30}>
+          <span className={classes.outline}>CARTÃO</span> <br />
+          <span className={classes.highlight}>JOGOS</span>
+        </Title>
+
+        <SimpleGrid cols={{ base: 2, xs: 2, sm: 5, md: 5, lg: 5 }} spacing={{ base: 5, sm: "xl" }} verticalSpacing={{ base: "sm", sm: "xl" }}>
+          {rackets.map((racket, index) => (
+            <div key={index} style={{ justifySelf: "center" }}>
+              <CartaoJogos number={index + 1} isFilled={racket.isFilled} />
+            </div>
+          ))}
+        </SimpleGrid>
+
+        <Text ta={"center"} mt="lg" fw={600} className={classes.label}>
+          Válido para jogos com duração de 1h30 em ambos os clubes Mozelos e Santa Maria de Lamas
+        </Text>
       </Card>
     </div>
   );
