@@ -234,7 +234,7 @@ export default function AsignOffpeakModal({ isModalOpen, setIsModalOpen, userId,
 
           <MultiSelect
             mt={"md"}
-            label="Cartões offpeak disponíveis"
+            label="Cartões off peak disponíveis"
             data={availableCards.map((available) => `${available.name} ${available.year}`)}
             clearable
             onChange={handleSelect}

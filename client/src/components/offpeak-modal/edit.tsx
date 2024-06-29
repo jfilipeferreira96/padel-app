@@ -115,7 +115,7 @@ export default function EditOffpeakModal({ isModalOpen, setIsModalOpen, cardId, 
   };
 
   return (
-    <Modal opened={opened} onClose={close} title="Editar Cartão de Offpeak" size="md">
+    <Modal opened={opened} onClose={close} title="Editar Cartão de Off Peak" size="md">
       <form onSubmit={form.onSubmit((values) => onSubmitHandler(values))}>
         <TextInput className="specialinput" label="Nome" placeholder="Insira o nome do cartão" required {...form.getInputProps("name")} mb={"sm"} />
 

@@ -55,7 +55,7 @@ export default function AddOffpeakModal(props: Props) {
       if (response.status) {
         notifications.show({
           title: "Sucesso",
-          message: "Cartão de offpeak adicionado com sucesso",
+          message: "Cartão de off peak adicionado com sucesso",
           color: "green",
         });
         fetchData().finally(close);
@@ -69,7 +69,7 @@ export default function AddOffpeakModal(props: Props) {
     } catch (error) {
       notifications.show({
         title: "Erro",
-        message: "Ocorreu um erro ao adicionar o cartão de offpeak",
+        message: "Ocorreu um erro ao adicionar o cartão de off peak",
         color: "red",
       });
     }
@@ -83,7 +83,7 @@ export default function AddOffpeakModal(props: Props) {
   };
 
   return (
-    <Modal opened={opened} onClose={close} title="Adicionar Cartão de Offpeak" size="md">
+    <Modal opened={opened} onClose={close} title="Adicionar Cartão de Off Peak" size="md">
       <form onSubmit={form.onSubmit((values) => onSubmitHandler(values))}>
         <TextInput className="specialinput" label="Nome" placeholder="Insira o nome do cartão" required {...form.getInputProps("name")} mb={"sm"} />
 

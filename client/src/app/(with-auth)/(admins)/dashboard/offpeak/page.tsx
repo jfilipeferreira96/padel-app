@@ -131,7 +131,7 @@ function CardsOffpeak() {
 
   return (
     <>
-      <h1>Cartões Offpeak</h1>
+      <h1>Cartões Off Peak</h1>
       <AddOffpeakModal isModalOpen={isModalOpenAdd} setIsModalOpen={setIsModalOpenAdd} fetchData={fetchData} />
       <EditOffpeakModal isModalOpen={isModalOpenEdit} setIsModalOpen={setIsModalOpenEdit} fetchData={fetchData} cardId={editCardId} />
 
