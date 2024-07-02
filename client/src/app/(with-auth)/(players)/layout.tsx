@@ -19,7 +19,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const [opened, { toggle }] = useDisclosure();
   const isMobile = useMediaQuery("(max-width: 768px)");
 
- /*  useEffect(() => {
+  useEffect(() => {
     if (!user?.id && isReady) {
       router.push(routes.signin.url)
     }
@@ -27,7 +27,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   if (!user?.id) {
     return <></>;
-  } */
+  }
 
   return (
     <AppShell header={{ height: 70 }} padding="md">

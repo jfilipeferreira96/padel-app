@@ -258,6 +258,18 @@ export function HeaderMegaMenu() {
           </div>
 
           <Divider my="sm" />
+
+          {user && user.user_type === "admin" && (
+            <>
+              <Text c="dimmed" fw={500} p={"xs"} size="md" ml={2}>
+                Aplicação
+              </Text>
+              <div className={classes.link} onClick={() => { router.push(routes.dashboard.url), closeDrawer() }}>
+                Dashboard
+              </div>
+            </>
+          )}
+
           <Text c="dimmed" fw={500} p={"xs"} size="md" ml={2}>
             Configurações
           </Text>
