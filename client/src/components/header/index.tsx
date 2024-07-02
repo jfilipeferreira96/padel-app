@@ -180,21 +180,10 @@ export function HeaderMegaMenu() {
               <div className={classes.link} onClick={() => router.push(routes.offpeaks.url)}>
                 Cartões
               </div>
-              {/*     <div className={classes.link} onClick={() => router.push(routes.store.url)}>
-                Loja
-              </div> */}
+
             </Group>
 
             <Group visibleFrom="sm" gap={2}>
-              {/* <div className={classes.shoppingcart} onClick={() => router.push(routes.cart.url)}>
-                <IconShoppingCart size={20} />
-                {cart && cart.length > 0 && (
-                  <Badge size="xs" style={{ position: "absolute", top: "10px", right: "60px", height: "20px" }}>
-                    {cart.length}
-                  </Badge>
-                )}
-              </div> */}
-
               <Menu width={260} position="bottom-end" transitionProps={{ transition: "pop-top-right" }} onClose={() => setUserMenuOpened(false)} onOpen={() => setUserMenuOpened(true)} withinPortal>
                 <Menu.Target>
                   <UnstyledButton className={cx(classes.user, { [classes.userActive]: userMenuOpened })}>
@@ -263,15 +252,22 @@ export function HeaderMegaMenu() {
           <div className={classes.link} onClick={() => router.push(routes.offpeaks.url)}>
             Cartões
           </div>
-          {/*  <div className={classes.link} onClick={() => router.push(routes.store.url)}>
-            Loja
-          </div> */}
-          {/*           <div className={classes.link}>Carrinho de compras</div>
-           */}{" "}
+
           <Divider my="sm" />
           <Text c="dimmed" fw={500} p={"xs"} size="md" ml={2}>
             Configurações
           </Text>
+          <div className={classes.link} onClick={() => setColorScheme(computedColorScheme === "light" ? "dark" : "light")}>
+
+            <Flex>
+              {computedColorScheme === "light" ?
+                <><IconMoon style={{ width: rem(16), height: rem(16) }} stroke={1.5} /> Modo noturno</>
+                :
+                <><IconSun style={{ width: rem(16), height: rem(16) }} stroke={1.5} /> Modo diurno</>
+              }
+            </Flex>
+            
+          </div>
           <div className={classes.link} onClick={() => router.push(routes.account.url)}>
             Configurações da conta
           </div>
