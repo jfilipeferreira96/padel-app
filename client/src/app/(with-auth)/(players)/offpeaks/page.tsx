@@ -19,6 +19,14 @@ function Offpeaks() {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [userOffPeaksIds, setuserOffPeaksIds] = useState<number[]>([]);
 
+  const getInitialSlide = () => {
+    if (currentYear === new Date().getFullYear())
+    {
+      return new Date().getMonth() + 1;
+    }
+    return 0; // Primeiro mês do ano selecionado
+  };
+
   const fetchData = async () => {
     setIsLoading(true);
 
@@ -124,7 +132,7 @@ function Offpeaks() {
           slideGap="md"
           loop
           align="start"
-          initialSlide={new Date().getMonth() + 1}
+          initialSlide={getInitialSlide()}
           nextControlIcon={<IconChevronRight style={{ width: rem(22), height: rem(22) }} />}
           previousControlIcon={<IconChevronLeft style={{ width: rem(22), height: rem(22)}} />}
         >
