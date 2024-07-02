@@ -38,6 +38,11 @@ import {
   IconLayoutDashboard,
   IconSun,
   IconMoon,
+  IconCalendarTime,
+  IconTrophy,
+  IconTournament,
+  IconGiftCard,
+  IconCards,
 } from "@tabler/icons-react";
 import classes from "./HeaderMegaMenu.module.css";
 import cx from "clsx";
@@ -178,7 +183,7 @@ export function HeaderMegaMenu() {
                 </a>
               )}
               <div className={classes.link} onClick={() => router.push(routes.offpeaks.url)}>
-                Cartões
+                Cartões Off Peak
               </div>
 
             </Group>
@@ -232,29 +237,28 @@ export function HeaderMegaMenu() {
           <Divider my="sm" />
           <UnstyledButton className={classes.link} onClick={toggleLinks}>
             <Center inline>
-              <Box component="span" mr={5}>
-                Reservar
-              </Box>
-              <IconChevronDown style={{ width: rem(16), height: rem(16) }} color={theme.colors.blue[6]} />
+              <IconCalendarTime style={{ width: rem(30), height: rem(25), marginRight: "8px" }} stroke={1.5} />  Reservar
+
+              <IconChevronDown style={{ width: rem(16), height: rem(16), marginLeft: "5px" }} color={theme.colors.blue[6]} />
             </Center>
           </UnstyledButton>
           <Collapse in={linksOpened}>{links}</Collapse>
           {config.torneios && config.torneios !== "" && (
             <div /* onClick={() => closeDrawer()} */>
               <a href={config.torneios} target="_blank" className={classes.link}>
-                Torneios
+                <IconTournament style={{ width: rem(30), height: rem(25), marginRight: "8px" }} stroke={1.5} />  Torneios
               </a>
             </div>
           )}
           {config.ligas && config.ligas !== "" && (
             <div /* onClick={() => closeDrawer()} */>
               <a href={config.ligas} target="_blank" className={classes.link}>
-                Ligas
+                <IconTrophy style={{ width: rem(30), height: rem(25), marginRight: "8px" }} stroke={1.5} />  Ligas
               </a>
             </div>
           )}
           <div className={classes.link} onClick={() => { router.push(routes.offpeaks.url), closeDrawer() }}>
-            Cartões
+            <IconCards style={{ width: rem(30), height: rem(25), marginRight: "8px" }} stroke={1.5} /> Cartões Off Peak
           </div>
 
           <Divider my="sm" />
@@ -265,7 +269,7 @@ export function HeaderMegaMenu() {
                 Aplicação
               </Text>
               <div className={classes.link} onClick={() => { router.push(routes.dashboard.url), closeDrawer() }}>
-                Dashboard
+                <IconLayoutDashboard style={{ width: rem(30), height: rem(25), marginRight: "8px" }} /> Dashboard
               </div>
             </>
           )}
@@ -273,22 +277,22 @@ export function HeaderMegaMenu() {
           <Text c="dimmed" fw={500} p={"xs"} size="md" ml={2}>
             Configurações
           </Text>
-          <div className={classes.link} onClick={() => { setColorScheme(computedColorScheme === "light" ? "dark" : "light"), closeDrawer() }}>
+          <div className={classes.link} onClick={() => { setColorScheme(computedColorScheme === "light" ? "dark" : "light") }}>
 
             <Flex>
               {computedColorScheme === "light" ?
-                <>Modo noturno</>
+                <><IconMoon style={{ width: rem(30), height: rem(25), marginRight: "8px" }} stroke={1.5} /> Modo noturno</>
                 :
-                <>Modo diurno</>
+                <><IconSun style={{ width: rem(30), height: rem(25), marginRight: "8px" }} stroke={1.5} />Modo diurno</>
               }
             </Flex>
             
           </div>
           <div className={classes.link} onClick={() => { router.push(routes.account.url), closeDrawer()}}>
-            Configurações da conta
+            <IconSettings style={{ width: rem(30), height: rem(25), marginRight: "8px" }} /> Configurações da conta
           </div>
           <Group justify="center" grow pb="xl" px="md" mt={"md"}>
-            <Button variant="default" color="gray" leftSection={<IconLogout style={{ width: rem(16), height: rem(16) }} stroke={1.5} />} onClick={logout}>
+            <Button variant="default" color="gray" leftSection={<IconLogout style={{ width: rem(30), height: rem(25) }} stroke={1.5} />} onClick={logout}>
               Terminar sessão
             </Button>
           </Group>
