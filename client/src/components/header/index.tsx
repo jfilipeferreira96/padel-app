@@ -240,16 +240,20 @@ export function HeaderMegaMenu() {
           </UnstyledButton>
           <Collapse in={linksOpened}>{links}</Collapse>
           {config.torneios && config.torneios !== "" && (
-            <a href={config.torneios} target="_blank" className={classes.link}>
-              Torneios
-            </a>
+            <div /* onClick={() => closeDrawer()} */>
+              <a href={config.torneios} target="_blank" className={classes.link}>
+                Torneios
+              </a>
+            </div>
           )}
           {config.ligas && config.ligas !== "" && (
-            <a href={config.ligas} target="_blank" className={classes.link}>
-              Ligas
-            </a>
+            <div /* onClick={() => closeDrawer()} */>
+              <a href={config.ligas} target="_blank" className={classes.link}>
+                Ligas
+              </a>
+            </div>
           )}
-          <div className={classes.link} onClick={() => router.push(routes.offpeaks.url)}>
+          <div className={classes.link} onClick={() => { router.push(routes.offpeaks.url), closeDrawer() }}>
             Cartões
           </div>
 
@@ -257,18 +261,18 @@ export function HeaderMegaMenu() {
           <Text c="dimmed" fw={500} p={"xs"} size="md" ml={2}>
             Configurações
           </Text>
-          <div className={classes.link} onClick={() => setColorScheme(computedColorScheme === "light" ? "dark" : "light")}>
+          <div className={classes.link} onClick={() => { setColorScheme(computedColorScheme === "light" ? "dark" : "light"), closeDrawer() }}>
 
             <Flex>
               {computedColorScheme === "light" ?
-                <><IconMoon style={{ width: rem(16), height: rem(16) }} stroke={1.5} /> Modo noturno</>
+                <>Modo noturno</>
                 :
-                <><IconSun style={{ width: rem(16), height: rem(16) }} stroke={1.5} /> Modo diurno</>
+                <>Modo diurno</>
               }
             </Flex>
             
           </div>
-          <div className={classes.link} onClick={() => router.push(routes.account.url)}>
+          <div className={classes.link} onClick={() => { router.push(routes.account.url), closeDrawer()}}>
             Configurações da conta
           </div>
           <Group justify="center" grow pb="xl" px="md" mt={"md"}>
