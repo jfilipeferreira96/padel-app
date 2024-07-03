@@ -176,7 +176,7 @@ export default function AsignOffpeakModal({ isModalOpen, setIsModalOpen, userId,
   };
 
   return (
-    <Modal opened={opened} onClose={close} title="Ver/atribuir cartões" size="lg">
+    <Modal opened={opened} onClose={close} title="Ver/atribuir cartões" size="xl">
       {isLoading ? (
         <Center mt={50} mih={"40vh"}>
           <Loader color="blue" />

@@ -25,7 +25,7 @@ import {
   useComputedColorScheme,
   Badge,
 } from "@mantine/core";
-import { useDisclosure } from "@mantine/hooks";
+import { useDisclosure, useMediaQuery } from "@mantine/hooks";
 import {
   IconSquareRoundedNumber1,
   IconSquareRoundedNumber2,
@@ -43,6 +43,7 @@ import {
   IconTournament,
   IconGiftCard,
   IconCards,
+  IconHome,
 } from "@tabler/icons-react";
 import classes from "./HeaderMegaMenu.module.css";
 import cx from "clsx";
@@ -81,6 +82,8 @@ export function HeaderMegaMenu() {
   const { setColorScheme } = useMantineColorScheme();
   const computedColorScheme = useComputedColorScheme("light", { getInitialValueInEffect: true });
   const { cart } = useCart();
+  const isMobile = useMediaQuery("(max-width: 481px)");
+
 
   const [config, setConfig] = useState({ torneios: "", ligas: "" });
 
@@ -185,7 +188,6 @@ export function HeaderMegaMenu() {
               <div className={classes.link} onClick={() => router.push(routes.offpeaks.url)}>
                 Cartões Off Peak
               </div>
-
             </Group>
 
             <Group visibleFrom="sm" gap={2}>
@@ -235,29 +237,44 @@ export function HeaderMegaMenu() {
       <Drawer className={classes.drawer} opened={drawerOpened} onClose={closeDrawer} size="100%" padding="md" hiddenFrom="sm" zIndex={1000000}>
         <ScrollArea h={`calc(100vh - ${rem(80)})`} mx="-md">
           <Divider my="sm" />
+
+          <div
+            className={classes.link}
+            onClick={() => {
+              router.push(routes.home.url), closeDrawer();
+            }}
+          >
+            <IconHome style={{ width: rem(30), height: rem(25), marginRight: "8px" }} stroke={1.5} /> Início
+          </div>
+
           <UnstyledButton className={classes.link} onClick={toggleLinks}>
             <Center inline>
-              <IconCalendarTime style={{ width: rem(30), height: rem(25), marginRight: "8px" }} stroke={1.5} />  Reservar
-
+              <IconCalendarTime style={{ width: rem(30), height: rem(25), marginRight: "8px" }} stroke={1.5} /> Reservar
               <IconChevronDown style={{ width: rem(16), height: rem(16), marginLeft: "5px" }} color={theme.colors.blue[6]} />
             </Center>
           </UnstyledButton>
           <Collapse in={linksOpened}>{links}</Collapse>
+
           {config.torneios && config.torneios !== "" && (
             <div /* onClick={() => closeDrawer()} */>
               <a href={config.torneios} target="_blank" className={classes.link}>
-                <IconTournament style={{ width: rem(30), height: rem(25), marginRight: "8px" }} stroke={1.5} />  Torneios
+                <IconTournament style={{ width: rem(30), height: rem(25), marginRight: "8px" }} stroke={1.5} /> Torneios
               </a>
             </div>
           )}
           {config.ligas && config.ligas !== "" && (
             <div /* onClick={() => closeDrawer()} */>
               <a href={config.ligas} target="_blank" className={classes.link}>
-                <IconTrophy style={{ width: rem(30), height: rem(25), marginRight: "8px" }} stroke={1.5} />  Ligas
+                <IconTrophy style={{ width: rem(30), height: rem(25), marginRight: "8px" }} stroke={1.5} /> Ligas
               </a>
             </div>
           )}
-          <div className={classes.link} onClick={() => { router.push(routes.offpeaks.url), closeDrawer() }}>
+          <div
+            className={classes.link}
+            onClick={() => {
+              router.push(routes.offpeaks.url), closeDrawer();
+            }}
+          >
             <IconCards style={{ width: rem(30), height: rem(25), marginRight: "8px" }} stroke={1.5} /> Cartões Off Peak
           </div>
 
@@ -268,7 +285,12 @@ export function HeaderMegaMenu() {
               <Text c="dimmed" fw={500} p={"xs"} size="md" ml={2}>
                 Aplicação
               </Text>
-              <div className={classes.link} onClick={() => { router.push(routes.dashboard.url), closeDrawer() }}>
+              <div
+                className={classes.link}
+                onClick={() => {
+                  router.push(routes.dashboard.url), closeDrawer();
+                }}
+              >
                 <IconLayoutDashboard style={{ width: rem(30), height: rem(25), marginRight: "8px" }} /> Dashboard
               </div>
             </>
@@ -277,18 +299,31 @@ export function HeaderMegaMenu() {
           <Text c="dimmed" fw={500} p={"xs"} size="md" ml={2}>
             Configurações
           </Text>
-          <div className={classes.link} onClick={() => { setColorScheme(computedColorScheme === "light" ? "dark" : "light") }}>
-
+          <div
+            className={classes.link}
+            onClick={() => {
+              setColorScheme(computedColorScheme === "light" ? "dark" : "light");
+            }}
+          >
             <Flex>
-              {computedColorScheme === "light" ?
-                <><IconMoon style={{ width: rem(30), height: rem(25), marginRight: "8px" }} stroke={1.5} /> Modo noturno</>
-                :
-                <><IconSun style={{ width: rem(30), height: rem(25), marginRight: "8px" }} stroke={1.5} />Modo diurno</>
-              }
+              {computedColorScheme === "light" ? (
+                <>
+                  <IconMoon style={{ width: rem(30), height: rem(25), marginRight: "8px" }} stroke={1.5} /> Modo noturno
+                </>
+              ) : (
+                <>
+                  <IconSun style={{ width: rem(30), height: rem(25), marginRight: "8px" }} stroke={1.5} />
+                  Modo diurno
+                </>
+              )}
             </Flex>
-            
           </div>
-          <div className={classes.link} onClick={() => { router.push(routes.account.url), closeDrawer()}}>
+          <div
+            className={classes.link}
+            onClick={() => {
+              router.push(routes.account.url), closeDrawer();
+            }}
+          >
             <IconSettings style={{ width: rem(30), height: rem(25), marginRight: "8px" }} /> Configurações da conta
           </div>
           <Group justify="center" grow pb="xl" px="md" mt={"md"}>

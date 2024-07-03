@@ -9,6 +9,7 @@ import { useDisclosure, useMediaQuery } from "@mantine/hooks";
 import { AppShell, Burger, Group, Skeleton } from "@mantine/core";
 import { HeaderMegaMenu } from "@/components/header";
 import { FooterSocial } from "@/components/footer";
+import { MobileFooter } from "@/components/footer/mobile";
 
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
@@ -17,9 +18,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const [opened, { toggle }] = useDisclosure();
-  const isMobile = useMediaQuery("(max-width: 768px)");
+  const isMobile = useMediaQuery("(max-width: 481px)");
 
-/*   useEffect(() => {
+  useEffect(() => {
     if (!user?.id && isReady) {
       router.push(routes.signin.url)
     }
@@ -27,7 +28,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   if (!user?.id) {
     return <></>;
-  } */
+  }
 
   return (
     <AppShell header={{ height: 70 }} padding="md">
@@ -35,11 +36,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <HeaderMegaMenu />
       </AppShell.Header>
       <>
-        <Container size={"md"} mt={100} mih={760}>
+        <Container size={"md"} mt={100} mih={760} mb={isMobile ? 100 : 0}>
           {children}
         </Container>
       </>
-      <FooterSocial />
+      {isMobile ? <MobileFooter /> : <FooterSocial />}
     </AppShell>
   );
 }
