@@ -220,3 +220,10 @@ table{
     left: 42px;
   }
 }
+
+.logbtn{
+  font-size: var(--text-fz, var(--mantine-font-size-md));
+  line-height: var(--text-lh, var(--mantine-line-height-md));
+  color: var(--mantine-color-anchor);
+  margin-left: 4px;
+}

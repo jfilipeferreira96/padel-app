@@ -5,10 +5,15 @@
   border-bottom: rem(1px) solid light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4));
 }
 
+.groupfix{
+  position: relative;
+  top: -8px;
+}
+
 .logo{
   position: relative;
-  top: -12px;
-  margin-left: 10px;
+  top: 4px;
+  margin-left: 12px;
 }
 
 .user {

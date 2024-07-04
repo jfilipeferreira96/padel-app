@@ -34,50 +34,54 @@ interface NavbarLinkProps {
 
 function NavbarLink({ icon, label, active, onClick, hide, isReservar }: NavbarLinkProps) {
   const theme = useMantineTheme();
+  const [opened, setOpened] = useState(false);
 
-  if (hide) return;
+  const handleMenuToggle = () => {
+    setOpened((prevOpened) => !prevOpened);
+  };
+
+  if (hide) return null;
 
   if (isReservar) {
     return (
-      <>
-        <HoverCard position="bottom" radius="md" shadow="md" withinPortal closeOnClickOutside closeOnEscape withArrow>
-          <HoverCard.Target>
-            <div onClick={onClick} className={classes.reservar}>
-              {icon}
-              <div className={classes.text}>{label}</div>
-            </div>
-          </HoverCard.Target>
-          <HoverCard.Dropdown>
-            <Group justify="space-between" px="md">
-              <Text fw={500}>Faça agora a sua reserva</Text>
-            </Group>
+      <Menu opened={opened} onChange={setOpened} closeOnClickOutside={true} closeOnEscape={true} withArrow trigger="click-hover" offset={8}>
+        <Menu.Target>
+          <div onClick={handleMenuToggle} className={classes.reservar}>
+            {icon}
+            <div className={classes.text}>{label}</div>
+          </div>
+        </Menu.Target>
+        <Menu.Dropdown style={{ "padding": "8px" }}>
+          <Group justify="space-between" px="md">
+            <Text fw={500}>Faça agora a sua reserva</Text>
+          </Group>
 
-            <Divider my="sm" />
+          <Divider my="sm" />
 
-            <SimpleGrid cols={1} spacing={15}>
-              {mockdata.map((item) => (
-                <UnstyledButton className={classes.subLink} key={item.title} onClick={() => window.open(item.href, "_blank")}>
-                  <Group wrap="nowrap" align="flex-start">
-                    <ThemeIcon size={34} variant="default" radius="md">
-                      <item.icon style={{ width: rem(22), height: rem(22) }} color={theme.colors.blue[6]} />
-                    </ThemeIcon>
-                    <div>
-                      <Text size="sm" fw={500}>
-                        {item.title}
-                      </Text>
-                      <Text size="xs" c="dimmed">
-                        {item.description}
-                      </Text>
-                    </div>
-                  </Group>
-                </UnstyledButton>
-              ))}
-            </SimpleGrid>
-          </HoverCard.Dropdown>
-        </HoverCard>
-      </>
+          <SimpleGrid cols={1} spacing={15}>
+            {mockdata.map((item) => (
+              <UnstyledButton className={classes.subLink} key={item.title} onClick={() => window.open(item.href, "_blank")}>
+                <Group wrap="nowrap" align="flex-start">
+                  <ThemeIcon size={34} variant="default" radius="md">
+                    <item.icon style={{ width: rem(22), height: rem(22) }} color={theme.colors.blue[6]} />
+                  </ThemeIcon>
+                  <div>
+                    <Text size="sm" fw={500}>
+                      {item.title}
+                    </Text>
+                    <Text size="xs" c="dimmed">
+                      {item.description}
+                    </Text>
+                  </div>
+                </Group>
+              </UnstyledButton>
+            ))}
+          </SimpleGrid>
+        </Menu.Dropdown>
+      </Menu>
     );
   }
+
   return (
     <Tooltip label={label} position="top" transitionProps={{ duration: 0 }}>
       <div onClick={onClick} data-active={active || undefined} className={active ? classes.linkSelected : classes.link}>
@@ -115,13 +119,13 @@ export function MobileFooter() {
       icon: <IconTournament style={{ width: "100%", height: rem(25) }} stroke={1.5} />,
       label: "Torneios",
       onClick: () => window.open(config.torneios ?? "", "_blank"),
-      hide: config.torneios ? true : false,
+      hide: (!config.torneios || config.torneios == "") ? true : false,
     },
     {
       icon: <IconTrophy style={{ width: "100%", height: rem(25) }} stroke={1.5} />,
       label: "Ligas",
       onClick: () => window.open(config.ligas ?? "", "_blank"),
-      hide: config.ligas ? true : false,
+      hide: (!config.ligas || config.ligas == "") ? true : false,
     },
     {
       icon: <IconCards style={{ width: "100%", height: rem(25) }} stroke={1.5} />,
@@ -132,7 +136,7 @@ export function MobileFooter() {
       },
     },
   ];
-
+  
   useEffect(() => {
     const activeIndex = data.findIndex((item) => {
       if (item.url && !["Torneios", "Ligas"].includes(item.label)) {

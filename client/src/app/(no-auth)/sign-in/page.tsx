@@ -1,6 +1,6 @@
 "use client";
 import { login, LoginData } from "@/services/auth.service";
-import { TextInput, PasswordInput, Checkbox, Anchor, Paper, Title, Text, Container, Group, Button, Center, Flex, useComputedColorScheme } from "@mantine/core";
+import { TextInput, PasswordInput, Checkbox, Anchor, Paper, Title, Text, Container, Group, Button, Center, Flex, useComputedColorScheme, UnstyledButton } from "@mantine/core";
 import { useForm, zodResolver } from "@mantine/form";
 import { useRouter } from "next/navigation";
 import { useCallback } from "react";
@@ -78,9 +78,9 @@ export default function IniciarSessao() {
 
         <Text c="dimmed" size="sm" ta="center" mt={5}>
           Ainda não tem uma conta?
-          <Anchor size="sm" component="a" ml={2} onClick={() => router.push(routes.register.url)}>
+          <UnstyledButton size="sm" onClick={() => router.push(routes.register.url)} className="logbtn">
             Criar conta
-          </Anchor>
+          </UnstyledButton>
         </Text>
 
         <StyledPaper withBorder shadow="md" p={30} mt={30} radius="md">

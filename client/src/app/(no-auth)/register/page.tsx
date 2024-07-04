@@ -2,7 +2,7 @@
 import { routes } from "@/config/routes";
 import { useSession } from "@/providers/SessionProvider";
 import { register, RegisterData, UserType } from "@/services/auth.service";
-import { TextInput, PasswordInput, Anchor, Paper, Title, Text, Container, Group, Button, Input, Center, Radio, CheckIcon, CheckboxGroup, Flex, useComputedColorScheme } from "@mantine/core";
+import { TextInput, PasswordInput, Anchor, Paper, Title, Text, Container, Group, Button, Input, Center, Radio, CheckIcon, CheckboxGroup, Flex, useComputedColorScheme, UnstyledButton } from "@mantine/core";
 import { useForm, zodResolver } from "@mantine/form";
 import { notifications } from "@mantine/notifications";
 import { useRouter } from "next/navigation";
@@ -90,9 +90,9 @@ export default function Registar() {
 
         <Text c="dimmed" size="sm" ta="center" mt={5}>
           Já tem uma conta?
-          <Anchor size="sm" component="a" ml={2} onClick={() => router.push(routes.signin.url)}>
+          <UnstyledButton size="sm" onClick={() => router.push(routes.signin.url)} className="logbtn">
             Iniciar Sessão
-          </Anchor>
+          </UnstyledButton>
         </Text>
 
         <StyledPaper withBorder shadow="md" p={30} mt={30} radius="md">

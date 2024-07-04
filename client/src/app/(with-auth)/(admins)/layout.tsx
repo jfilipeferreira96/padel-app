@@ -39,7 +39,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <AppShell.Navbar>
         <NavbarSimpleColored close={close} />
       </AppShell.Navbar>
-      <AppShell.Main>{children}</AppShell.Main>
+      <AppShell.Main mb={40}>{children}</AppShell.Main>
     </AppShell>
   );
 }
