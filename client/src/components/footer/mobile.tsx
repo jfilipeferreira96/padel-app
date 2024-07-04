@@ -108,19 +108,19 @@ export function MobileFooter() {
       icon: <IconCalendarTime style={{ width: "100%", height: rem(25) }} stroke={1.5} />,
       label: "Reservar",
       url: "#",
-      onClick: () => { },
-      isReservar: true
+      onClick: () => {},
+      isReservar: true,
     },
     {
       icon: <IconTournament style={{ width: "100%", height: rem(25) }} stroke={1.5} />,
       label: "Torneios",
-      onClick: () => window.open("http://www.google.pt", "_blank"),
+      onClick: () => window.open(config.torneios ?? "", "_blank"),
       hide: config.torneios ? true : false,
     },
     {
       icon: <IconTrophy style={{ width: "100%", height: rem(25) }} stroke={1.5} />,
       label: "Ligas",
-      onClick: () => window.open("http://www.google.pt", "_blank"),
+      onClick: () => window.open(config.ligas ?? "", "_blank"),
       hide: config.ligas ? true : false,
     },
     {
