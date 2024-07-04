@@ -19,9 +19,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [opened, { toggle }] = useDisclosure();
   const isMobile = useMediaQuery("(max-width: 481px)");
-
+  
   useEffect(() => {
-    if (!user?.id && isReady) {
+    if (!user?.id) {
       router.push(routes.signin.url)
     }
   }, [isReady])

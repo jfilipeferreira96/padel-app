@@ -137,10 +137,10 @@ export const SessionProvider: React.FC<SessionProviderProps> = ({ children }) =>
   }, []);
 
   useEffect(() => {
-    if (user && isReady) {
+    if (user) {
       fetchConfig();
     }
-  }, [user, isReady]);
+  }, [user]);
 
   const updateUser = (newUserData: Partial<User>) => {
     if (!user) return;

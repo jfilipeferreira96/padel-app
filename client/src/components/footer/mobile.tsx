@@ -98,7 +98,7 @@ export function MobileFooter() {
   const pathname = usePathname();
   const router = useRouter();
   const { config } = useSession();
-
+  
   const data = [
     {
       icon: <IconHome style={{ width: "100%", height: rem(25) }} stroke={1.5} />,
