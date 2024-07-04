@@ -138,7 +138,7 @@ export const SessionProvider: React.FC<SessionProviderProps> = ({ children }) =>
 
   useEffect(() => {
     if (user && isReady) {
-      getConfig();
+      fetchConfig();
     }
   }, [user, isReady]);
 
