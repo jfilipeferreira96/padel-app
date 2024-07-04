@@ -42,7 +42,7 @@ function NavbarLink({ icon, label, active, onClick, hide, isReservar }: NavbarLi
       <>
         <HoverCard position="bottom" radius="md" shadow="md" withinPortal closeOnClickOutside closeOnEscape>
           <HoverCard.Target>
-            <div onClick={onClick} className={classes.link}>
+            <div onClick={onClick} className={classes.reservar}>
               {icon}
               <div className={classes.text}>{label}</div>
             </div>
