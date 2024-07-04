@@ -176,12 +176,12 @@ export function HeaderMegaMenu() {
                 </HoverCard.Dropdown>
               </HoverCard>
               {config.torneios && config.torneios !== "" && (
-                <a href="https://www.padelteams.pt/info/competition?k=Y2lkPTM3NTY%3D" target="_blank" className={classes.link}>
+                <a href={config.torneios} target="_blank" className={classes.link}>
                   Torneios
                 </a>
               )}
               {config.ligas && config.ligas !== "" && (
-                <a href="#" target="_blank" className={classes.link}>
+                <a href={config.ligas} target="_blank" className={classes.link}>
                   Ligas
                 </a>
               )}

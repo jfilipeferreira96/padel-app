@@ -28,7 +28,7 @@ function NavbarLink({ icon, label, active, onClick }: NavbarLinkProps) {
 
 export function MobileFooter() {
   const computedColorScheme = useComputedColorScheme("light", { getInitialValueInEffect: true });
-  const [active, setActive] = useState<number>(0);
+  const [active, setActive] = useState<number>(-1); // Inicializado como -1 para nenhum item ativo
   const pathname = usePathname();
   const router = useRouter();
 
@@ -37,43 +37,41 @@ export function MobileFooter() {
       icon: <IconHome style={{ width: "100%", height: rem(25) }} stroke={1.5} />,
       label: "Início",
       url: routes.home.url,
-      /* action: () => {
+      onClick: () => {
         router.push(routes.home.url);
-        closeDrawer();
-      }, */
+      },
     },
     {
       icon: <IconCalendarTime style={{ width: "100%", height: rem(25) }} stroke={1.5} />,
       label: "Reservar",
       url: "#",
-      //action: () => toggleLinks(),
+      onClick: () => {
+        // abrir div
+      },
     },
     {
       icon: <IconTournament style={{ width: "100%", height: rem(25) }} stroke={1.5} />,
       label: "Torneios",
-      //url: config.torneios,
-      //action: () => window.open(config.torneios, "_blank"),
+      onClick: () => window.open("http://www.google.pt", "_blank"),
     },
     {
       icon: <IconTrophy style={{ width: "100%", height: rem(25) }} stroke={1.5} />,
       label: "Ligas",
-      //url: config.ligas,
-      //action: () => window.open(config.ligas, "_blank"),
+      onClick: () => window.open("http://www.google.pt", "_blank"),
     },
     {
       icon: <IconCards style={{ width: "100%", height: rem(25) }} stroke={1.5} />,
       label: "Off Peak",
       url: routes.offpeaks.url,
-      /* action: () => {
+      onClick: () => {
         router.push(routes.offpeaks.url);
-        closeDrawer();
-      }, */
+      },
     },
   ];
 
   useEffect(() => {
     const activeIndex = data.findIndex((item) => {
-      if (item.url) {
+      if (item.url && !["Torneios", "Ligas"].includes(item.label)) {
         return pathname.includes(item.url);
       }
       return false;
@@ -81,17 +79,25 @@ export function MobileFooter() {
 
     if (activeIndex !== -1) {
       setActive(activeIndex);
+    } else {
+      setActive(-1); // Define como -1 se nenhum item do array data corresponde ao pathname atual
     }
   }, [pathname]);
+
+  const handleNavClick = (index: number) => {
+    if (!["Torneios", "Ligas"].includes(data[index].label)) {
+      setActive(index);
+    }
+    if (data[index].url) {
+      router.push(data[index].url);
+    } else {
+      data[index].onClick();
+    }
+  };
 
   const links = data.map((link, index) => {
     return <NavbarLink {...link} key={link.label} active={index === active} onClick={() => handleNavClick(index)} />;
   });
-
-  const handleNavClick = (index: number) => {
-    setActive(index);
-    //router.push(`${routes.challenge.url}/${getId(pathname)}/${data[index].url}`);
-  };
 
   return (
     <div className={classes.footer}>
