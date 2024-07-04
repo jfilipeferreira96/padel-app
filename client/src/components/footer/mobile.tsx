@@ -1,5 +1,5 @@
-import { rem, Flex, useComputedColorScheme, Tooltip } from "@mantine/core";
-import {  IconCards, IconTournament, IconCalendarTime, IconHome } from "@tabler/icons-react";
+import { rem, Flex, useComputedColorScheme, Tooltip, Menu, Group, HoverCard, Center, Text, Divider, SimpleGrid, Box, Button, UnstyledButton, ThemeIcon, useMantineTheme } from "@mantine/core";
+import {  IconCards, IconTournament, IconCalendarTime, IconHome, IconChevronDown, IconSquareRoundedNumber1, IconSquareRoundedNumber2 } from "@tabler/icons-react";
 import classes from "./MobileFooter.module.css";
 import Image from "next/image";
 import { useEffect, useState } from "react";
@@ -8,17 +8,76 @@ import { routes } from "@/config/routes";
 import { IconTrophy } from "@tabler/icons-react";
 import { useSession } from "@/providers/SessionProvider";
 
+const mockdata = [
+  {
+    icon: IconSquareRoundedNumber1,
+    title: "Pro Padel - Mozelos",
+    description: "R. Ronocar 49 fração B, 4535-367 Mozelos",
+    href: "https://playtomic.io/propadel/218f0732-34ed-48c1-a6bc-0d4edad92da8",
+  },
+  {
+    icon: IconSquareRoundedNumber2,
+    title: "Pro Padel - Lamas",
+    description: "Brevemente",
+    href: "https://playtomic.io/propadel/218f0732-34ed-48c1-a6bc-0d4edad92da8",
+  },
+];
+
 interface NavbarLinkProps {
   icon: React.ReactNode;
   label: string;
   active?: boolean;
   onClick?(): void;
   hide?: boolean;
+  isReservar?: boolean
 }
 
-function NavbarLink({ icon, label, active, onClick, hide }: NavbarLinkProps) {
+function NavbarLink({ icon, label, active, onClick, hide, isReservar }: NavbarLinkProps) {
+  const theme = useMantineTheme();
+
   if (hide) return;
 
+  if (isReservar) {
+    return (
+      <>
+        <HoverCard position="bottom" radius="md" shadow="md" withinPortal closeOnClickOutside closeOnEscape>
+          <HoverCard.Target>
+            <div onClick={onClick} className={classes.link}>
+              {icon}
+              <div className={classes.text}>{label}</div>
+            </div>
+          </HoverCard.Target>
+          <HoverCard.Dropdown>
+            <Group justify="space-between" px="md">
+              <Text fw={500}>Faça agora a sua reserva</Text>
+            </Group>
+
+            <Divider my="sm" />
+
+            <SimpleGrid cols={1} spacing={15}>
+              {mockdata.map((item) => (
+                <UnstyledButton className={classes.subLink} key={item.title} onClick={() => window.open(item.href, "_blank")}>
+                  <Group wrap="nowrap" align="flex-start">
+                    <ThemeIcon size={34} variant="default" radius="md">
+                      <item.icon style={{ width: rem(22), height: rem(22) }} color={theme.colors.blue[6]} />
+                    </ThemeIcon>
+                    <div>
+                      <Text size="sm" fw={500}>
+                        {item.title}
+                      </Text>
+                      <Text size="xs" c="dimmed">
+                        {item.description}
+                      </Text>
+                    </div>
+                  </Group>
+                </UnstyledButton>
+              ))}
+            </SimpleGrid>
+          </HoverCard.Dropdown>
+        </HoverCard>
+      </>
+    );
+  }
   return (
     <Tooltip label={label} position="top" transitionProps={{ duration: 0 }}>
       <div onClick={onClick} data-active={active || undefined} className={active ? classes.linkSelected : classes.link}>
@@ -49,9 +108,8 @@ export function MobileFooter() {
       icon: <IconCalendarTime style={{ width: "100%", height: rem(25) }} stroke={1.5} />,
       label: "Reservar",
       url: "#",
-      onClick: () => {
-        // abrir div
-      },
+      onClick: () => { },
+      isReservar: true
     },
     {
       icon: <IconTournament style={{ width: "100%", height: rem(25) }} stroke={1.5} />,
@@ -91,13 +149,13 @@ export function MobileFooter() {
   }, [pathname]);
 
   const handleNavClick = (index: number) => {
-    if (!["Torneios", "Ligas"].includes(data[index].label)) {
+    if (!["Torneios", "Ligas", "Reservar"].includes(data[index].label)) {
       setActive(index);
     }
     if (data[index].url) {
       router.push(data[index].url);
     } else {
-      data[index].onClick();
+      data[index]?.onClick();
     }
   };
 
