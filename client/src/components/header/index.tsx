@@ -53,8 +53,6 @@ import { useRouter } from "next/navigation";
 import { routes } from "@/config/routes";
 import Image from "next/image";
 import { useCart } from "@/providers/CartProvider";
-import { getConfig } from "@/services/dashboard.service";
-import { notifications } from "@mantine/notifications";
 
 const mockdata = [
   {
@@ -75,8 +73,7 @@ export function HeaderMegaMenu() {
   const [drawerOpened, { toggle: toggleDrawer, close: closeDrawer }] = useDisclosure(false);
   const [linksOpened, { toggle: toggleLinks }] = useDisclosure(false);
   const [userMenuOpened, setUserMenuOpened] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const { user, logout } = useSession();
+  const { user, logout, config } = useSession();
   const theme = useMantineTheme();
   const router = useRouter();
   const { setColorScheme } = useMantineColorScheme();
@@ -84,34 +81,6 @@ export function HeaderMegaMenu() {
   const { cart } = useCart();
   const isMobile = useMediaQuery("(max-width: 481px)");
 
-
-  const [config, setConfig] = useState({ torneios: "", ligas: "" });
-
-  useEffect(() => {
-    getConfig()
-      .then((configResponse) => {
-        if (configResponse.status) {
-          setConfig({
-            torneios: configResponse.data.torneios || "",
-            ligas: configResponse.data.ligas || "",
-          });
-        } else {
-          notifications.show({
-            title: "Erro",
-            message: "Não foi possível carregar as configurações",
-            color: "red",
-          });
-        }
-      })
-      .catch((error) => {
-        notifications.show({
-          title: "Erro",
-          message: "Não foi possível carregar as configurações",
-          color: "red",
-        });
-      })
-      .finally(() => setIsLoading(false));
-  }, []);
 
   const links = mockdata.map((item) => (
     <UnstyledButton className={classes.subLink} key={item.title} onClick={() => window.open(item.href, "_blank")}>
@@ -131,7 +100,7 @@ export function HeaderMegaMenu() {
     </UnstyledButton>
   ));
 
-  if (isLoading) {
+  if (config.isReady === false) {
     return <></>;
   }
 

@@ -5,6 +5,7 @@ import { routes } from "@/config/routes";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import { notifications } from "@mantine/notifications";
 import { UserType } from "@/services/auth.service";
+import { getConfig } from "@/services/dashboard.service";
 
 export interface User {
   id: string;
@@ -13,8 +14,8 @@ export interface User {
   first_name: string;
   last_name: string;
   birthdate: string | Date;
-  locations?: { location_id: number, location_name: string }[]
-  offpeaks?: { offpeak_card_id: number, name: string, valid_until: Date, month: number, year: number}[]
+  locations?: { location_id: number; location_name: string }[];
+  offpeaks?: { offpeak_card_id: number; name: string; valid_until: Date; month: number; year: number }[];
 }
 
 interface DecodedToken extends JwtPayload {
@@ -23,12 +24,14 @@ interface DecodedToken extends JwtPayload {
 }
 
 type sessionProps = (userData: User, accessToken: string, redirect?: boolean | undefined) => void;
+
 interface SessionContextProps {
   user: User | null | any;
   sessionLogin: sessionProps;
   logout: () => void;
   isReady: boolean;
-  updateUser: (newUserData: Partial<User>) => void; 
+  updateUser: (newUserData: Partial<User>) => void;
+  config: { torneios: string; ligas: string, isReady: boolean };
 }
 
 const SessionContext = createContext<SessionContextProps | undefined>(undefined);
@@ -41,8 +44,9 @@ export const SessionProvider: React.FC<SessionProviderProps> = ({ children }) =>
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [isReady, setIsReady] = useState<boolean>(false);
+  const [config, setConfig] = useState({ torneios: "", ligas: "", isReady: false });
   const pathname = usePathname();
-  
+
   const sessionLogin: sessionProps = (userData, accessToken, redirect = true) => {
     setUser(userData);
     localStorage.setItem("accessToken", accessToken);
@@ -70,17 +74,16 @@ export const SessionProvider: React.FC<SessionProviderProps> = ({ children }) =>
         const decodedToken = jwt.decode(accessToken) as DecodedToken;
 
         if (decodedToken.exp * 1000 < currentDate.getTime()) {
-          
-            notifications.show({
-              title: "Erro",
-              message: "Sessão expirou",
-              color: "red",
-            });
-          
+          notifications.show({
+            title: "Erro",
+            message: "Sessão expirou",
+            color: "red",
+          });
+
           logout(true);
           return;
         }
-        
+
         const userData = {
           id: decodedToken.id,
           email: decodedToken.email,
@@ -104,17 +107,43 @@ export const SessionProvider: React.FC<SessionProviderProps> = ({ children }) =>
     }
   };
 
+  const fetchConfig = async () => {
+    try {
+      const configResponse = await getConfig();
+      if (configResponse.status) {
+        setConfig({
+          torneios: configResponse.data.torneios || "",
+          ligas: configResponse.data.ligas || "",
+          isReady: true
+        });
+      } else {
+        notifications.show({
+          title: "Erro",
+          message: "Não foi possível carregar as configurações",
+          color: "red",
+        });
+      }
+    } catch (error) {
+      notifications.show({
+        title: "Erro",
+        message: "Não foi possível carregar as configurações",
+        color: "red",
+      });
+    }
+  };
+
+  useEffect(() => {
+    getSession();
+    fetchConfig();
+  }, []);
+
   const updateUser = (newUserData: Partial<User>) => {
     if (!user) return;
     const updatedUser = { ...user, ...newUserData };
     setUser(updatedUser);
   };
 
-  useEffect(() => {
-    getSession();
-  }, []);
-
-  return <SessionContext.Provider value={{ isReady, user, sessionLogin, logout, updateUser }}>{children}</SessionContext.Provider>;
+  return <SessionContext.Provider value={{ isReady, user, sessionLogin, logout, updateUser, config }}>{children}</SessionContext.Provider>;
 };
 
 export const useSession = (): SessionContextProps => {

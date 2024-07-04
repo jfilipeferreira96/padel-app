@@ -1,21 +1,24 @@
-import { Container, Group, ActionIcon, rem, Flex, useComputedColorScheme, Tooltip } from "@mantine/core";
-import { IconBrandTwitter, IconBrandYoutube, IconBrandInstagram, IconCards, IconTournament, IconCalendarTime, IconHome, IconUser } from "@tabler/icons-react";
+import { rem, Flex, useComputedColorScheme, Tooltip } from "@mantine/core";
+import {  IconCards, IconTournament, IconCalendarTime, IconHome } from "@tabler/icons-react";
 import classes from "./MobileFooter.module.css";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { routes } from "@/config/routes";
 import { IconTrophy } from "@tabler/icons-react";
-import { IconChevronDown } from "@tabler/icons-react";
+import { useSession } from "@/providers/SessionProvider";
 
 interface NavbarLinkProps {
   icon: React.ReactNode;
   label: string;
   active?: boolean;
   onClick?(): void;
+  hide?: boolean;
 }
 
-function NavbarLink({ icon, label, active, onClick }: NavbarLinkProps) {
+function NavbarLink({ icon, label, active, onClick, hide }: NavbarLinkProps) {
+  if (hide) return;
+
   return (
     <Tooltip label={label} position="top" transitionProps={{ duration: 0 }}>
       <div onClick={onClick} data-active={active || undefined} className={active ? classes.linkSelected : classes.link}>
@@ -31,6 +34,7 @@ export function MobileFooter() {
   const [active, setActive] = useState<number>(-1); // Inicializado como -1 para nenhum item ativo
   const pathname = usePathname();
   const router = useRouter();
+  const { config } = useSession();
 
   const data = [
     {
@@ -53,11 +57,13 @@ export function MobileFooter() {
       icon: <IconTournament style={{ width: "100%", height: rem(25) }} stroke={1.5} />,
       label: "Torneios",
       onClick: () => window.open("http://www.google.pt", "_blank"),
+      hide: config.torneios ? true : false,
     },
     {
       icon: <IconTrophy style={{ width: "100%", height: rem(25) }} stroke={1.5} />,
       label: "Ligas",
       onClick: () => window.open("http://www.google.pt", "_blank"),
+      hide: config.ligas ? true : false,
     },
     {
       icon: <IconCards style={{ width: "100%", height: rem(25) }} stroke={1.5} />,
@@ -98,6 +104,10 @@ export function MobileFooter() {
   const links = data.map((link, index) => {
     return <NavbarLink {...link} key={link.label} active={index === active} onClick={() => handleNavClick(index)} />;
   });
+
+  if (config.isReady === false) {
+    return <></>;
+  }
 
   return (
     <div className={classes.footer}>
