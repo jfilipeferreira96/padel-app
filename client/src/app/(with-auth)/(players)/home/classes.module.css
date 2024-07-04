@@ -43,18 +43,14 @@
 }
 
 .outline {
-  font-size:  2.2rem;
-  color: transparent;
-  -webkit-text-stroke-width: 1px;
-  -webkit-text-stroke-color: light-dark(var(--mantine-color-black), var(--mantine-color-white));
-  text-shadow:
-    1px 1px 0 light-dark(var(--mantine-color-white), var(--mantine-color-dark-6)),
-    -1px -1px 0 light-dark(var(--mantine-color-white), var(--mantine-color-dark-6)),
-    1px -1px 0 light-dark(var(--mantine-color-white), var(--mantine-color-dark-6)),
-    -1px 1px 0 light-dark(var(--mantine-color-white), var(--mantine-color-dark-6));
-  font-family: Greycliff CF, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji;
+  font-size: 2.2rem;
+  color: light-dark(var(--mantine-color-white), var(--mantine-color-dark-6))!important;
+  text-shadow: 2px  1px 0  light-dark(var(--mantine-color-black), var(--mantine-color-white)),
+              -1px -1px 0  light-dark(var(--mantine-color-black), var(--mantine-color-white)),
+               1px -1px 0  light-dark(var(--mantine-color-black), var(--mantine-color-white)),
+              -1px  1px 0  light-dark(var(--mantine-color-black), var(--mantine-color-white));
+  letter-spacing: 2px;
 }
-
 .label{
   text-align: center;
   text-transform: uppercase;
