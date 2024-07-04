@@ -153,7 +153,7 @@ export function MobileFooter() {
       setActive(index);
     }
     if (data[index].url) {
-      router.push(data[index].url);
+      router.push(data[index].url as string);
     } else {
       data[index]?.onClick();
     }
