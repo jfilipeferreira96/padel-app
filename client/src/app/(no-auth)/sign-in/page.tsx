@@ -3,7 +3,7 @@ import { login, LoginData } from "@/services/auth.service";
 import { TextInput, PasswordInput, Checkbox, Anchor, Paper, Title, Text, Container, Group, Button, Center, Flex, useComputedColorScheme, UnstyledButton } from "@mantine/core";
 import { useForm, zodResolver } from "@mantine/form";
 import { useRouter } from "next/navigation";
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import { notifications } from "@mantine/notifications";
 import { routes } from "@/config/routes";
 import styled from "styled-components";
@@ -27,8 +27,10 @@ export default function IniciarSessao() {
   const { sessionLogin } = useSession();
   const router = useRouter();
   const computedColorScheme = useComputedColorScheme("light", { getInitialValueInEffect: true });
+  const [isLoading, setIsLoading] = useState(false);
 
   const onSubmitHandler = useCallback(async (data: LoginData) => {
+    setIsLoading(true);
     try {
       const response = await login(data);
 
@@ -40,18 +42,22 @@ export default function IniciarSessao() {
         });
         sessionLogin(response.user, response.accessToken, response.refreshToken);
       }
-      if (response.status === false) {
+      else {
         notifications.show({
           message: response.message,
           color: "red",
         });
       }
-    } catch (error) {
+    }
+    catch (error){
       notifications.show({
         title: "Erro",
         message: "Algo correu mal",
         color: "red",
       });
+    }
+    finally {
+      setIsLoading(false);
     }
   }, []);
 
@@ -91,7 +97,7 @@ export default function IniciarSessao() {
               Esqueceu-se da palavra-passe?
             </Anchor> */}
           </Group>
-          <Button fullWidth type="submit">
+          <Button fullWidth type="submit" disabled={isLoading}>
             Iniciar sessão
           </Button>
         </StyledPaper>

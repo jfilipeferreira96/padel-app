@@ -36,6 +36,7 @@ export default function Registar() {
   const router = useRouter();
   const { sessionLogin } = useSession();
   const computedColorScheme = useComputedColorScheme("light", { getInitialValueInEffect: true });
+  const [isLoading, setIsLoading] = useState(false);
 
   const form = useForm({
     initialValues: {
@@ -50,6 +51,7 @@ export default function Registar() {
   });
 
   const onSubmitHandler = useCallback(async (data: RegisterData) => {
+    setIsLoading(true);
     try {
       const response = await register(data);
       if (response.status) {
@@ -73,6 +75,8 @@ export default function Registar() {
         message: "Algo correu mal",
         color: "red",
       });
+    } finally {
+      setIsLoading(false);
     }
   }, []);
 
@@ -106,7 +110,7 @@ export default function Registar() {
 
           <PasswordInput className="specialinput" label="Palavra-passe" placeholder="Insira a sua palavra-passe" required {...form.getInputProps("password")} />
 
-          <Button fullWidth mt="lg" type="submit">
+          <Button fullWidth mt="lg" type="submit" disabled={isLoading}>
             Criar Conta
           </Button>
         </StyledPaper>
