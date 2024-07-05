@@ -16,12 +16,6 @@
   margin-left: 25%;
 }
 
-.cardimagem{
-  background-size: cover;
-  background-position: center;
-  background-image: url('/grunge-black-concrete-textured-background.jpg');
-}
-
 .titleversion2{
   line-height: 1.2;
   font-weight: 900;

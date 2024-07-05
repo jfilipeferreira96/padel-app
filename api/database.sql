@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS locations (
 
 INSERT INTO `locations` (`location_id`, `name`, `address`, `city`, `country`,  `href`, `created_at`) VALUES 
 (NULL, 'Pro Padel - Mozelos', 'Rua Bairro da Mata, 644, Santa Maria de Lamas', 'Mozelos', 'Portugal', '', current_timestamp()),
-(NULL, 'Pro Padel - Lamas', 'R. Bairro da Mata 644, 4535-404 St. Maria de Lamas', 'Lamas', 'Portugal',  '',current_timestamp());
+(NULL, 'Pro Padel - Lamas', 'Travessa da Salgueirinha, Nº 64, 4535-416 St. M. de Lamas', 'Lamas', 'Portugal',  '',current_timestamp());
 
 -- Criar a tabela 'configs'
 CREATE TABLE IF NOT EXISTS configs (

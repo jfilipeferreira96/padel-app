@@ -7,8 +7,12 @@
   background-color: var(--mantine-color-blue-filled);
 }
 
-.navbarMain {
+.navbarMain { 
   flex: 1;
+  @media (max-width: 481px) {
+    flex: 0;
+    margin-bottom: 0.5rem;
+  }
 }
 
 .header {

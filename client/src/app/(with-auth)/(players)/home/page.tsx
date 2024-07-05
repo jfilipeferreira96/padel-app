@@ -106,7 +106,7 @@ function Home() {
         </Button>
       </Card>
 
-      <Card shadow="sm" padding="lg" radius="md" mt={20} withBorder p={20} /* className={classes.cardimagem} */>
+      <Card shadow="sm" padding="lg" radius="md" mt={20} withBorder p={20}>
         <Title className={classes.titleversion2} ta="center" mb={30}>
           <span className={classes.outline}>CARTÃO</span> <br />
           <span className={classes.highlight}>JOGOS</span>

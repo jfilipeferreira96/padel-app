@@ -18,7 +18,7 @@ const mockdata = [
   {
     icon: IconSquareRoundedNumber2,
     title: "Pro Padel - Lamas",
-    description: "Brevemente",
+    description: "Travessa da Salgueirinha, Nº 64, 4535-416 St. M. de Lamas",
     href: "https://playtomic.io/propadel/218f0732-34ed-48c1-a6bc-0d4edad92da8",
   },
 ];
