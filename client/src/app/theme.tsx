@@ -29,7 +29,7 @@ const colorSchemeManager = localStorageColorSchemeManager({ key: "color-scheme" 
 const Theme = ({ children }: { children: React.ReactNode }) => {
   
   return (
-    <MantineProvider theme={theme} defaultColorScheme="light" colorSchemeManager={colorSchemeManager}>
+    <MantineProvider theme={theme} defaultColorScheme="dark" colorSchemeManager={colorSchemeManager}>
       <SessionProvider>
         <CartProvider>
           <LocationProvider>
