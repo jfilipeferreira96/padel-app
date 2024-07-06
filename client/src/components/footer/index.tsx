@@ -10,7 +10,7 @@ export function FooterSocial() {
     <div className={classes.footer}>
       <Container className={classes.inner} size="md">
         <Flex align={"center"}>
-          <Image src={computedColorScheme === "light" ? "/logos/logo-propadel-1.png" : "/logos/logo-propadel-2.png"} alt="Logo" width={100} height={80} />
+          <Image src={computedColorScheme === "light" ? "/logos/logo-propadel-1.svg" : "/logos/logo-propadel-2.svg"} alt="Logo" width={100} height={80} />
         </Flex>
         <Group gap={0} className={classes.links} justify="flex-end" wrap="nowrap">
           <a href="https://www.facebook.com/propadel.sports/" target="_blank" rel="noopener noreferrer">

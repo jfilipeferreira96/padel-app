@@ -85,7 +85,7 @@ export default function Registar() {
       <form onSubmit={form.onSubmit((values) => onSubmitHandler(values))}>
         <title>Registo</title>
         <Flex align={"center"} justify={"center"} mt={100}>
-          <Image src={computedColorScheme === "light" ? "/logos/logo-propadel-1.png" : "/logos/logo-propadel-2.png"} alt="Logo" width={120} height={90} />
+          <Image src={computedColorScheme === "light" ? "/logos/logo-propadel-1.svg" : "/logos/logo-propadel-2.svg"} alt="Logo" width={120} height={90} />
         </Flex>
 
         <Title ta="center" className="specialheader">

@@ -19,7 +19,7 @@ const mockdata = [
     icon: IconSquareRoundedNumber2,
     title: "Pro Padel - Lamas",
     description: "Travessa da Salgueirinha, Nº 64, 4535-416 St. M. de Lamas",
-    href: "https://playtomic.io/propadel/218f0732-34ed-48c1-a6bc-0d4edad92da8",
+    href: "https://playtomic.io/propadel-smlamas/5bd70b05-a3a3-4bab-9cd1-a6e4bdc046e7",
   },
 ];
 
@@ -44,7 +44,7 @@ function NavbarLink({ icon, label, active, onClick, hide, isReservar }: NavbarLi
 
   if (isReservar) {
     return (
-      <Menu opened={opened} onChange={setOpened} closeOnClickOutside={true} closeOnEscape={true} withArrow trigger="click-hover" offset={8}>
+      <Menu width={"95%"} opened={opened} onChange={setOpened} closeOnClickOutside={true} closeOnEscape={true} withArrow trigger="click-hover" offset={8}>
         <Menu.Target>
           <div onClick={handleMenuToggle} className={classes.reservar}>
             {icon}

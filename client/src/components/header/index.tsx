@@ -65,7 +65,7 @@ const mockdata = [
     icon: IconSquareRoundedNumber2,
     title: "Pro Padel - Lamas",
     description: "Travessa da Salgueirinha, Nº 64, 4535-416 St. M. de Lamas",
-    href: "https://playtomic.io/propadel/218f0732-34ed-48c1-a6bc-0d4edad92da8",
+    href: "https://playtomic.io/propadel-smlamas/5bd70b05-a3a3-4bab-9cd1-a6e4bdc046e7",
   },
 ];
 
@@ -111,7 +111,7 @@ export function HeaderMegaMenu() {
           <Group justify="space-between" h="100%" className={classes.groupfix}>
             <Flex align={"center"}>
               <Image
-                src={computedColorScheme === "light" ? "/logos/logo-propadel-1.png" : "/logos/logo-propadel-2.png"}
+                src={computedColorScheme === "light" ? "/logos/logo-propadel-1.svg" : "/logos/logo-propadel-2.svg"}
                 alt="Logo"
                 width={80}
                 height={60}

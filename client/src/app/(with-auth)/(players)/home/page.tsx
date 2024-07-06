@@ -90,7 +90,7 @@ function Home() {
               level={"H"}
               includeMargin={true}
               imageSettings={{
-                src: "/logos/qrblack.png",
+                src: "/logos/qrblack.svg",
                 x: undefined,
                 y: undefined,
                 height: 30,

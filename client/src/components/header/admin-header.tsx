@@ -19,7 +19,7 @@ export function AdminHeader(props: Props) {
         <Group justify="space-between" h="100%" className={classes.groupfix}>
           <Flex align={"center"}>
             <Image
-              src={computedColorScheme === "light" ? "/logos/logo-propadel-1.png" : "/logos/logo-propadel-2.png"}
+              src={computedColorScheme === "light" ? "/logos/logo-propadel-1.svg" : "/logos/logo-propadel-2.svg"}
               alt="Logo"
               width={80}
               height={60}
