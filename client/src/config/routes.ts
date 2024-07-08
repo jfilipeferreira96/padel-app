@@ -29,13 +29,13 @@ export const endpoints = {
   updateOffpeakCard: "/api/offpeak/offpeak-card",
   deleteOffpeakCard: "/api/offpeak/offpeak-card",
   assignOffpeakCard: "/api/offpeak/offpeak-card/assign",
-  /*################## Orders & Producuts #############################*/
-  // Rotas para Produtos
-  addProduct: `/api/orders/product`,
-  getAllProducts: `/api/orders/products`,
-  getProduct: `/api/orders/product`,
-  updateProduct: `/api/orders/product`,
-  deleteProduct: `/api/orders/product`,
+  /*################## News #############################*/
+  // Rotas para Notícias
+  addNews: `/api/news`,
+  getAllNews: `/api/news/all`,
+  getNews: `/api/news`,
+  updateNews: `/api/news`,
+  deleteNews: `/api/news`,
   // Rotas para Pedidos
   addOrder: `/api/orders/order`,
   getSingleOrder: `/api/orders/order`,

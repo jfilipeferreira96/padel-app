@@ -5,7 +5,7 @@ import { Modal, TextInput, Button, CheckboxGroup, Center, Radio, CheckIcon, Grou
 import { useDisclosure } from "@mantine/hooks";
 import { notifications } from "@mantine/notifications";
 import { z } from "zod";
-import { getProduct, updateProduct, ProductData } from "@/services/product.service";
+import { getNews, NewsData, updateNews } from "@/services/news.service";
 
 const schema = z.object({
   name: z.string().min(1, { message: "O nome do produto é obrigatório" }),
@@ -21,21 +21,21 @@ const schema = z.object({
 interface Props {
   isModalOpen: boolean;
   setIsModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  productId: number | null;
+  newsId: number | null;
   fetchData: () => Promise<void>;
 }
 
-export default function EditProductModal({ isModalOpen, setIsModalOpen, productId, fetchData }: Props) {
+export default function EditNewsModal({ isModalOpen, setIsModalOpen, newsId, fetchData }: Props) {
   const [opened, { open, close }] = useDisclosure(false);
 
   useEffect(() => {
-    if (isModalOpen && productId) {
-      fetchProductData(productId);
+    if (isModalOpen && newsId) {
+      fetchNewsData(newsId);
       open();
     } else {
       close();
     }
-  }, [isModalOpen, open, close, productId]);
+  }, [isModalOpen, open, close, newsId]);
 
   useEffect(() => {
     if (!opened) {
@@ -58,14 +58,14 @@ export default function EditProductModal({ isModalOpen, setIsModalOpen, productI
     validate: zodResolver(schema),
   });
 
-  const fetchProductData = async (productId: number) => {
-    if (!productId) return;
+  const fetchNewsData = async (newsId: number) => {
+    if (!newsId) return;
 
     try {
-      const response = await getProduct(productId);
+      const response = await getNews(newsId);
    
       if (response.status) {
-        const data: ProductData = response.data;
+        const data: NewsData = response.data;
         form.setValues({
           name: data.name,
           description: data.description,
@@ -88,11 +88,11 @@ export default function EditProductModal({ isModalOpen, setIsModalOpen, productI
   };
 
   const onSubmitHandler = useCallback(
-    async (data: Partial<ProductData>) => {
+    async (data: Partial<NewsData>) => {
       try {
-        if (!productId) return;
+        if (!newsId) return;
 
-        const response = await updateProduct(productId, data);
+        const response = await updateNews(newsId, data);
 
         if (response.status) {
           notifications.show({
@@ -117,7 +117,7 @@ export default function EditProductModal({ isModalOpen, setIsModalOpen, productI
         });
       }
     },
-    [productId]
+    [newsId]
   );
 
   return (
