@@ -100,10 +100,11 @@ export const SessionProvider: React.FC<SessionProviderProps> = ({ children }) =>
         logout(false);
         return;
       }
-      setIsReady(true);
     } catch (error) {
       console.error("Erro ao decodificar o token:", error);
       return null;
+    } finally{
+      setIsReady(true);
     }
   };
 

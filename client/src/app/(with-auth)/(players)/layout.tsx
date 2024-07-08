@@ -21,10 +21,13 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const isMobile = useMediaQuery("(max-width: 481px)");
   
   useEffect(() => {
-    if (!user?.id) {
+    if (!isReady) return;
+
+    if (!user?.id && isReady) {
       router.push(routes.signin.url)
     }
-  }, [isReady])
+
+  }, [user, isReady])
 
   if (!user?.id) {
     return <></>;

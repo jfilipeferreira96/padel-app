@@ -71,7 +71,7 @@ function Products() {
   };
 
   useEffect(() => {
-    fetchData();
+    //fetchData();
   }, [activePage, elementsPerPage]);
 
   const handlePageChange = (page: number) =>

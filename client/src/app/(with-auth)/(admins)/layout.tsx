@@ -18,14 +18,16 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const isSmallScreen = useMediaQuery("(max-width: 768px)"); 
   
   useEffect(() => {
-    if (!user?.id) {
-      router.push(routes.signin.url);
+    if (!isReady) return;
+
+    if (!user?.id && isReady) {
+      router.push(routes.signin.url)
     }
 
     if (user && user.user_type !== "admin") {
       router.push(routes.home.url);
     }
-  }, [isReady]);
+  }, [user, isReady])
 
   if (!user?.id || user.user_type !== "admin") {
     return <></>;
