@@ -1,75 +1,40 @@
 "use client";
 import React, { useState, useRef, useEffect } from "react";
-import { TextInput, Paper, PasswordInput, Checkbox, Anchor, Title, Text, Container, Group, Button, Center, SimpleGrid, Image, Card, Badge, Flex, Divider, Loader } from "@mantine/core";
+import { Center, Card, Loader, Title, SimpleGrid, Image, Text, Container, AspectRatio } from "@mantine/core";
 import classes from "./classes.module.css";
-import { QRCodeSVG } from "qrcode.react";
-import { IconDownload } from "@tabler/icons-react";
-import { toPng } from "html-to-image";
 import { useSession } from "@/providers/SessionProvider";
-import { notifications } from "@mantine/notifications";
-import { getUserPunchCard } from "@/services/user.service";
-import { CartaoJogos } from "@/components/padel-racket/cartao-jogos";
+
+const mockdata = [
+  {
+    title: 'Top 10 places to visit in Norway this summer',
+    image:
+      'https://images.unsplash.com/photo-1527004013197-933c4bb611b3?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=720&q=80',
+    date: 'August 18, 2022',
+  },
+  {
+    title: 'Best forests to visit in North America',
+    image:
+      'https://images.unsplash.com/photo-1448375240586-882707db888b?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=720&q=80',
+    date: 'August 27, 2022',
+  },
+  {
+    title: 'Hawaii beaches review: better than you think',
+    image:
+      'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=720&q=80',
+    date: 'September 9, 2022',
+  },
+  {
+    title: 'Mountains at night: 12 best locations to enjoy the view',
+    image:
+      'https://images.unsplash.com/photo-1519681393784-d120267933ba?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=720&q=80',
+    date: 'September 12, 2022',
+  },
+];
 
 function Home() {
-  const [rackets, setRackets] = useState(Array(10).fill({ isFilled: false }));
-  const qrRef = useRef<HTMLDivElement>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
   const { user } = useSession();
 
-  useEffect(() => {
-    const fetchCard = async () => {
-      try {
-        const response = await getUserPunchCard(user.id);
-        if (response.status) {
-          const card = response.actual_card[0];
-          if (card) {
-            const entryCount = card.entry_count ?? 0;
-            let rackets = [];
-
-            for (let i = 1; i <= 10; i++) {
-              rackets.push({ isFilled: i <= entryCount ? true : false });
-            }
-
-            setRackets(rackets);
-          }
-          setIsLoading(false);
-        }
-      } catch (error) {
-        console.error("Error fetching card data:", error);
-        notifications.show({
-          title: "Erro",
-          message: "Algo correu mal",
-          color: "red",
-        });
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchCard();
-  }, [user]);
- 
-  const handleDownload = async () => {
-    if (qrRef.current) {
-      try {
-        const svgElement = qrRef.current.querySelector("svg");
-        if (!svgElement) {
-          throw new Error("SVG element not found");
-        }
-
-        const dataUrl = await toPng(svgElement as unknown as HTMLElement, { backgroundColor: "#ffffff" });
-        const link = document.createElement("a");
-        link.href = dataUrl;
-        link.download = "qrcode.png";
-        link.click();
-      } catch (error) {
-        console.error("Erro ao gerar a imagem do QR code:", error);
-      }
-    }
-  };
-
-
-  if (isLoading) {
+  if (!user) {
     return (
       <Center mt={100} mih={"50vh"}>
         <Loader color="blue" />
@@ -77,53 +42,26 @@ function Home() {
     );
   }
 
+  const cards = mockdata.map((article) => (
+    <Card key={article.title} p="md" radius="md" component="a" href="#" className={classes.card}>
+      <AspectRatio ratio={1920 / 1080}>
+        <Image src={article.image} alt={article.title} />
+      </AspectRatio>
+      <Text c="dimmed" size="xs" tt="uppercase" fw={700} mt="md">
+        {article.date}
+      </Text>
+      <Text className={classes.title} mt={5}>
+        {article.title}
+      </Text>
+    </Card>
+  ));
+
   return (
     <div>
-      <Card shadow="sm" padding="lg" radius="md" mt={20} withBorder p={20}>
-        <Card.Section>
-          <div ref={qrRef} className={classes.qrcode}>
-            <QRCodeSVG
-              value={user?.email}
-              size={220}
-              bgColor={"#ffffff"}
-              fgColor={"#000000"}
-              level={"H"}
-              includeMargin={true}
-              imageSettings={{
-                src: "/logos/qrblack.svg",
-                x: undefined,
-                y: undefined,
-                height: 30,
-                width: 30,
-                excavate: true,
-              }}
-            />
-          </div>
-        </Card.Section>
-
-        <Button variant="gradient" gradient={{ from: "blue", to: "cyan", deg: 90 }} fullWidth mt="md" radius="md" rightSection={<IconDownload size={18} />} onClick={handleDownload}>
-          Descarregue o seu Código QR
-        </Button>
-      </Card>
-
-      <Card shadow="sm" padding="lg" radius="md" mt={20} withBorder p={20}>
-        <Title className={classes.titleversion2} ta="center" mb={30}>
-          <span className={classes.outline}>CARTÃO</span> <br />
-          <span className={classes.highlight}>JOGOS</span>
-        </Title>
-
-        <SimpleGrid cols={{ base: 2, xs: 2, sm: 5, md: 5, lg: 5 }} spacing={{ base: 5, sm: "xl" }} verticalSpacing={{ base: "sm", sm: "xl" }}>
-          {rackets.map((racket, index) => (
-            <div key={index} style={{ justifySelf: "center" }}>
-              <CartaoJogos number={index + 1} isFilled={racket.isFilled} />
-            </div>
-          ))}
-        </SimpleGrid>
-
-        <Text ta={"center"} mt="lg" fw={600} className={classes.label}>
-          Válido para jogos com duração de 1h30 em ambos os clubes Mozelos e Santa Maria de Lamas
-        </Text>
-      </Card>
+      <Title mt={15} className="productheader">
+        Olá José Ferreira 👋
+      </Title>
+      <SimpleGrid cols={{ base: 1, sm: 2 }} mt={20}>{cards}</SimpleGrid>
     </div>
   );
 }

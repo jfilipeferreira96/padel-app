@@ -55,6 +55,12 @@ export const routes = {
   account: {
     url: "/account",
   },
+  carimbos: {
+    url: "/carimbos",
+  },
+  qrcode: {
+    url: "/qrcode",
+  },
   cart: {
     url: "/cart",
   },

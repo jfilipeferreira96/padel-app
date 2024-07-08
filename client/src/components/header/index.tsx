@@ -44,6 +44,9 @@ import {
   IconGiftCard,
   IconCards,
   IconHome,
+  IconQrcode,
+  IconSticker,
+  IconX,
 } from "@tabler/icons-react";
 import classes from "./HeaderMegaMenu.module.css";
 import cx from "clsx";
@@ -144,6 +147,13 @@ export function HeaderMegaMenu() {
                   </SimpleGrid>
                 </HoverCard.Dropdown>
               </HoverCard>
+
+              <div className={classes.link} onClick={() => router.push(routes.qrcode.url)}>
+                QR Code
+              </div>
+              <div className={classes.link} onClick={() => router.push(routes.carimbos.url)}>
+                Carimbos
+              </div>
               {config.torneios && config.torneios !== "" && (
                 <a href={config.torneios} target="_blank" className={classes.link}>
                   Torneios
@@ -203,7 +213,16 @@ export function HeaderMegaMenu() {
         </Container>
       </header>
 
-      <Drawer className={classes.drawer} opened={drawerOpened} onClose={closeDrawer} size="100%" padding="md" hiddenFrom="sm" zIndex={1000000}>
+      <Drawer className={classes.drawer}
+        opened={drawerOpened}
+        onClose={closeDrawer}
+        size="100%" padding="md"
+        hiddenFrom="sm"
+        zIndex={1000000}
+        closeButtonProps={{
+          icon: <IconX size={30} stroke={1.5} color="light-dark(var(--mantine-color-black), var(--mantine-color-white))" />
+        }}
+      >
         <ScrollArea h={`calc(100vh - ${rem(80)})`} mx="-md">
           <Divider my="sm" />
 
@@ -223,6 +242,23 @@ export function HeaderMegaMenu() {
             </Center>
           </UnstyledButton>
           <Collapse in={linksOpened}>{links}</Collapse>
+
+          <div
+            className={classes.link}
+            onClick={() => {
+              router.push(routes.qrcode.url), closeDrawer();
+            }}
+          >
+            <IconQrcode style={{ width: rem(30), height: rem(25), marginRight: "8px" }} stroke={1.5} /> QR Code
+          </div>
+          <div
+            className={classes.link}
+            onClick={() => {
+              router.push(routes.carimbos.url), closeDrawer();
+            }}
+          >
+            <IconSticker style={{ width: rem(30), height: rem(25), marginRight: "8px" }} stroke={1.5} /> Carimbos
+          </div>
 
           {config.torneios && config.torneios !== "" && (
             <div /* onClick={() => closeDrawer()} */>
