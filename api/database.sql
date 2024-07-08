@@ -134,6 +134,18 @@ CREATE TABLE IF NOT EXISTS user_offpeak_cards (
     FOREIGN KEY (assigned_by) REFERENCES users(user_id) ON DELETE SET NULL
 );
 
+CREATE TABLE articles (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    content TEXT NOT NULL,
+    image_url VARCHAR(255) DEFAULT NULL,
+    image_filename VARCHAR(255) DEFAULT NULL,
+    is_file TINYINT(1) DEFAULT 0,
+    pdf_filename VARCHAR(255) DEFAULT NULL,
+    is_active TINYINT(1) DEFAULT 1,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 INSERT INTO offpeak_cards (name, month, year, is_active)
 VALUES 
 ('Cartão Off Peak - Janeiro', 1, 2024, 1),
