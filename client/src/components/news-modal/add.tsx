@@ -1,47 +1,47 @@
-import { useEffect, useCallback } from "react";
+import { TextInput, Paper, Text, Button, Center, Radio, CheckIcon, CheckboxGroup, Modal, Group, NumberInput, FileInput } from "@mantine/core";
 import { useForm, zodResolver } from "@mantine/form";
-import { DatePickerInput } from "@mantine/dates";
-import { Modal, TextInput, Button, Center, Radio, CheckIcon, Group } from "@mantine/core";
-import { useDisclosure } from "@mantine/hooks";
 import { notifications } from "@mantine/notifications";
+import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useState } from "react";
 import { z } from "zod";
-import { getNews, NewsData, updateNews } from "@/services/news.service";
+import { useDisclosure } from "@mantine/hooks";
+import { addNews, NewsData } from "@/services/news.service";
+import { IconFile } from "@tabler/icons-react";
+import { DateInput } from "@mantine/dates";
+import "@mantine/dates/styles.css";
 
 const schema = z.object({
-  title: z.string().min(1, { message: "O título da notícia é obrigatório" }),
-  content: z.string(),
-  author: z.string().min(1, { message: "O autor é obrigatório" }),
+  title: z.string().min(1, { message: "O título é obrigatório" }),
   is_active: z.string(),
+  date: z.date(),
 });
 
-interface Props
-{
+interface Props {
   isModalOpen: boolean;
   setIsModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  newsId: number | null;
   fetchData: () => Promise<void>;
 }
 
-export default function EditNewsModal({ isModalOpen, setIsModalOpen, newsId, fetchData }: Props)
-{
+export default function AddNewsModal(props: Props) {
+  const { isModalOpen, setIsModalOpen, fetchData } = props;
   const [opened, { open, close }] = useDisclosure(false);
 
-  useEffect(() =>
-  {
-    if (isModalOpen && newsId)
-    {
-      fetchNewsData(newsId);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [pdfFile, setPdfFile] = useState<File | null>(null);
+
+  useEffect(() => {
+    if (isModalOpen) {
+      form.reset();
+      setImageFile(null);
+      setPdfFile(null);
       open();
-    } else
-    {
+    } else {
       close();
     }
-  }, [isModalOpen, open, close, newsId]);
+  }, [isModalOpen, open, close]);
 
-  useEffect(() =>
-  {
-    if (!opened)
-    {
+  useEffect(() => {
+    if (!opened) {
       setIsModalOpen(false);
       form.reset();
     }
@@ -50,70 +50,37 @@ export default function EditNewsModal({ isModalOpen, setIsModalOpen, newsId, fet
   const form = useForm({
     initialValues: {
       title: "",
-      content: "",
-      author: "",
       is_active: "1",
+      date: new Date(),
     },
     validate: zodResolver(schema),
   });
 
-  const fetchNewsData = async (newsId: number) =>
-  {
-    if (!newsId) return;
-
-    try
-    {
-      const response = await getNews(newsId);
-
-      if (response.status)
-      {
-        const data: NewsData = response.data;
-        form.setValues({
-          title: data.title,
-          content: data.content,
-          author: data.author,
-          is_active: data.is_active.toString(),
-        });
-      }
-
-    } catch (error)
-    {
-      notifications.show({
-        title: "Erro",
-        message: "Falha ao carregar os dados da notícia",
-        color: "red",
-      });
-    }
-  };
-
   const onSubmitHandler = useCallback(
-    async (data: Partial<NewsData>) =>
-    {
-      try
-      {
-        if (!newsId) return;
-
-        const response = await updateNews(newsId, data);
-
-        if (response.status)
-        {
+    async (data: Partial<NewsData>) => {
+      try {
+        const payload = {
+          ...data,
+          image_path: imageFile ? imageFile.name : null,
+          download_path: pdfFile ? pdfFile.name : null,
+        };
+      
+        const response = await addNews(payload);
+        if (response.status) {
           notifications.show({
             title: "Sucesso",
-            message: "Notícia atualizada com sucesso",
+            message: "",
             color: "green",
           });
-
-          fetchData().finally(() => close());
-        } else
-        {
+          fetchData().finally(close);
+        } else {
           notifications.show({
             title: "Erro",
             message: response.message,
             color: "red",
           });
         }
-      } catch (error)
-      {
+      } catch (error) {
         notifications.show({
           title: "Erro",
           message: "Ocorreu um erro",
@@ -121,29 +88,59 @@ export default function EditNewsModal({ isModalOpen, setIsModalOpen, newsId, fet
         });
       }
     },
-    [newsId, fetchData, close]
+    [imageFile, pdfFile, fetchData, close]
   );
 
   return (
-    <Modal opened={opened} onClose={close} title="Editar Notícia" size="md">
-      <form onSubmit={form.onSubmit((values) => onSubmitHandler(values))}>
-        <TextInput label="Título" placeholder="Insira o título da notícia" required {...form.getInputProps("title")} mb={"sm"} />
+    <Modal opened={opened} onClose={close} title="Adicionar Produto" size="lg">
+      <>
+        <form onSubmit={form.onSubmit((values) => onSubmitHandler(values))}>
+          <TextInput label="Título" placeholder="Insira o título" required {...form.getInputProps("title")} mb={"sm"} />
 
-        <TextInput label="Conteúdo" placeholder="Insira o conteúdo da notícia" {...form.getInputProps("content")} mb={"sm"} />
+          <FileInput
+            className="specialinput"
+            rightSection={<IconFile />}
+            label="Imagem de capa"
+            placeholder="Imagem"
+            rightSectionPointerEvents="none"
+            mt={10}
+            radius="lg"
+            clearable
+            onChange={(file) => {
+              form.setFieldValue("image", file);
+              setImageFile(file);
+            }}
+          />
 
-        <TextInput label="Autor" placeholder="Insira o autor da notícia" required {...form.getInputProps("author")} mb={"sm"} />
+          <FileInput
+            className="specialinput"
+            rightSection={<IconFile />}
+            label="Ficheiro para download"
+            placeholder="Exemplo - PDF"
+            rightSectionPointerEvents="none"
+            mt={10}
+            radius="lg"
+            onChange={(file) => {
+              form.setFieldValue("pdf", file);
+              setPdfFile(file);
+            }}
+            clearable
+          />
 
-        <Radio.Group name="is_active" label="Ativo" withAsterisk {...form.getInputProps("is_active")} required mb={"sm"}>
-          <Group mt="xs" defaultValue={"1"}>
-            <Radio value={"1"} label="Sim" icon={CheckIcon} />
-            <Radio value={"2"} label="Não" icon={CheckIcon} />
-          </Group>
-        </Radio.Group>
+          <DateInput valueFormat="YYYY-MM-DD" required {...form.getInputProps("date")} mb={"sm"} label="Data" placeholder="Data" />
 
-        <Button fullWidth mt="lg" type="submit">
-          Editar
-        </Button>
-      </form>
+          <Radio.Group name="is_active" label="Ativo" withAsterisk {...form.getInputProps("is_active")} required mb={"sm"}>
+            <Group mt="xs" defaultValue={"1"}>
+              <Radio value={"1"} label="Sim" checked icon={CheckIcon} />
+              <Radio value={"0"} label="Não" icon={CheckIcon} />
+            </Group>
+          </Radio.Group>
+
+          <Button fullWidth mt="lg" type="submit">
+            Adicionar
+          </Button>
+        </form>
+      </>
     </Modal>
   );
 }

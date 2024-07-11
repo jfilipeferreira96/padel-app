@@ -1,22 +1,44 @@
 const { StatusCodes } = require("http-status-codes");
 const db = require("../config/db");
 const Logger = require("../utils/logger");
+const fs = require("fs");
+const path = require("path");
 
 class ArticlesController {
   static async addArticle(req, res, next) {
     try {
-      const { title, content, author, image_url, image_filename, is_file, pdf_filename, is_ative } = req.body;
-
-      if (!title || !content) {
-        return res.status(200).json({ status: false, message: "Título e Conteúdo são obrigatórios." });
+      const { title, content, image_path, download_path, is_active } = req.body;
+      console.log(req.body);
+      if (!title) {
+        return res.status(200).json({ status: false, message: "Título  são obrigatórios." });
       }
 
       const query = `
-        INSERT INTO articles (title, content, author, image_url, image_filename, is_file, pdf_filename, is_ative)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO articles (title, content, image_path, download_path, user_id, is_active)
+        VALUES (?, ?, ?, ?, ?, ?)
       `;
 
-      await db.query(query, [title, content, author, image_url, image_filename, is_file, pdf_filename, is_ative]);
+      const { rows: newArticle } = await db.query(query, [title, content, image_path, download_path ?? image_path, req.user?.id, is_active]);
+
+      const articleId = newArticle.insertId;
+      console.log(Array.isArray(req.files), req.files);
+      // Loop dos arquivos enviados
+      // Verifica se req.files é um array de arquivos
+      if (Array.isArray(req.files) && req.files.length > 0) {
+        // Loop através dos arquivos enviados e mova-os para a pasta de armazenamento
+        req.files.forEach((file) => {
+          const fileName = file.originalname;
+          console.log(fileName);
+          const storagePath = `src/uploads/${articleId}`;
+          //Tratamento de ficheiros
+          if (!fs.existsSync(storagePath)) {
+            fs.mkdirSync(storagePath, { recursive: true });
+          }
+          console.log(storagePath, fileName);
+          const filePath = path.join(storagePath, fileName);
+          fs.writeFileSync(filePath, file.buffer);
+        });
+      }
 
       return res.status(201).json({ status: true, message: "Artigo adicionado com sucesso." });
     } catch (ex) {
@@ -32,12 +54,14 @@ class ArticlesController {
       let query = `
         SELECT *
         FROM articles
+        LEFT JOIN users ON articles.user_id = users.user_id
         WHERE 1 = 1
       `;
 
       let totalCountQuery = `
         SELECT COUNT(*) as count
         FROM articles
+        LEFT JOIN users ON articles.user_id = users.user_id
         WHERE 1 = 1
       `;
 
@@ -45,18 +69,12 @@ class ArticlesController {
 
       // Filtros
       if (req.body.filters) {
-        const { title, author } = req.body.filters;
+        const { title } = req.body.filters;
 
         if (title) {
           query += ` AND title LIKE ?`;
           totalCountQuery += ` AND title LIKE ?`;
           params.push(`%${title}%`);
-        }
-
-        if (author) {
-          query += ` AND author LIKE ?`;
-          totalCountQuery += ` AND author LIKE ?`;
-          params.push(`%${author}%`);
         }
       }
 
@@ -68,9 +86,14 @@ class ArticlesController {
       const { rows } = await db.query(query, params);
       const { rows: totalCountRows } = await db.query(totalCountQuery, params.slice(0, params.length - 2)); // Remover parâmetros de limite e offset
 
+      const data = rows.map((row) => ({
+        ...row,
+        author: `${row.first_name} ${row.last_name}`,
+      }));
+
       return res.status(200).json({
         status: true,
-        data: rows,
+        data,
         pagination: { page, limit, orderBy, order, total: parseInt(totalCountRows[0].count) },
       });
     } catch (ex) {

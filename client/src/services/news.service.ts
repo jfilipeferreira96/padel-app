@@ -1,6 +1,7 @@
 import api from "@/config/api";
 import { endpoints } from "@/config/routes";
 import { Pagination } from "./dashboard.service";
+import { addToFormData } from "@/utils/formData";
 
 export interface NewsData
 {
@@ -38,7 +39,16 @@ export const addNews = async (data: Partial<NewsData>) =>
 {
   try
   {
-    const response = await api.post(endpoints.addNews, data);
+    const formData = new FormData();
+    addToFormData(data, formData);
+
+    const response = await api.post(endpoints.addNews, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+
+    //const response = await api.post(endpoints.addNews, data);
     return response.data;
   } catch (error)
   {

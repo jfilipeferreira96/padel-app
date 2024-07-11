@@ -47,25 +47,6 @@ function Carimbos() {
     fetchCard();
   }, [user]);
  
-  const handleDownload = async () => {
-    if (qrRef.current) {
-      try {
-        const svgElement = qrRef.current.querySelector("svg");
-        if (!svgElement) {
-          throw new Error("SVG element not found");
-        }
-
-        const dataUrl = await toPng(svgElement as unknown as HTMLElement, { backgroundColor: "#ffffff" });
-        const link = document.createElement("a");
-        link.href = dataUrl;
-        link.download = "qrcode.png";
-        link.click();
-      } catch (error) {
-        console.error("Erro ao gerar a imagem do QR code:", error);
-      }
-    }
-  };
-
 
   if (isLoading) {
     return (

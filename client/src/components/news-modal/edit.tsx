@@ -8,14 +8,8 @@ import { z } from "zod";
 import { getNews, NewsData, updateNews } from "@/services/news.service";
 
 const schema = z.object({
-  name: z.string().min(1, { message: "O nome do produto é obrigatório" }),
-  description: z.string(),
-  price: z.number().min(0, { message: "O preço não pode ser negativo" }),
+  title: z.string().min(1, { message: "O título é obrigatório" }),
   is_active: z.string(),
-  /*   stock: z.number().int().positive({ message: "O stock deve ser um número inteiro positivo" }),
-  category: z.string().nullable(),
-  url_image_1: z.string().nullable(),
-  url_image_2: z.string().nullable(), */
 });
 
 interface Props {
@@ -67,14 +61,8 @@ export default function EditNewsModal({ isModalOpen, setIsModalOpen, newsId, fet
       if (response.status) {
         const data: NewsData = response.data;
         form.setValues({
-          name: data.name,
-          description: data.description,
-          price: parseFloat(data.price as any),
-          is_active: data.is_active.toString(),
-          stock: data.stock,
-          category: data.category ? data.category : (null as any),
-          url_image_1: data.url_image_1 ? data.url_image_1 : (null as any),
-          url_image_2: data.url_image_2 ? data.url_image_2 : (null as any),
+          title: data.title,
+
         });
       } 
       
@@ -121,13 +109,10 @@ export default function EditNewsModal({ isModalOpen, setIsModalOpen, newsId, fet
   );
 
   return (
-    <Modal opened={opened} onClose={close} title="Editar Produto" size="md">
+    <Modal opened={opened} onClose={close} title="Editar Produto" size="lg">
       <form onSubmit={form.onSubmit((values) => onSubmitHandler(values))}>
-        <TextInput label="Nome" placeholder="Insira o nome do produto" required {...form.getInputProps("name")} mb={"sm"} />
+        <TextInput label="Título" placeholder="Insira o título" required {...form.getInputProps("title")} mb={"sm"} />
 
-        <TextInput label="Descrição" placeholder="Insira a descrição do produto" {...form.getInputProps("description")} mb={"sm"} />
-
-        <NumberInput label="Preço" placeholder="Insira o preço do produto" suffix="€" mb={"sm"} required {...form.getInputProps("price")} min={0} />
 
         <Radio.Group name="is_active" label="Ativo" withAsterisk {...form.getInputProps("is_active")} required mb={"sm"}>
           <Group mt="xs" defaultValue={"1"}>

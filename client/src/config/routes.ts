@@ -31,11 +31,11 @@ export const endpoints = {
   assignOffpeakCard: "/api/offpeak/offpeak-card/assign",
   /*################## News #############################*/
   // Rotas para Notícias
-  addNews: `/api/news`,
-  getAllNews: `/api/news/all`,
-  getNews: `/api/news`,
-  updateNews: `/api/news`,
-  deleteNews: `/api/news`,
+  addNews: `/api/articles/add`,
+  getAllNews: `/api/articles/all`,
+  getNews: `/api/articles/article`,
+  updateNews: `/api/articles/article`,
+  deleteNews: `/api/articles/article`,
   // Rotas para Pedidos
   addOrder: `/api/orders/order`,
   getSingleOrder: `/api/orders/order`,
@@ -77,7 +77,7 @@ export const routes = {
   dashboard: {
     url: "/dashboard",
     entries: "/dashboard/entries",
-    products: "/dashboard/products",
+    articles: "/dashboard/articles",
     offpeak: "/dashboard/offpeak",
     orders: "/dashboard/orders",
     users: "/dashboard/users",

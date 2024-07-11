@@ -16,7 +16,7 @@ function getBadge(isActive: number)
 
 interface News
 {
-  news_id: number;
+  id: number;
   title: string;
   content: string;
   author: string;
@@ -53,8 +53,8 @@ function News()
       const pagination = {
         page: activePage,
         limit: elementsPerPage,
-        orderBy: 'news_id',
-        order: 'ASC'
+        orderBy: 'id',
+        order: 'DESC'
       }
 
       const response = await getAllNews(pagination);
@@ -105,24 +105,22 @@ function News()
   const finalIndex = initialIndex + elementsPerPage;
 
   const rows = news?.map((article) => (
-    <Table.Tr key={article.news_id} bg={selectedRows.includes(article.news_id) ? "var(--mantine-color-blue-light)" : undefined}>
+    <Table.Tr key={article.id} bg={selectedRows.includes(article.id) ? "var(--mantine-color-blue-light)" : undefined}>
       <Table.Td>
         <Badge variant="filled" size="md" fw={700} color={getBadge(article.is_active).color} style={{ minWidth: "110px" }}>
           {getBadge(article.is_active).name}
         </Badge>
       </Table.Td>
       <Table.Td>{article.title}</Table.Td>
-      <Table.Td>{article.content ? article.content : "-"}</Table.Td>
       <Table.Td>{article.author}</Table.Td>
       <Table.Td>
         <Group gap={0} justify="center">
-          <Tooltip label={"Delete News"} withArrow position="top">
+          <Tooltip label={"Apagar Notícias"} withArrow position="top">
             <ActionIcon
               variant="subtle"
               color="red"
-              onClick={() =>
-              {
-                setDeleteNewsId(article.news_id);
+              onClick={() => {
+                setDeleteNewsId(article.id);
                 open();
               }}
             >
@@ -130,8 +128,8 @@ function News()
             </ActionIcon>
           </Tooltip>
 
-          <Tooltip label={"Edit News"} withArrow position="top">
-            <ActionIcon variant="subtle" onClick={() => handleEditClick(article.news_id)}>
+          <Tooltip label={"Editar Notícias"} withArrow position="top">
+            <ActionIcon variant="subtle" onClick={() => handleEditClick(article.id)}>
               <IconPencil size={20} stroke={1.5} />
             </ActionIcon>
           </Tooltip>
@@ -155,21 +153,16 @@ function News()
           variant="filled"
           color="red"
           size="md"
-          onClick={() =>
-          {
-            if (deleteNewsId)
-            {
+          onClick={() => {
+            if (deleteNewsId) {
               deleteNews(deleteNewsId)
-                .then((res) =>
-                {
-                  if (res.status === true)
-                  {
+                .then((res) => {
+                  if (res.status === true) {
                     notifications.show({
                       message: res.message,
                       color: "red",
                     });
-                  } else
-                  {
+                  } else {
                     notifications.show({
                       title: "Erro",
                       message: "Algo correu mal",
@@ -177,8 +170,7 @@ function News()
                     });
                   }
                 })
-                .finally(() =>
-                {
+                .finally(() => {
                   close(), fetchData();
                 });
             }
@@ -208,8 +200,7 @@ function News()
             variant="light"
             color="green"
             rightSection={<IconPlus size={18} />}
-            onClick={() =>
-            {
+            onClick={() => {
               setIsModalOpenAdd(true);
             }}
           >
@@ -223,7 +214,6 @@ function News()
               <Table.Tr>
                 <Table.Th>Estado</Table.Th>
                 <Table.Th>Título</Table.Th>
-                <Table.Th>Conteúdo</Table.Th>
                 <Table.Th>Autor</Table.Th>
                 <Table.Th>Ações</Table.Th>
               </Table.Tr>

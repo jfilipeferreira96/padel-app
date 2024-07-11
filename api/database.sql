@@ -137,12 +137,11 @@ CREATE TABLE IF NOT EXISTS user_offpeak_cards (
 CREATE TABLE articles (
     id INT AUTO_INCREMENT PRIMARY KEY,
     title VARCHAR(255) NOT NULL,
-    content TEXT NOT NULL,
-    image_url VARCHAR(255) DEFAULT NULL,
-    image_filename VARCHAR(255) DEFAULT NULL,
-    is_file TINYINT(1) DEFAULT 0,
-    pdf_filename VARCHAR(255) DEFAULT NULL,
+    content TEXT DEFAULT NULL,
+    image_path TEXT DEFAULT NULL,
+    download_path TEXT DEFAULT NULL,
     is_active TINYINT(1) DEFAULT 1,
+    user_id INT NOT NULL, 
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 

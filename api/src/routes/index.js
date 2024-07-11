@@ -1,3 +1,4 @@
+const express = require("express");
 const path = require("path");
 const { Router } = require("express");
 const { authenticateToken } = require("../middleware/auth.middleware");
@@ -31,5 +32,22 @@ routes.use("/api/acessos", authenticateToken, acessosRoutes);
 routes.use("/api/dashboard", authenticateToken, dashboardRoutes);
 routes.use("/api/articles", authenticateToken, articlesRoutes);
 routes.use("/api/offpeak", authenticateToken, offpeakCardsRoutes);
+
+// Servir arquivos estáticos da pasta /uploads
+routes.use("/api/uploads", express.static(path.join(__dirname, "../uploads")));
+
+// Rota para download de arquivos da pasta /uploads
+routes.get("/api/download/:folder/:filename", (req, res) => {
+  const folder = req.params.folder;
+  const filename = req.params.filename;
+  const filePath = path.join(__dirname, "../uploads", folder, filename);
+
+  res.download(filePath, (err) => {
+    if (err) {
+      console.log("Erro ao fazer o download:", err);
+      res.status(404).json({ message: "Arquivo não encontrado." });
+    }
+  });
+});
 
 module.exports = routes;
