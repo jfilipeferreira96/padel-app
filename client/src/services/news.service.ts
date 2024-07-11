@@ -9,6 +9,7 @@ export interface NewsData
   content: string;
   author: string;
   is_active: number | string;
+  date: Date | string;
 }
 
 export const getNews = async (newsId: number) =>

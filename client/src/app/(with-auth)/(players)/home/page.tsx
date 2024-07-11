@@ -12,8 +12,8 @@ import dayjs from "dayjs";
 import "dayjs/locale/pt";
 dayjs.locale('pt');  
 
-const ArticleCard = ({ article }: { article: { title: string; image_path: string; download_path: string; date: string, is_ative: boolean } }) => {
-  if (!article.is_ative) return;
+const ArticleCard = ({ article }: { article: { title: string; image_path: string; download_path: string; date: string, is_active: boolean } }) => {
+  if (!article.is_active) return;
   
   const handleClickOutside = (e: { stopPropagation: () => void }) => {
     e.stopPropagation();
@@ -82,7 +82,7 @@ const baseUrl = process.env.NEXT_PUBLIC_API || "http://localhost:5005/";
 const Home = () => {
   const { user } = useSession();
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [data, setData] = useState<{ title: string; image_path: string; download_path: string; date: string, is_ative: boolean }[]>([]);
+  const [data, setData] = useState<{ title: string; image_path: string; download_path: string; date: string, is_active: boolean }[]>([]);
 
   useEffect(() => {
     const fetchCard = async () => {
@@ -96,11 +96,12 @@ const Home = () => {
 
         const response = await getAllNews(pagination);
         if (response.status) {
-          const transformedData = response.data.map((arr: { id: number; title: string; image_path: string; download_path: string; date: string }) => ({
+          const transformedData = response.data.map((arr: { id: number; title: string; image_path: string; download_path: string; date: string; is_active: boolean }) => ({
             title: arr.title,
             image_path: arr.image_path ? `${baseUrl}api/uploads/${arr.id}/${arr.image_path}` : null,
             download_path: arr.download_path ? `${baseUrl}api/download/${arr.id}/${arr.download_path}` : null,
-            date: dayjs(arr.date).format("MMMM D, YYYY"), 
+            date: arr.date ? dayjs(arr.date).format("MMMM D, YYYY") : null,
+            is_active: arr.is_active,
           }));
           setData(transformedData);
         }

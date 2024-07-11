@@ -1,7 +1,6 @@
 import { TextInput, Paper, Text, Button, Center, Radio, CheckIcon, CheckboxGroup, Modal, Group, NumberInput, FileInput } from "@mantine/core";
 import { useForm, zodResolver } from "@mantine/form";
 import { notifications } from "@mantine/notifications";
-import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { z } from "zod";
 import { useDisclosure } from "@mantine/hooks";
@@ -9,6 +8,7 @@ import { addNews, NewsData } from "@/services/news.service";
 import { IconFile } from "@tabler/icons-react";
 import { DateInput } from "@mantine/dates";
 import "@mantine/dates/styles.css";
+import dayjs from "dayjs"; 
 
 const schema = z.object({
   title: z.string().min(1, { message: "O título é obrigatório" }),
@@ -63,8 +63,9 @@ export default function AddNewsModal(props: Props) {
           ...data,
           image_path: imageFile ? imageFile.name : null,
           download_path: pdfFile ? pdfFile.name : null,
+          date: dayjs(data.date).format("YYYY-MM-DD")
         };
-      
+
         const response = await addNews(payload);
         if (response.status) {
           notifications.show({

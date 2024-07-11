@@ -8,7 +8,7 @@ class ArticlesController {
   static async addArticle(req, res, next) {
     try {
       const { title, content, image_path, download_path, is_active, date } = req.body;
-
+      console.log(title, content, image_path, download_path, is_active, date);
       if (!title) {
         return res.status(200).json({ status: false, message: "Título  são obrigatórios." });
       }
