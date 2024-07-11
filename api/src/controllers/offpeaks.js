@@ -142,18 +142,6 @@ class OffpeakCardsController {
       const offpeakCardId = req.params.id;
       const { name, month, year, is_active } = req.body;
 
-      // Verificar se já existe um cartão com o mesmo nome, excluindo o próprio cartão que está sendo atualizado
-      const checkNameQuery = `
-      SELECT COUNT(*) as count
-      FROM offpeak_cards
-      WHERE name = ? AND offpeak_card_id != ?
-    `;
-      const { rows: checkNameResult } = await db.query(checkNameQuery, [name, offpeakCardId]);
-
-      if (checkNameResult && checkNameResult[0].count > 0) {
-        return res.status(200).json({ status: false, message: "Já existe um cartão com o mesmo nome." });
-      }
-
       // Verificar se já existe um cartão com o mesmo mês e ano, excluindo o próprio cartão que está sendo atualizado
       const checkQuery = `
       SELECT COUNT(*) as count

@@ -56,11 +56,11 @@ export const addNews = async (data: Partial<NewsData>) =>
   }
 };
 
-export const updateNews = async (newsId: number, data: Partial<NewsData>) =>
+export const updateNews = async (newsId: number) =>
 {
   try
   {
-    const response = await api.put(`${endpoints.updateNews}/${newsId}`, data);
+    const response = await api.put(`${endpoints.updateNews}/${newsId}`);
     return response.data;
   } catch (error)
   {

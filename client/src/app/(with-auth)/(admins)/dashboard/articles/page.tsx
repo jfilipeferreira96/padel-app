@@ -1,11 +1,10 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { Card, Table, Checkbox, Pagination as MantinePagination, Center, Text, Select, Flex, Badge, SimpleGrid, Skeleton, Grid, Tooltip, ActionIcon, rem, Group, Button, Modal } from "@mantine/core";
-import { deleteNews, getAllNews } from "@/services/news.service";
-import { IconEye, IconPencil, IconPlus, IconTrash } from "@tabler/icons-react";
+import { deleteNews, getAllNews, updateNews } from "@/services/news.service";
+import { IconCircleLetterA, IconCircleLetterD, IconEye, IconPencil, IconPlus, IconTrash } from "@tabler/icons-react";
 import AddNewsModal from "@/components/news-modal/add";
 import { useDisclosure } from "@mantine/hooks";
-import EditNewsModal from "@/components/news-modal/edit";
 import { notifications } from "@mantine/notifications";
 import { usePathname } from "next/navigation";
 
@@ -40,8 +39,6 @@ function News()
   const [loading, setLoading] = useState<boolean>(true);
   const [totalElements, setTotalElements] = useState<number>(0);
   const [isModalOpenAdd, setIsModalOpenAdd] = useState<boolean>(false);
-  const [isModalOpenEdit, setIsModalOpenEdit] = useState<boolean>(false);
-  const [editNewsId, setEditNewsId] = useState<number | null>(null);
   const [deleteNewsId, setDeleteNewsId] = useState<number | null>(null);
   const [opened, { open, close }] = useDisclosure(false);
 
@@ -84,10 +81,26 @@ function News()
     setActivePage(page);
   };
 
-  const handleEditClick = (newsId: number) =>
-  {
-    setEditNewsId(newsId);
-    setIsModalOpenEdit(true);
+  const handleEditClick = (newsId: number) => {
+  
+    updateNews(newsId)
+      .then((res) => {
+        if (res.status === true) {
+          notifications.show({
+            message: res.message,
+            color: "red",
+          });
+        } else {
+          notifications.show({
+            title: "Erro",
+            message: "Algo correu mal",
+            color: "red",
+          });
+        }
+      })
+      .finally(() => {
+        close(), fetchData();
+      });
   };
 
   const handleElementsPerPageChange = (value: string | null) =>
@@ -128,9 +141,9 @@ function News()
             </ActionIcon>
           </Tooltip>
 
-          <Tooltip label={"Editar Notícias"} withArrow position="top">
+          <Tooltip label={article.is_active ? "Desativar" : "Ativar"} withArrow position="top">
             <ActionIcon variant="subtle" onClick={() => handleEditClick(article.id)}>
-              <IconPencil size={20} stroke={1.5} />
+              {article.is_active ? <IconCircleLetterD size={20} stroke={1.5} /> : <IconCircleLetterA size={20} stroke={1.5} />}
             </ActionIcon>
           </Tooltip>
         </Group>
@@ -142,7 +155,6 @@ function News()
     <>
       <h1>Notícias</h1>
       <AddNewsModal isModalOpen={isModalOpenAdd} setIsModalOpen={setIsModalOpenAdd} fetchData={fetchData} />
-      <EditNewsModal isModalOpen={isModalOpenEdit} setIsModalOpen={setIsModalOpenEdit} fetchData={fetchData} newsId={editNewsId} />
 
       <Modal opened={opened} onClose={close} withCloseButton={false}>
         <Center>

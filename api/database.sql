@@ -142,6 +142,7 @@ CREATE TABLE articles (
     download_path TEXT DEFAULT NULL,
     is_active TINYINT(1) DEFAULT 1,
     user_id INT NOT NULL, 
+    date DATE DEFAULT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 

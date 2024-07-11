@@ -7,21 +7,20 @@ const path = require("path");
 class ArticlesController {
   static async addArticle(req, res, next) {
     try {
-      const { title, content, image_path, download_path, is_active } = req.body;
-      console.log(req.body);
+      const { title, content, image_path, download_path, is_active, date } = req.body;
+
       if (!title) {
         return res.status(200).json({ status: false, message: "Título  são obrigatórios." });
       }
 
       const query = `
-        INSERT INTO articles (title, content, image_path, download_path, user_id, is_active)
-        VALUES (?, ?, ?, ?, ?, ?)
+        INSERT INTO articles (title, content, image_path, download_path, user_id, is_active, date)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
       `;
 
-      const { rows: newArticle } = await db.query(query, [title, content, image_path, download_path ?? image_path, req.user?.id, is_active]);
+      const { rows: newArticle } = await db.query(query, [title, content, image_path, download_path ?? image_path, req.user?.id, is_active, date]);
 
       const articleId = newArticle.insertId;
-      console.log(Array.isArray(req.files), req.files);
       // Loop dos arquivos enviados
       // Verifica se req.files é um array de arquivos
       if (Array.isArray(req.files) && req.files.length > 0) {
@@ -128,19 +127,24 @@ class ArticlesController {
   static async updateArticle(req, res, next) {
     try {
       const articleId = req.params.id;
-      const { title, content, author, image_url, image_filename, is_file, pdf_filename } = req.body;
 
-      const query = `
-      UPDATE articles
-      SET title = ?, content = ?, author = ?, image_url = ?, image_filename = ?, is_file = ?, pdf_filename = ?, is_ative  = ?
-      WHERE id = ?
-    `;
+      // Verifica se o artigo existe antes de tentar atualizá-lo
+      const findArticleQuery = `
+        SELECT * FROM articles WHERE id = ?
+      `;
+      const articleResult = await db.query(findArticleQuery, [articleId]);
 
-      const { rows } = await db.query(query, [title, content, author, image_url, image_filename, is_file, pdf_filename, is_ative, articleId]);
-
-      if (rows.length === 0) {
-        return res.status(200).json({ status: false, message: "Artigo não encontrado." });
+      if (articleResult.rows.length === 0) {
+        return res.status(404).json({ status: false, message: "Artigo não encontrado." });
       }
+
+      const currentIsActive = articleResult.rows[0].is_active;
+      const newIsActive = currentIsActive === 1 ? 0 : 1;
+
+      const updateQuery = `
+        UPDATE articles SET is_active = ? WHERE id = ?
+      `;
+      await db.query(updateQuery, [newIsActive, articleId]);
 
       return res.status(200).json({ status: true, message: "Artigo atualizado com sucesso." });
     } catch (ex) {
@@ -162,6 +166,18 @@ class ArticlesController {
 
       if (rows.length === 0) {
         return res.status(200).json({ status: false, message: "Artigo não encontrado." });
+      }
+
+      const storagePath = path.join(__dirname, "../uploads", articleId.toString());
+
+      if (fs.existsSync(storagePath)) {
+        // Verifica se é um diretório antes de tentar removê-lo
+        if (fs.lstatSync(storagePath).isDirectory()) {
+          fs.rmdirSync(storagePath, { recursive: true });
+        } else {
+          // Caso não seja um diretório, trata como um erro (embora isso seja improvável aqui)
+          Logger.error(`O caminho ${storagePath} não é um diretório.`);
+        }
       }
 
       return res.status(200).json({ status: true, message: "Artigo eliminado com sucesso." });
