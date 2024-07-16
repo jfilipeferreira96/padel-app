@@ -68,8 +68,10 @@ function QrReader(props: Props) {
         color: "red",
       });
     } finally {
-      setIsProcessing(false);
-      form.reset();
+      setTimeout(() => {
+        setIsProcessing(false);
+        form.reset();
+      }, 1000); // 1 segundo de atraso antes de limpar
     }
   };
 

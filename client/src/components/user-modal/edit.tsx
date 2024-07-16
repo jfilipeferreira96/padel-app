@@ -114,7 +114,7 @@ export default function EditUserModal({ isModalOpen, setIsModalOpen, userId, fet
   );
 
   return (
-    <Modal opened={opened} onClose={close} title="Editar Utilizador" size="md">
+    <Modal opened={opened} onClose={close} title="Editar Utilizador" size="lg">
       <form onSubmit={form.onSubmit((values) => onSubmitHandler(values))}>
         <TextInput className="specialinput" label="Primeiro Nome" placeholder="Insira o seu primeiro nome" required {...form.getInputProps("first_name")} mb={"sm"} />
 

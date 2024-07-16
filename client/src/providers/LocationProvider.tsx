@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from "react";
 import { useSession } from "./SessionProvider";
 
-interface Location {
+export interface Location {
   label: string;
   value: number | null;
 }

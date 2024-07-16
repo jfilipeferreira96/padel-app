@@ -1,5 +1,6 @@
 import api from "@/config/api";
 import { endpoints } from "@/config/routes";
+import { Location } from "@/providers/LocationProvider";
 
 export interface LoginData {
   email: string;
@@ -18,6 +19,7 @@ export interface RegisterData {
   last_name: string;
   password: string;
   birthdate?: string | Date;
+  locations?: Location[] | any
 }
 
 export const login = async (data: LoginData) => {

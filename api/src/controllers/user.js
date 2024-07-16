@@ -104,29 +104,45 @@ class UserController {
 
   static async register(req, res, next) {
     try {
-      const { email, password, first_name, last_name, birthdate } = req.body;
-
+      const { email, password, first_name, last_name, birthdate, user_type, locations } = req.body;
+      console.log(req.body);
       if (!email || !password) {
-        return res.status(200).json({ status: false, error: "Bad Request", message: "Email and password are required" });
+        return res.status(200).json({ status: false, error: "Pedido Inválido", message: "Email e password são obrigatórios" });
       }
 
       const query = "SELECT * FROM users WHERE email = ?";
       const { rows } = await db.query(query, [email]);
 
       if (rows.length > 0) {
-        return res.status(200).json({ error: "Bad Request", message: "Email already used" });
+        return res.status(200).json({ error: "Pedido Inválido", message: "Email já em uso" });
       }
 
       const hashedPassword = await bcrypt.hash(password, 10);
       const formattedBirthdate = birthdate ? new Date(birthdate).toISOString().slice(0, 19).replace("T", " ") : null;
 
-      const insertQuery = "INSERT INTO users (password, email, first_name, last_name, birthdate, user_type) VALUES (?, ?, ?, ?, ?, ?)";
-      const newUser = await db.query(insertQuery, [hashedPassword, email, first_name, last_name, formattedBirthdate, "player"]);
+      let newUser;
+
+      if (user_type === "admin") {
+        const insertQuery = "INSERT INTO users (password, email, first_name, last_name, birthdate, user_type) VALUES (?, ?, ?, ?, ?, ?)";
+        newUser = await db.query(insertQuery, [hashedPassword, email, first_name, last_name, formattedBirthdate, "admin"]);
+
+        if (locations && Array.isArray(locations) && locations.length > 0) {
+          const admin_id = newUser.rows.insertId;
+
+          const insertLocationsQuery = "INSERT INTO admin_locations (admin_id, location_id) VALUES ";
+          const values = locations.map((loc) => `(${admin_id}, ${loc.value})`).join(", ");
+
+          await db.query(insertLocationsQuery + values);
+        }
+      } else {
+        const insertQuery = "INSERT INTO users (password, email, first_name, last_name, birthdate, user_type) VALUES (?, ?, ?, ?, ?, ?)";
+        newUser = await db.query(insertQuery, [hashedPassword, email, first_name, last_name, formattedBirthdate, "player"]);
+      }
 
       const accessToken = UserController.generateAccessToken({
         id: newUser.rows.insertId,
         email: email,
-        user_type: "player",
+        user_type: user_type === "admin" ? "admin" : "player",
         first_name: first_name,
         last_name: last_name,
         birthdate: birthdate,
