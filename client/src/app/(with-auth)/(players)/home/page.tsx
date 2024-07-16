@@ -97,7 +97,7 @@ const Home = () => {
         };
 
         const response = await getAllNews(pagination);
-        console.log(response)
+        
         if (response.status) {
           const transformedData = response.data.map((arr: { id: number; title: string; image_path: string; download_path: string; date: string; is_active: boolean }) => ({
             title: arr.title,

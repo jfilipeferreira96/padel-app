@@ -39,7 +39,7 @@ export default function AddUserModal(props: Props) {
   const { location, setLocation, availableLocations } = useLocation();
   const [selectedLocations, setSelectedLocations] = useState<string[] | undefined>([]);
   const [locs, setLocs] = useState<Location[] | any>([]);
-
+  
   useEffect(() => {
     if (isModalOpen) {
       form.reset();

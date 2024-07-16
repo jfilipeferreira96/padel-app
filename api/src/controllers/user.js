@@ -105,7 +105,7 @@ class UserController {
   static async register(req, res, next) {
     try {
       const { email, password, first_name, last_name, birthdate, user_type, locations } = req.body;
-      console.log(req.body);
+
       if (!email || !password) {
         return res.status(200).json({ status: false, error: "Pedido Inválido", message: "Email e password são obrigatórios" });
       }
@@ -237,8 +237,23 @@ class UserController {
         return res.status(200).json({ error: "User not found" });
       }
 
+      const data = rows[0];
+      let locations = [];
+      if (data.user_type === "admin") {
+        const locationsQuery = `
+          SELECT al.location_id, l.name as location_name 
+          FROM admin_locations al 
+          LEFT JOIN locations l ON al.location_id = l.location_id 
+          WHERE al.admin_id = ?
+        `;
+
+        const locationsResult = await db.query(locationsQuery, [data.user_id]);
+        locations = locationsResult.rows;
+      }
+
       const user = {
         ...rows[0],
+        locations,
         offpeaks: JSON.parse(rows[0].offpeaks),
       };
 
@@ -363,7 +378,7 @@ class UserController {
 
   static async updateUser(req, res, next) {
     const userId = req.params.id;
-    const { email, first_name, last_name, birthdate, user_type = "player" } = req.body;
+    const { email, first_name, last_name, birthdate, user_type = "player", locations } = req.body;
 
     try {
       if (!req.body) {
@@ -398,7 +413,25 @@ class UserController {
       WHERE user_id = ?
     `;
       const formattedBirthdate = birthdate ? new Date(birthdate).toISOString().slice(0, 19).replace("T", " ") : null;
-      const { rows } = await db.query(updateQuery, [email, first_name, last_name, formattedBirthdate, user_type, userId]);
+      await db.query(updateQuery, [email, first_name, last_name, formattedBirthdate, user_type, userId]);
+
+      // Se o utilizador for do tipo admin e locations for zero ou não definido, apagar todas as entradas de admin_locations
+      if (user_type === "admin" && (!locations || locations.length === 0)) {
+        // Apagar todas as entradas existentes do admin_locations para o utilizador
+        const deleteQuery = "DELETE FROM admin_locations WHERE admin_id = ?";
+        await db.query(deleteQuery, [userId]);
+      } else if (user_type === "admin" && locations && locations.length > 0) {
+        // Se houver locations, atualizar admin_locations
+        // Apagar todas as entradas existentes do admin_locations para o utilizador
+        const deleteQuery = "DELETE FROM admin_locations WHERE admin_id = ?";
+        await db.query(deleteQuery, [userId]);
+
+        // Inserir novas entradas para as locations recebidas
+        const insertLocationsQuery = "INSERT INTO admin_locations (admin_id, location_id) VALUES ";
+        const values = locations.map((loc) => `(${userId}, ${loc.value})`).join(", ");
+
+        await db.query(insertLocationsQuery + values);
+      }
 
       return res.status(200).json({
         status: true,

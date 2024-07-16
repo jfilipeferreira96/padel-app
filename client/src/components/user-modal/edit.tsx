@@ -2,12 +2,13 @@
 import { useEffect, useCallback, useState } from "react";
 import { useForm, zodResolver } from "@mantine/form";
 import { DatePickerInput } from "@mantine/dates";
-import { Modal, TextInput, PasswordInput, Button, Group, Radio, CheckIcon } from "@mantine/core";
+import { Modal, TextInput, PasswordInput, Button, Group, Radio, CheckIcon, MultiSelect } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { notifications } from "@mantine/notifications";
 import { z } from "zod";
 import { getUser, updateUser, UserData } from "@/services/user.service";
 import { UserType } from "@/services/auth.service";
+import { useLocation } from "@/providers/LocationProvider";
 
 const schema = z.object({
   first_name: z.string().min(1, { message: "O primeiro nome é obrigatório" }),
@@ -29,12 +30,17 @@ interface Props {
 
 export default function EditUserModal({ isModalOpen, setIsModalOpen, userId, fetchData }: Props) {
   const [opened, { open, close }] = useDisclosure(false);
-
+  const { location, setLocation, availableLocations } = useLocation();
+  const [selectedLocations, setSelectedLocations] = useState<string[] | undefined>([]);
+  const [locs, setLocs] = useState<Location[] | any>([]);
+  
   useEffect(() => {
     if (isModalOpen && userId) {
       fetchUserData(userId);
       open();
     } else {
+      setSelectedLocations([]);
+      setLocs([]);
       close();
     }
   }, [isModalOpen, open, close, userId]);
@@ -42,6 +48,8 @@ export default function EditUserModal({ isModalOpen, setIsModalOpen, userId, fet
   useEffect(() => {
     if (!opened) {
       setIsModalOpen(false);
+      setSelectedLocations([]);
+      setLocs([]);
       form.reset();
     }
   }, [opened, setIsModalOpen]);
@@ -62,7 +70,7 @@ export default function EditUserModal({ isModalOpen, setIsModalOpen, userId, fet
 
     try {
       const userData: UserData = await getUser(userId);
-
+      
       form.setValues({
         first_name: userData.first_name,
         last_name: userData.last_name,
@@ -70,7 +78,22 @@ export default function EditUserModal({ isModalOpen, setIsModalOpen, userId, fet
         birthdate: userData.birthdate ? new Date(userData.birthdate) : (undefined as any),
         user_type: userData.user_type,
       });
-      
+
+      // Verificar se userData.locations está definido
+      if (userData.locations && userData.locations.length > 0) {
+        const data: any = userData.locations;
+        const selectedLocationNames = data.map((loc:any) => loc.location_name);
+        const selectedLocationOptions = data.map((loc: any) => ({
+          label: loc.location_name,
+          value: loc.location_id,
+        }));
+
+        setSelectedLocations(selectedLocationNames);
+        setLocs(selectedLocationOptions);
+      } else {
+        setSelectedLocations([]);
+        setLocs([]);
+      }
     } catch (error) {
       notifications.show({
         title: "Erro",
@@ -80,13 +103,24 @@ export default function EditUserModal({ isModalOpen, setIsModalOpen, userId, fet
     }
   };
 
+  const handleLocationChange = (values: string[] | null) => {
+    if (values === null) {
+      return;
+    }
+
+    setSelectedLocations(values);
+    const selectedLocationObjects = values.map((value) => availableLocations.find((loc) => loc.label === value));
+    setLocs(selectedLocationObjects);
+  };
+
+
   const onSubmitHandler = useCallback(
     async (data: Partial<UserData>) => {
       try {
         if (!userId) return;
-      
-        const response = await updateUser(userId, data);
-        
+        const sendData = { ...data, locations: locs };
+        const response = await updateUser(userId, sendData);
+
         if (response.status) {
           notifications.show({
             title: "Sucesso",
@@ -110,7 +144,7 @@ export default function EditUserModal({ isModalOpen, setIsModalOpen, userId, fet
         });
       }
     },
-    [userId]
+    [userId, selectedLocations, locs]
   );
 
   return (
@@ -130,6 +164,19 @@ export default function EditUserModal({ isModalOpen, setIsModalOpen, userId, fet
             <Radio value={UserType.PLAYER} label={UserType.PLAYER} icon={CheckIcon} style={{ textTransform: "capitalize" }} />
           </Group>
         </Radio.Group>
+
+        {form.values.user_type === UserType.ADMIN && (
+          <MultiSelect
+            label="Localizações disponíveis"
+            placeholder="Selecione uma ou mais localizações"
+            data={availableLocations.map((loc) => loc.label)}
+            value={selectedLocations}
+            onChange={handleLocationChange}
+            clearable
+            mb={"sm"}
+            required
+          />
+        )}
 
         <Button fullWidth mt="lg" type="submit">
           Editar
