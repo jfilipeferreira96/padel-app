@@ -37,18 +37,17 @@ class AcessosController {
       }
 
       // Verificar se o utilizador tem alguma entrada nos últimos 10 minutos
-      /* const recentEntryQuery = `
+      const recentEntryQuery = `
       SELECT entry_id
       FROM entries
       WHERE user_id = ? AND entry_time >= NOW() - INTERVAL 10 MINUTE
     `;
 
-    const { rows } = await db.query(recentEntryQuery, [userId]);
+      const { rows } = await db.query(recentEntryQuery, [userId]);
 
-    if (rows.length > 0) {
-      return res.status(400).json({ status: false, message: "O utilizador já registou uma entrada nos últimos 10 minutos." });
-    }
-    */
+      if (rows.length > 0) {
+        return res.status(400).json({ status: false, message: "O utilizador já registou uma entrada nos últimos 10 minutos." });
+      }
 
       const query = `
       INSERT INTO entries (user_id, location_id)
