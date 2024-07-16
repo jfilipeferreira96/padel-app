@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { Center, Card, Loader, Title, SimpleGrid, Image, Text, AspectRatio, UnstyledButton } from "@mantine/core";
+import { Center, Card, Loader, Title, SimpleGrid, Image, Text, AspectRatio, UnstyledButton, Flex, Pagination } from "@mantine/core";
 import classes from "./classes.module.css";
 import { useSession } from "@/providers/SessionProvider";
 import "photoswipe/dist/photoswipe.css";
@@ -8,9 +8,9 @@ import { Gallery, Item } from "react-photoswipe-gallery";
 import { IconDownload, IconX } from "@tabler/icons-react";
 import { notifications } from "@mantine/notifications";
 import { getAllNews } from "@/services/news.service";
-import dayjs from "dayjs"; 
+import dayjs from "dayjs";
 import "dayjs/locale/pt";
-dayjs.locale('pt');  
+dayjs.locale("pt");
 
 const ArticleCard = ({ article }: { article: { title: string; image_path: string; download_path: string; date: string, is_active: boolean } }) => {
   if (!article.is_active) return;
@@ -32,7 +32,6 @@ const ArticleCard = ({ article }: { article: { title: string; image_path: string
               <UnstyledButton
                 onClick={(e) => {
                   e.stopPropagation();
-                 
                   if (article.download_path) {
                     window.open(article.download_path, "_blank");
                   } else {
@@ -82,19 +81,23 @@ const baseUrl = process.env.NEXT_PUBLIC_API || "http://localhost:5005/";
 const Home = () => {
   const { user } = useSession();
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [data, setData] = useState<{ title: string; image_path: string; download_path: string; date: string, is_active: boolean }[]>([]);
+  const [data, setData] = useState<{ title: string; image_path: string; download_path: string; date: string; is_active: boolean }[]>([]);
+  const [totalElements, setTotalElements] = useState(0);
+  const [page, setPage] = useState(1);
+  const elementsPerPage = 9;
 
   useEffect(() => {
     const fetchCard = async () => {
       try {
         const pagination = {
-          page: 1,
-          limit: 99999,
+          page,
+          limit: elementsPerPage,
           orderBy: "date",
           order: "DESC",
         };
 
         const response = await getAllNews(pagination);
+        console.log(response)
         if (response.status) {
           const transformedData = response.data.map((arr: { id: number; title: string; image_path: string; download_path: string; date: string; is_active: boolean }) => ({
             title: arr.title,
@@ -104,6 +107,7 @@ const Home = () => {
             is_active: arr.is_active,
           }));
           setData(transformedData);
+          setTotalElements(response.pagination.total); 
         }
       } catch (error) {
         console.error("Error fetching card data:", error);
@@ -118,7 +122,11 @@ const Home = () => {
     };
 
     fetchCard();
-  }, [user]);
+  }, [user, page]);
+
+  const handlePageChange = (page:number) => {
+    setPage(page);
+  };
 
   if (isLoading || !user) {
     return (
@@ -138,6 +146,11 @@ const Home = () => {
           <ArticleCard key={index} article={article} />
         ))}
       </SimpleGrid>
+      {totalElements > 9 && (
+        <Center  mt={"lg"}>
+          <Pagination total={Math.ceil(totalElements / elementsPerPage)} onChange={handlePageChange} />
+        </Center>
+      )}
     </div>
   );
 };
