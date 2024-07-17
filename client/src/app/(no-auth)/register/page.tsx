@@ -58,7 +58,7 @@ export default function Registar() {
 
   const onSubmitHandler = useCallback(async (data: RegisterData) => {
     setIsLoading(true);
-    console.log(data)
+   
     return;
     try {
       const response = await register(data);

@@ -27,3 +27,12 @@ export const validateEntry = async (props: ValidateProps) => {
     throw error;
   }
 };
+
+export const removeEntry = async (entryId: number) => {
+  try {
+    const response = await api.delete(`${endpoints.acessosEntryRoute}/${entryId}`);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};

@@ -2,8 +2,8 @@
 import React, { useState, useEffect } from "react";
 import { Card, Table, Checkbox, Pagination as MantinePagination, Center, Text, Select, Flex, Badge, SimpleGrid, Skeleton, Grid, Group, Tooltip, ActionIcon, rem, Button } from "@mantine/core";
 import { getDashboardEntries } from "@/services/dashboard.service";
-import { IconCheck, IconRefresh } from "@tabler/icons-react";
-import { validateEntry, ValidateProps } from "@/services/acessos.service";
+import { IconCheck, IconRefresh, IconX } from "@tabler/icons-react";
+import { removeEntry, validateEntry, ValidateProps } from "@/services/acessos.service";
 import { notifications } from "@mantine/notifications";
 import { useLocation } from "@/providers/LocationProvider";
 import { usePathname } from "next/navigation";
@@ -12,7 +12,7 @@ import QrReader from "@/components/qrcode-reader";
 function getBadge(validated_by: number | null){
   if (!validated_by)
   {
-    return { name: "Por validar", color: "blue" };
+    return { name: "Por validar", color: "red" };
   } else
   {
     return { name: "Validado", color: "green" };
@@ -105,7 +105,36 @@ function Dashboard() {
           color: "red",
         });
       }
-    };
+  };
+  
+   const onRemoveEntry = async (entryId: number) => {
+     try {
+       const response = await removeEntry(entryId);
+
+       if (response.status) {
+         notifications.show({
+           title: "Sucesso",
+           message: "",
+           color: "green",
+         });
+       }
+       if (response.status === false) {
+         notifications.show({
+           message: response.message,
+           color: "red",
+         });
+       }
+
+       setSelectedRows([]);
+       fetchData();
+     } catch (error) {
+       notifications.show({
+         title: "Erro",
+         message: "Algo correu mal",
+         color: "red",
+       });
+     }
+   };
 
   useEffect(() => {
     fetchData();
@@ -173,11 +202,18 @@ function Dashboard() {
           {element.validated_at ? (
             <>-</>
           ) : (
-            <Tooltip label={"Validar entrada"} withArrow position="top">
+            <>
+              <Tooltip label={"Validar entrada"} withArrow position="top">
                 <ActionIcon variant="subtle" color="green" onClick={() => onValidate({ entryIds: [element.entry_id] })}>
-                <IconCheck style={{ width: rem(20), height: rem(20) }} stroke={1.5} />
-              </ActionIcon>
-            </Tooltip>
+                  <IconCheck style={{ width: rem(20), height: rem(20) }} stroke={1.5} />
+                </ActionIcon>
+              </Tooltip>
+              <Tooltip label={"Remover entrada"} withArrow position="top">
+                <ActionIcon variant="subtle" color="red" onClick={() => onRemoveEntry(element.entry_id)}>
+                  <IconX style={{ width: rem(20), height: rem(20) }} stroke={1.5} />
+                </ActionIcon>
+              </Tooltip>
+            </>
           )}
         </Group>
       </Table.Td>
@@ -229,6 +265,7 @@ function Dashboard() {
             >
               Validar entrada
             </Button>
+            
           </Group>
         </Group>
 

@@ -8,7 +8,7 @@ class ArticlesController {
   static async addArticle(req, res, next) {
     try {
       const { title, content, image_path, download_path, is_active, date } = req.body;
-      console.log(title, content, image_path, download_path, is_active, date);
+
       if (!title) {
         return res.status(200).json({ status: false, message: "Título  são obrigatórios." });
       }
@@ -27,13 +27,13 @@ class ArticlesController {
         // Loop através dos arquivos enviados e mova-os para a pasta de armazenamento
         req.files.forEach((file) => {
           const fileName = file.originalname;
-          console.log(fileName);
+
           const storagePath = `src/uploads/${articleId}`;
           //Tratamento de ficheiros
           if (!fs.existsSync(storagePath)) {
             fs.mkdirSync(storagePath, { recursive: true });
           }
-          console.log(storagePath, fileName);
+
           const filePath = path.join(storagePath, fileName);
           fs.writeFileSync(filePath, file.buffer);
         });

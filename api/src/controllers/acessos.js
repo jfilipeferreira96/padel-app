@@ -60,7 +60,7 @@ class AcessosController {
       const { rows: recentEntries } = await db.query(recentEntryQuery, [userIdentifier.value]);
 
       if (recentEntries.length > 0) {
-        return res.status(400).json({ status: false, message: "O utilizador já registou uma entrada nos últimos 10 minutos." });
+        return res.json({ status: false, message: "O utilizador já registou uma entrada nos últimos 10 minutos." });
       }
 
       const query = `
@@ -222,6 +222,36 @@ class AcessosController {
     } catch (error) {
       Logger.error("Erro ao validar a lógica de cartões:", error);
       return { status: false, successCount: 0, failedCount: entryIds.length, successfulIds: [], failedIds: entryIds };
+    }
+  }
+
+  static async RemoveEntry(req, res, next) {
+    try {
+      const { entryId } = req.params;
+
+      // Verificar se o entryId é um número válido
+      if (!entryId || isNaN(entryId)) {
+        return res.status(400).json({ status: false, message: "ID de entrada inválido." });
+      }
+
+      // Verificar se o utilizador que faz a requisição é um administrador
+      if (req.user.user_type !== "admin") {
+        return res.status(403).json({ status: false, message: "Apenas administradores podem remover entradas." });
+      }
+
+      // Verificar se a entrada existe
+      const { rows: entryExists } = await db.query("SELECT * FROM entries WHERE entry_id = ?", [entryId]);
+      if (entryExists.length === 0) {
+        return res.status(404).json({ status: false, message: "Entrada não encontrada." });
+      }
+
+      // Remover a entrada
+      await db.query("DELETE FROM entries WHERE entry_id = ?", [entryId]);
+
+      return res.status(200).json({ status: true, message: "Entrada removida com sucesso." });
+    } catch (error) {
+      Logger.error("Erro ao remover entrada:", error);
+      return res.status(500).json({ status: false, message: "Erro ao remover entrada." });
     }
   }
 }

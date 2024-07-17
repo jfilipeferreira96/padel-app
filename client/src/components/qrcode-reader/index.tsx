@@ -27,7 +27,7 @@ function QrReader(props: Props) {
   const [buffer, setBuffer] = useState<string>("");
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const { location } = useLocation();
-
+ 
   const form = useForm<FormValues>({
     initialValues: {
       email: "",
@@ -44,11 +44,11 @@ function QrReader(props: Props) {
     values.email = values.email.trim();
     
     try {
-      if (!location.value || !values.email) {
+      if (!location?.value || !values?.email) {
         return;
       }
-      const response = await registerEntry({ userEmail: values.email, locationId: location.value });
-
+      const response = await registerEntry({ userEmail: values?.email, locationId: location?.value });
+      
       if (response.status) {
         setEmail(values.email);
         if (refreshTable) {
@@ -62,6 +62,7 @@ function QrReader(props: Props) {
         setEmail("");
       }
     } catch (error) {
+      console.log(error)
       notifications.show({
         title: "Erro",
         message: "Algo correu mal",

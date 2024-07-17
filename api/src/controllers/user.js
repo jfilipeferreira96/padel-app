@@ -343,7 +343,7 @@ class UserController {
 
       const { rows } = await db.query(query, params);
       const { rows: totalCountRows } = await db.query(totalCountQuery, params.slice(0, params.length - 2));
-      console.log(query);
+     
       const users = rows.map((row) => ({
         ...row,
         offpeaks: JSON.parse(row.offpeaks),
