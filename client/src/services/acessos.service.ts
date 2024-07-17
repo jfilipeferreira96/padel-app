@@ -2,7 +2,8 @@ import api from "@/config/api";
 import { endpoints } from "@/config/routes";
 
 interface RegisterEntriesProps {
-  userEmail: string;
+  userEmail?: string;
+  userPhone?: string;
   locationId: number;
 }
 
