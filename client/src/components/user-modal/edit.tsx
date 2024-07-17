@@ -83,6 +83,7 @@ export default function EditUserModal({ isModalOpen, setIsModalOpen, userId, fet
         email: userData.email,
         birthdate: userData.birthdate ? new Date(userData.birthdate) : (undefined as any),
         user_type: userData.user_type,
+        phone: userData.phone,
       });
 
       // Verificar se userData.locations está definido

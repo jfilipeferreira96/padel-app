@@ -388,7 +388,7 @@ class UserController {
 
   static async updateUser(req, res, next) {
     const userId = req.params.id;
-    const { email, first_name, last_name, birthdate, user_type = "player", locations } = req.body;
+    const { email, first_name, last_name, birthdate, user_type = "player", locations, phone } = req.body;
 
     try {
       if (!req.body) {
@@ -419,11 +419,11 @@ class UserController {
       // Atualizar o utilizador
       const updateQuery = `
       UPDATE users
-      SET email = ?, first_name = ?, last_name = ?, birthdate = ?, user_type = ?
+      SET email = ?, first_name = ?, last_name = ?, phone = ?, birthdate = ?, user_type = ?
       WHERE user_id = ?
     `;
       const formattedBirthdate = birthdate ? new Date(birthdate).toISOString().slice(0, 19).replace("T", " ") : null;
-      await db.query(updateQuery, [email, first_name, last_name, formattedBirthdate, user_type, userId]);
+      await db.query(updateQuery, [email, first_name, last_name, phone, formattedBirthdate, user_type, userId]);
 
       // Se o utilizador for do tipo admin e locations for zero ou não definido, apagar todas as entradas de admin_locations
       if (user_type === "admin" && (!locations || locations.length === 0)) {
@@ -451,6 +451,7 @@ class UserController {
           last_name,
           birthdate,
           user_type,
+          phone,
           id: userId,
         },
         message: "Utilizador atualizado com sucesso",

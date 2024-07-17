@@ -7,11 +7,12 @@ export interface UserData {
   first_name: string;
   last_name: string;
   email: string;
+  phone: string;
   birthdate: string;
   user_type: UserType;
   password?: string;
-  locations?: {label: string, value: number}[]
-  offpeaks?: OffpeakCard[]
+  locations?: { label: string; value: number }[];
+  offpeaks?: OffpeakCard[];
 }
 
 export interface OffpeakCard {
