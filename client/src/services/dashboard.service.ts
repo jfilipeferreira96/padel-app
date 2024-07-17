@@ -1,5 +1,6 @@
 import api from "@/config/api";
 import { endpoints } from "@/config/routes";
+import { Filters } from "./user.service";
 
 export interface Pagination {
   page: number;
@@ -9,9 +10,9 @@ export interface Pagination {
   total?: number;
 }
 
-export const getDashboardEntries = async (pagination: Pagination, location: number) => {
+export const getDashboardEntries = async (pagination: Pagination, location: number, filters: Filters) => {
   try {
-    const response = await api.post(endpoints.dashboardEntriesRoute, { pagination: pagination, location: location });
+    const response = await api.post(endpoints.dashboardEntriesRoute, { pagination: pagination, location: location, filters });
     return response.data;
   } catch (error) {
     throw error;

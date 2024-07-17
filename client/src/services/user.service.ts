@@ -35,9 +35,10 @@ export const getUserPunchCard = async (id: string) => {
   }
 };
 
-interface Filters {
-  email: string | null,
-  name: string | null
+export interface Filters {
+  email: string | null;
+  name: string | null;
+  phone: string | null;
 }
 
 export const getAllUsers = async (pagination: Pagination, filters: Filters) => {

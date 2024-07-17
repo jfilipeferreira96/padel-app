@@ -11,8 +11,8 @@ class DashboardController {
 
       // Initial query without the WHERE conditions
       let query = `
-      SELECT e.entry_id, e.user_id, e.location_id, lc.name as location_name, e.entry_time, e.validated_by, e.validated_at,
-            u.email AS user_email, u.first_name AS user_first_name, u.last_name AS user_last_name,
+      SELECT e.entry_id, e.user_id, e.location_id, lc.name as location_name, e.entry_time, e.validated_by, e.validated_at,  
+            u.email AS user_email, u.first_name AS user_first_name, u.last_name AS user_last_name, u.phone,
             a.email AS admin_email, a.first_name AS admin_first_name, a.last_name AS admin_last_name
       FROM entries e
       LEFT JOIN users u ON e.user_id = u.user_id
@@ -24,6 +24,9 @@ class DashboardController {
       let totalCountQuery = `
       SELECT COUNT(*) AS count
       FROM entries e
+      LEFT JOIN users u ON e.user_id = u.user_id
+      LEFT JOIN users a ON e.validated_by = a.user_id
+      LEFT JOIN locations lc ON lc.location_id = e.location_id
       WHERE 1 = 1
     `;
 
@@ -40,6 +43,17 @@ class DashboardController {
         query += ` AND e.location_id = ?`;
         totalCountQuery += ` AND e.location_id = ?`;
         params.push(req.body.location);
+      }
+
+      if (req.body.filters) {
+        const { email, name, phone } = req.body.filters;
+        const searchValue = email || name || phone;
+        if (searchValue) {
+          query += ` AND (u.email LIKE ? OR u.phone LIKE ? OR u.first_name LIKE ? OR u.last_name LIKE ?)`;
+          totalCountQuery += ` AND (u.email LIKE ? OR u.phone LIKE ? OR u.first_name LIKE ? OR u.last_name LIKE ?)`;
+          const searchPattern = `%${searchValue}%`;
+          params.push(searchPattern, searchPattern, searchPattern, searchPattern);
+        }
       }
 
       const offset = (page - 1) * limit;

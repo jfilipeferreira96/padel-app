@@ -1,8 +1,8 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { Card, Table, Checkbox, Pagination as MantinePagination, Center, Text, Select, Flex, Badge, SimpleGrid, Skeleton, Grid, Group, Tooltip, ActionIcon, rem, Button } from "@mantine/core";
+import { Card, Table, Checkbox, Pagination as MantinePagination, Center, Text, Select, Flex, Badge, SimpleGrid, Skeleton, Grid, Group, Tooltip, ActionIcon, rem, Button, TextInput, Box } from "@mantine/core";
 import { getDashboardEntries } from "@/services/dashboard.service";
-import { IconCheck, IconRefresh, IconX } from "@tabler/icons-react";
+import { IconCheck, IconRefresh, IconSearch, IconX } from "@tabler/icons-react";
 import { removeEntry, validateEntry, ValidateProps } from "@/services/acessos.service";
 import { notifications } from "@mantine/notifications";
 import { useLocation } from "@/providers/LocationProvider";
@@ -33,6 +33,7 @@ interface Elemento {
   admin_email: string;
   admin_first_name: string;
   admin_last_name: string;
+  phone: string;
 }
 
 function Dashboard() {
@@ -47,6 +48,7 @@ function Dashboard() {
   const [loading, setLoading] = useState<boolean>(true);
   const [totalElements, setTotalElements] = useState<number>(0);
   const { location } = useLocation();
+  const [searchTerm, setSearchTerm] = useState<string>("");
 
   const fetchData = async () => {
     setLoading(true);
@@ -59,7 +61,13 @@ function Dashboard() {
         order: 'DESC'
       }
 
-      const response = await getDashboardEntries(pagination, location.value);
+      const filters = {
+        email: searchTerm?.trim() ?? null,
+        name: searchTerm?.trim() ?? null,
+        phone: searchTerm?.trim() ?? null,
+      };
+
+      const response = await getDashboardEntries(pagination, location.value, filters);
       
       if (response){
         setElementos(response.data);
@@ -138,7 +146,7 @@ function Dashboard() {
 
   useEffect(() => {
     fetchData();
-  }, [activePage, elementsPerPage, location]);
+  }, [activePage, elementsPerPage, location, searchTerm]);
 
   useEffect(() => {
     const fetchDataInterval = setInterval(() => {
@@ -152,6 +160,10 @@ function Dashboard() {
   const handlePageChange = (page: number) => {
     setActivePage(page);
   };
+
+   const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
+     setSearchTerm(event.currentTarget.value);
+   };
 
   const handleElementsPerPageChange = (value: string | null) => {
     
@@ -194,6 +206,7 @@ function Dashboard() {
         {element.user_first_name} {element.user_last_name}
       </Table.Td>
       <Table.Td>{element.user_email}</Table.Td>
+      <Table.Td>{element?.phone ? element?.phone  : "-" }</Table.Td>
       <Table.Td>{element.location_name}</Table.Td>
       <Table.Td>{element.validated_at ? `${element.admin_first_name} ${element.admin_last_name}` : "-"}</Table.Td>
       <Table.Td>{new Date(element.entry_time).toLocaleString()}</Table.Td>
@@ -232,6 +245,18 @@ function Dashboard() {
       </Grid>
 
       <Card withBorder shadow="md" p={30} mt={10} radius="md" style={{ flex: 1 }}>
+        <Box maw={600}>
+          <TextInput
+            radius="xl"
+            size="md"
+            value={searchTerm}
+            onChange={handleSearch}
+            placeholder="Pesquisar por nome, email ou telemóvel"
+            rightSectionWidth={42}
+            leftSection={<IconSearch style={{ width: rem(18), height: rem(18) }} stroke={1.5} />}
+            mb={"lg"}
+          />
+        </Box>
         <Group justify="space-between" align="center" mb={"lg"}>
           <Flex align={"center"}>
             <Text>A mostrar</Text>
@@ -247,7 +272,6 @@ function Dashboard() {
             <Text>entradas</Text>
           </Flex>
           <Group gap={8}>
-
             <Tooltip label={"Atualizar Tabela"} withArrow position="top">
               <ActionIcon variant="subtle" color="green" onClick={() => fetchData()} size="lg">
                 <IconRefresh size={18} />
@@ -265,7 +289,6 @@ function Dashboard() {
             >
               Validar entrada
             </Button>
-            
           </Group>
         </Group>
 
@@ -277,6 +300,7 @@ function Dashboard() {
                 <Table.Th>Estado</Table.Th>
                 <Table.Th>Nome</Table.Th>
                 <Table.Th>Email</Table.Th>
+                <Table.Th>Telemóvel</Table.Th>
                 <Table.Th>Local</Table.Th>
                 <Table.Th>Validador</Table.Th>
                 <Table.Th>Data</Table.Th>
@@ -287,7 +311,7 @@ function Dashboard() {
           </Table>
         </Table.ScrollContainer>
 
-        {elementos.length > 0 && (
+        {elementos?.length > 0 && (
           <Flex justify={"space-between"} mt={"lg"}>
             <Text>
               A mostrar {initialIndex + 1} a {Math.min(finalIndex, totalElements)} de {totalElements} elementos
