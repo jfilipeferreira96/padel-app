@@ -77,6 +77,7 @@ class UserController {
         user_type: user.user_type,
         first_name: user.first_name,
         last_name: user.last_name,
+        phone: user.phone,
         birthdate: user.birthdate,
         locations,
         offpeaks: JSON.parse(user.offpeaks || "[]"),
@@ -91,6 +92,7 @@ class UserController {
           first_name: user.first_name,
           last_name: user.last_name,
           birthdate: user.birthdate,
+          phone: user.phone,
           locations,
           offpeaks: JSON.parse(user.offpeaks || "[]"),
         },
@@ -104,7 +106,7 @@ class UserController {
 
   static async register(req, res, next) {
     try {
-      const { email, password, first_name, last_name, birthdate, user_type, locations } = req.body;
+      const { email, phone, password, first_name, last_name, birthdate, user_type, locations } = req.body;
 
       if (!email || !password) {
         return res.status(200).json({ status: false, error: "Pedido Inválido", message: "Email e password são obrigatórios" });
@@ -117,14 +119,23 @@ class UserController {
         return res.status(200).json({ error: "Pedido Inválido", message: "Email já em uso" });
       }
 
+      if (phone) {
+        const queryPhone = "SELECT * FROM users WHERE phone = ?";
+        const { rows: phoneResult } = await db.query(queryPhone, [phone]);
+
+        if (phoneResult.length > 0) {
+          return res.status(200).json({ error: "Pedido Inválido", message: "Nº de telemóvel já está em uso" });
+        }
+      }
+
       const hashedPassword = await bcrypt.hash(password, 10);
       const formattedBirthdate = birthdate ? new Date(birthdate).toISOString().slice(0, 19).replace("T", " ") : null;
 
       let newUser;
 
       if (user_type === "admin") {
-        const insertQuery = "INSERT INTO users (password, email, first_name, last_name, birthdate, user_type) VALUES (?, ?, ?, ?, ?, ?)";
-        newUser = await db.query(insertQuery, [hashedPassword, email, first_name, last_name, formattedBirthdate, "admin"]);
+        const insertQuery = "INSERT INTO users (password, email, phone, first_name, last_name, birthdate, user_type) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        newUser = await db.query(insertQuery, [hashedPassword, email, phone, first_name, last_name, formattedBirthdate, "admin"]);
 
         if (locations && Array.isArray(locations) && locations.length > 0) {
           const admin_id = newUser.rows.insertId;
@@ -135,8 +146,8 @@ class UserController {
           await db.query(insertLocationsQuery + values);
         }
       } else {
-        const insertQuery = "INSERT INTO users (password, email, first_name, last_name, birthdate, user_type) VALUES (?, ?, ?, ?, ?, ?)";
-        newUser = await db.query(insertQuery, [hashedPassword, email, first_name, last_name, formattedBirthdate, "player"]);
+        const insertQuery = "INSERT INTO users (password, email, phone, first_name, last_name, birthdate, user_type) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        newUser = await db.query(insertQuery, [hashedPassword, email, phone, first_name, last_name, formattedBirthdate, "player"]);
       }
 
       const accessToken = UserController.generateAccessToken({
@@ -145,6 +156,8 @@ class UserController {
         user_type: user_type === "admin" ? "admin" : "player",
         first_name: first_name,
         last_name: last_name,
+        phone: phone,
+        phone: phone,
         birthdate: birthdate,
         offpeaks: [],
       });
@@ -154,6 +167,7 @@ class UserController {
         user: {
           id: newUser.rows.insertId,
           email: email,
+          phone: phone,
         },
         accessToken,
         offpeaks: [],

@@ -173,6 +173,10 @@ VALUES
 ('Cartão Off Peak - Novembro', 11, 2025, 1),
 ('Cartão Off Peak - Dezembro', 12, 2025, 1);
 
+ALTER TABLE users 
+ADD COLUMN phone VARCHAR(15) DEFAULT NULL UNIQUE;
+CREATE UNIQUE INDEX idx_unique_phone ON users(phone);
+
 -- Testes:
 
 INSERT INTO users (password, email, user_type, first_name, last_name, birthdate) 

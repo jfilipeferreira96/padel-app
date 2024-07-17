@@ -12,6 +12,7 @@ import { z } from "zod";
 import { DatePickerInput } from "@mantine/dates";
 import "@mantine/dates/styles.css";
 import Image from "next/image";
+import ReactInputMask from "react-input-mask";
 
 const StyledPaper = styled(Paper)`
   width: 500px;
@@ -30,6 +31,10 @@ const schema = z.object({
     required_error: "O tipo de utilizador é obrigatório",
     invalid_type_error: "Tipo de utilizador inválido",
   }),
+  phone: z
+    .string()
+    .regex(/^\d{9}$/, { message: "O número de telemóvel deve ter 9 dígitos" })
+    .min(1, { message: "O telemóvel é obrigatório" }),
 });
 
 export default function Registar() {
@@ -46,12 +51,15 @@ export default function Registar() {
       password: "",
       birthdate: undefined,
       user_type: "player",
+      phone: "",
     },
     validate: zodResolver(schema),
   });
 
   const onSubmitHandler = useCallback(async (data: RegisterData) => {
     setIsLoading(true);
+    console.log(data)
+    return;
     try {
       const response = await register(data);
       if (response.status) {
@@ -105,6 +113,10 @@ export default function Registar() {
           <TextInput className="specialinput" label="Último Nome" placeholder="Insira o seu último nome" required {...form.getInputProps("last_name")} />
 
           <DatePickerInput label="Data de Nascimento" placeholder="Selecione a sua data de nascimento" {...form.getInputProps("birthdate")} valueFormat="DD-MM-YYYY" className="specialinput" />
+
+          <Input.Wrapper label="Telemóvel" required>
+            <Input component={ReactInputMask} mask="999999999" placeholder="Insira o seu telemóvel" {...form.getInputProps("phone")} />
+          </Input.Wrapper>
 
           <TextInput className="specialinput" label="Email" placeholder="exemplo@gmail.com" required {...form.getInputProps("email")} />
 

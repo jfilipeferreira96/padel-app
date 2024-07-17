@@ -13,6 +13,7 @@ export interface User {
   user_type: UserType | string;
   first_name: string;
   last_name: string;
+  phone?: string;
   birthdate: string | Date;
   locations?: { location_id: number; location_name: string }[];
   offpeaks?: { offpeak_card_id: number; name: string; valid_until: Date; month: number; year: number }[];
@@ -90,6 +91,7 @@ export const SessionProvider: React.FC<SessionProviderProps> = ({ children }) =>
           user_type: decodedToken.user_type,
           first_name: decodedToken.first_name,
           last_name: decodedToken.last_name,
+          phone: decodedToken.phone,
           birthdate: decodedToken.birthdate,
           locations: decodedToken.locations,
           offpeaks: decodedToken?.offpeaks ?? [],

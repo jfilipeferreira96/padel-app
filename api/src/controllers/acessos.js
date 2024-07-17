@@ -7,10 +7,10 @@ const Logger = require("../utils/logger");
 class AcessosController {
   static async RegisterEntry(req, res, next) {
     try {
-      const { userEmail, locationId } = req.body;
+      const { userEmail, userPhone, locationId } = req.body;
 
-      if (!userEmail || !locationId) {
-        return res.status(200).json({ status: false, message: "O email do utilizador e o ID da localização são obrigatórios." });
+      if ((!userEmail && !userPhone) || !locationId) {
+        return res.status(200).json({ status: false, message: "O email ou o telefone do utilizador e o ID da localização são obrigatórios." });
       }
 
       // Verificar se o utilizador que faz a requisição é um administrador
@@ -18,12 +18,27 @@ class AcessosController {
         return res.status(200).json({ status: false, error: "Forbidden", message: "Apenas os administradores podem registar entradas." });
       }
 
-      const checkExistenceQuery = `
-      SELECT 
-        (SELECT COUNT(*) FROM users WHERE email = ?) AS user_exists,
-        (SELECT COUNT(*) FROM locations WHERE location_id = ?) AS location_exists
-    `;
-      const { rows: existenceResult } = await db.query(checkExistenceQuery, [userEmail, locationId]);
+      let checkExistenceQuery, existenceParams, userIdentifier;
+
+      if (userEmail) {
+        checkExistenceQuery = `
+        SELECT 
+          (SELECT COUNT(*) FROM users WHERE email = ?) AS user_exists,
+          (SELECT COUNT(*) FROM locations WHERE location_id = ?) AS location_exists
+      `;
+        existenceParams = [userEmail, locationId];
+        userIdentifier = { column: "email", value: userEmail };
+      } else {
+        checkExistenceQuery = `
+        SELECT 
+          (SELECT COUNT(*) FROM users WHERE phone = ?) AS user_exists,
+          (SELECT COUNT(*) FROM locations WHERE location_id = ?) AS location_exists
+      `;
+        existenceParams = [userPhone, locationId];
+        userIdentifier = { column: "phone", value: userPhone };
+      }
+
+      const { rows: existenceResult } = await db.query(checkExistenceQuery, existenceParams);
 
       const userExists = existenceResult[0].user_exists;
       const locationExists = existenceResult[0].location_exists;
@@ -40,10 +55,9 @@ class AcessosController {
       const recentEntryQuery = `
       SELECT entry_id
       FROM entries
-      WHERE user_id = ? AND entry_time >= NOW() - INTERVAL 10 MINUTE
+      WHERE user_id = (SELECT user_id FROM users WHERE ${userIdentifier.column} = ?) AND entry_time >= NOW() - INTERVAL 10 MINUTE
     `;
-
-      const { rows } = await db.query(recentEntryQuery, [userId]);
+      const { rows } = await db.query(recentEntryQuery, [userIdentifier.value]);
 
       if (rows.length > 0) {
         return res.status(400).json({ status: false, message: "O utilizador já registou uma entrada nos últimos 10 minutos." });
@@ -51,9 +65,9 @@ class AcessosController {
 
       const query = `
       INSERT INTO entries (user_id, location_id)
-      VALUES ((SELECT user_id FROM users WHERE email = ?), ?)
+      VALUES ((SELECT user_id FROM users WHERE ${userIdentifier.column} = ?), ?)
     `;
-      const values = [userEmail, locationId];
+      const values = [userIdentifier.value, locationId];
       const { rows: entrada } = await db.query(query, values);
       const entradaId = entrada.insertId;
 

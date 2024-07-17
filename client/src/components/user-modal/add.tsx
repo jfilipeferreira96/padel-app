@@ -13,6 +13,7 @@ import { DatePickerInput } from "@mantine/dates";
 import "@mantine/dates/styles.css";
 import { useDisclosure } from "@mantine/hooks";
 import { useLocation } from "@/providers/LocationProvider";
+import ReactInputMask from "react-input-mask";
 
 const schema = z.object({
   first_name: z.string().min(1, { message: "O primeiro nome é obrigatório" }),
@@ -24,6 +25,10 @@ const schema = z.object({
     required_error: "O tipo de utilizador é obrigatório",
     invalid_type_error: "Tipo de utilizador inválido",
   }),
+  phone: z
+    .string()
+    .regex(/^\d{9}$/, { message: "O número de telemóvel deve ter 9 dígitos" })
+    .min(1, { message: "O telemóvel é obrigatório" }),
 });
 
 interface Props {
@@ -122,6 +127,10 @@ export default function AddUserModal(props: Props) {
           <TextInput className="specialinput" label="Último Nome" placeholder="Insira o seu último nome" required {...form.getInputProps("last_name")} mb={"sm"} />
 
           <DatePickerInput label="Data de Nascimento" placeholder="Selecione a sua data de nascimento" {...form.getInputProps("birthdate")} valueFormat="DD-MM-YYYY" className="specialinput" mb={"sm"} />
+
+          <Input.Wrapper label="Telemóvel" required>
+            <Input component={ReactInputMask} mask="999999999" placeholder="Insira o seu telemóvel" {...form.getInputProps("phone")} />
+          </Input.Wrapper>
 
           <TextInput className="specialinput" label="Email" placeholder="exemplo@gmail.com" required {...form.getInputProps("email")} mb={"sm"} />
 

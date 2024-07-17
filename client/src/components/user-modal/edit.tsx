@@ -2,13 +2,14 @@
 import { useEffect, useCallback, useState } from "react";
 import { useForm, zodResolver } from "@mantine/form";
 import { DatePickerInput } from "@mantine/dates";
-import { Modal, TextInput, PasswordInput, Button, Group, Radio, CheckIcon, MultiSelect } from "@mantine/core";
+import { Modal, TextInput, PasswordInput, Button, Group, Radio, CheckIcon, MultiSelect, Input } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { notifications } from "@mantine/notifications";
 import { z } from "zod";
 import { getUser, updateUser, UserData } from "@/services/user.service";
 import { UserType } from "@/services/auth.service";
 import { useLocation } from "@/providers/LocationProvider";
+import ReactInputMask from "react-input-mask";
 
 const schema = z.object({
   first_name: z.string().min(1, { message: "O primeiro nome é obrigatório" }),
@@ -19,6 +20,10 @@ const schema = z.object({
     required_error: "O tipo de utilizador é obrigatório",
     invalid_type_error: "Tipo de utilizador inválido",
   }),
+  phone: z
+    .string()
+    .regex(/^\d{9}$/, { message: "O número de telemóvel deve ter 9 dígitos" })
+    .min(1, { message: "O telemóvel é obrigatório" }),
 });
 
 interface Props {
@@ -59,6 +64,7 @@ export default function EditUserModal({ isModalOpen, setIsModalOpen, userId, fet
       first_name: "",
       last_name: "",
       email: "",
+      phone: "",
       birthdate: undefined,
       user_type: UserType.ADMIN,
     },
@@ -155,6 +161,10 @@ export default function EditUserModal({ isModalOpen, setIsModalOpen, userId, fet
         <TextInput className="specialinput" label="Último Nome" placeholder="Insira o seu último nome" required {...form.getInputProps("last_name")} mb={"sm"} />
 
         <DatePickerInput label="Data de Nascimento" placeholder="Selecione a sua data de nascimento" {...form.getInputProps("birthdate")} valueFormat="DD-MM-YYYY" className="specialinput" mb={"sm"} />
+
+        <Input.Wrapper label="Telemóvel" required>
+          <Input component={ReactInputMask} mask="999999999" placeholder="Insira o seu telemóvel" {...form.getInputProps("phone")} />
+        </Input.Wrapper>
 
         <TextInput className="specialinput" label="Email" placeholder="exemplo@gmail.com" required {...form.getInputProps("email")} mb={"sm"} />
 
