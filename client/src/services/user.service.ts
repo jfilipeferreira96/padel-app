@@ -40,6 +40,7 @@ export interface Filters {
   email: string | null;
   name: string | null;
   phone: string | null;
+  validated_by?: boolean | null | undefined
 }
 
 export const getAllUsers = async (pagination: Pagination, filters: Filters) => {

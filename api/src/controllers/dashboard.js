@@ -46,13 +46,23 @@ class DashboardController {
       }
 
       if (req.body.filters) {
-        const { email, name, phone } = req.body.filters;
+        const { email, name, phone, validated_by } = req.body.filters;
         const searchValue = email || name || phone;
         if (searchValue) {
           query += ` AND (u.email LIKE ? OR u.phone LIKE ? OR u.first_name LIKE ? OR u.last_name LIKE ?)`;
           totalCountQuery += ` AND (u.email LIKE ? OR u.phone LIKE ? OR u.first_name LIKE ? OR u.last_name LIKE ?)`;
           const searchPattern = `%${searchValue}%`;
           params.push(searchPattern, searchPattern, searchPattern, searchPattern);
+        }
+
+        if (validated_by !== undefined && validated_by === true) {
+          query += ` AND e.validated_by IS NOT NULL`;
+          totalCountQuery += ` AND e.validated_by IS NOT NULL`;
+        }
+
+        if (validated_by !== undefined && validated_by === false) {
+          query += ` AND e.validated_by IS NULL`;
+          totalCountQuery += ` AND e.validated_by IS NULL`;
         }
       }
 

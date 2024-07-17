@@ -49,104 +49,115 @@ function Dashboard() {
   const [totalElements, setTotalElements] = useState<number>(0);
   const { location } = useLocation();
   const [searchTerm, setSearchTerm] = useState<string>("");
+  const [filterOption, setFilterOption] = useState<string | null>(() => {
+    const storedValue = localStorage.getItem('filterOption');
+    return storedValue ? storedValue : null;
+  });
 
   const fetchData = async () => {
     setLoading(true);
-    if (!location || !location.value) return
-    try{
+    if (!location || !location.value) return;
+    try {
       const pagination = {
         page: activePage,
         limit: elementsPerPage,
-        orderBy: 'e.entry_time',
-        order: 'DESC'
-      }
+        orderBy: "e.entry_time",
+        order: "DESC",
+      };
 
-      const filters = {
+      let filters: any = {
         email: searchTerm?.trim() ?? null,
         name: searchTerm?.trim() ?? null,
         phone: searchTerm?.trim() ?? null,
       };
 
+      if (filterOption === "Ver por validar") {
+        filters.validated_by = true;
+      } else if (filterOption === "Ver validados") {
+        filters.validated_by = false;
+      }
+
       const response = await getDashboardEntries(pagination, location.value, filters);
-      
-      if (response){
+
+      if (response) {
         setElementos(response.data);
         setTotalElements(response.pagination.total || 0);
         setActivePage(response.pagination.page || 1);
       }
-      
+
       setLoading(false);
-    } catch (error)
-    {
-      console.error('Error fetching data:', error);
+    } catch (error) {
+      console.error("Error fetching data:", error);
       setLoading(false);
     }
   };
 
-  
   const onValidate = async (data: ValidateProps) => {
-
     try {
-        const response = await validateEntry(data);
+      const response = await validateEntry(data);
 
-        if (response.status) {
-          notifications.show({
-            title: "Sucesso",
-            message: "",
-            color: "green"
-          });
-         
-        }
-        if (response.status === false) {
-          notifications.show({
-            message: response.message,
-            color: "red",
-          });
-      }
-      
-        setSelectedRows([]);
-        fetchData();
-      } catch (error) {
+      if (response.status) {
         notifications.show({
-          title: "Erro",
-          message: "Algo correu mal",
+          title: "Sucesso",
+          message: "",
+          color: "green",
+        });
+      }
+      if (response.status === false) {
+        notifications.show({
+          message: response.message,
           color: "red",
         });
       }
+
+      setSelectedRows([]);
+      fetchData();
+    } catch (error) {
+      notifications.show({
+        title: "Erro",
+        message: "Algo correu mal",
+        color: "red",
+      });
+    }
   };
-  
-   const onRemoveEntry = async (entryId: number) => {
-     try {
-       const response = await removeEntry(entryId);
 
-       if (response.status) {
-         notifications.show({
-           title: "Sucesso",
-           message: "",
-           color: "green",
-         });
-       }
-       if (response.status === false) {
-         notifications.show({
-           message: response.message,
-           color: "red",
-         });
-       }
+  const onRemoveEntry = async (entryId: number) => {
+    try {
+      const response = await removeEntry(entryId);
 
-       setSelectedRows([]);
-       fetchData();
-     } catch (error) {
-       notifications.show({
-         title: "Erro",
-         message: "Algo correu mal",
-         color: "red",
-       });
-     }
-   };
+      if (response.status) {
+        notifications.show({
+          title: "Sucesso",
+          message: "",
+          color: "green",
+        });
+      }
+      if (response.status === false) {
+        notifications.show({
+          message: response.message,
+          color: "red",
+        });
+      }
+
+      setSelectedRows([]);
+      fetchData();
+    } catch (error) {
+      notifications.show({
+        title: "Erro",
+        message: "Algo correu mal",
+        color: "red",
+      });
+    }
+  };
+
+  const handleFilterChange = (value: string | null) => {
+    setFilterOption(value);
+    localStorage.setItem("filterOption", value || "");
+  };
 
   useEffect(() => {
     fetchData();
-  }, [activePage, elementsPerPage, location, searchTerm]);
+  }, [activePage, elementsPerPage, location, searchTerm, filterOption]);
 
   useEffect(() => {
     const fetchDataInterval = setInterval(() => {
@@ -161,20 +172,18 @@ function Dashboard() {
     setActivePage(page);
   };
 
-   const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
-     setSearchTerm(event.currentTarget.value);
-   };
+  const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(event.currentTarget.value);
+  };
 
   const handleElementsPerPageChange = (value: string | null) => {
-    
-    if (value)
-    {
+    if (value) {
       setElementsPerPage(parseInt(value));
       setActivePage(1); // Reset to first page whenever elements per page change
       localStorage.setItem(pathname, value);
     }
   };
- 
+
   const initialIndex = (activePage - 1) * elementsPerPage;
   const finalIndex = initialIndex + elementsPerPage;
 
@@ -206,7 +215,7 @@ function Dashboard() {
         {element.user_first_name} {element.user_last_name}
       </Table.Td>
       <Table.Td>{element.user_email}</Table.Td>
-      <Table.Td>{element?.phone ? element?.phone  : "-" }</Table.Td>
+      <Table.Td>{element?.phone ? element?.phone : "-"}</Table.Td>
       <Table.Td>{element.location_name}</Table.Td>
       <Table.Td>{element.validated_at ? `${element.admin_first_name} ${element.admin_last_name}` : "-"}</Table.Td>
       <Table.Td>{new Date(element.entry_time).toLocaleString()}</Table.Td>
@@ -272,6 +281,7 @@ function Dashboard() {
             <Text>entradas</Text>
           </Flex>
           <Group gap={8}>
+            <Select placeholder="Seleciona filtros" data={["Ver por validar", "Ver validados"]} value={filterOption} onChange={(value) => handleFilterChange(value)} />
             <Tooltip label={"Atualizar Tabela"} withArrow position="top">
               <ActionIcon variant="subtle" color="green" onClick={() => fetchData()} size="lg">
                 <IconRefresh size={18} />
