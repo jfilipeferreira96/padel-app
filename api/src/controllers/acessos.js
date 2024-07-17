@@ -57,9 +57,9 @@ class AcessosController {
       FROM entries
       WHERE user_id = (SELECT user_id FROM users WHERE ${userIdentifier.column} = ?) AND entry_time >= NOW() - INTERVAL 10 MINUTE
     `;
-      const { rows } = await db.query(recentEntryQuery, [userIdentifier.value]);
+      const { rows: recentEntries } = await db.query(recentEntryQuery, [userIdentifier.value]);
 
-      if (rows.length > 0) {
+      if (recentEntries.length > 0) {
         return res.status(400).json({ status: false, message: "O utilizador já registou uma entrada nos últimos 10 minutos." });
       }
 
