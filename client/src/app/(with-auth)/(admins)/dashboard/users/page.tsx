@@ -20,11 +20,12 @@ function getBadge(user_type: string){
   }
 }
 
-interface Elemento{
+interface Elemento {
   user_id: number;
   email: string;
   first_name: string;
   last_name: string;
+  phone: string;
   birthdate: string;
   user_type: string;
   created_at: string;
@@ -62,6 +63,7 @@ function Users() {
       const filters = {
         email: searchTerm ?? null,
         name: searchTerm ?? null,
+        phone: searchTerm ?? null,
       };
 
       const response = await getAllUsers(pagination, filters);
@@ -128,11 +130,19 @@ function Users() {
         {element.first_name} {element.last_name}
       </Table.Td>
       <Table.Td>{element.email}</Table.Td>
+      <Table.Td>{element?.phone ? element?.phone : "-"}</Table.Td>
       <Table.Td>{new Date(element.created_at).toLocaleString()}</Table.Td>
       <Table.Td>
         <Group gap={0} justify="center">
           <Tooltip label={"Apagar Utilizador"} withArrow position="top">
-            <ActionIcon variant="subtle" color="red" onClick={() => { setDeleteUserId(element.user_id);  open()}}>
+            <ActionIcon
+              variant="subtle"
+              color="red"
+              onClick={() => {
+                setDeleteUserId(element.user_id);
+                open();
+              }}
+            >
               <IconTrash style={{ width: rem(20), height: rem(20) }} stroke={1.5} />
             </ActionIcon>
           </Tooltip>
@@ -207,7 +217,7 @@ function Users() {
               size="md"
               value={searchTerm}
               onChange={handleSearch}
-              placeholder="Pesquisar por nome ou email"
+              placeholder="Pesquisar por nome, email ou telemóvel"
               rightSectionWidth={42}
               leftSection={<IconSearch style={{ width: rem(18), height: rem(18) }} stroke={1.5} />}
             />
@@ -250,6 +260,7 @@ function Users() {
                 <Table.Th>Tipo de Utilizador</Table.Th>
                 <Table.Th>Nome</Table.Th>
                 <Table.Th>Email</Table.Th>
+                <Table.Th>Telemóvel</Table.Th>
                 <Table.Th>Data de Criação</Table.Th>
                 <Table.Th>Ações</Table.Th>
               </Table.Tr>

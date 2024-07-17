@@ -313,7 +313,7 @@ class UserController {
       const params = [];
 
       if (req.body.filters) {
-        const { user_type, created_at, email, name } = req.body.filters;
+        const { user_type, created_at, email, name, phone } = req.body.filters;
 
         if (user_type) {
           query += ` AND u.user_type = ?`;
@@ -327,16 +327,12 @@ class UserController {
           params.push(created_at);
         }
 
-        if (email) {
-          query += ` AND u.email LIKE ?`;
-          totalCountQuery += ` AND email LIKE ?`;
-          params.push(`%${email}%`);
-        }
-
-        if (name) {
-          query += ` AND (u.first_name LIKE ? OR u.last_name LIKE ?)`;
-          totalCountQuery += ` AND (first_name LIKE ? OR last_name LIKE ?)`;
-          params.push(`%${name}%`, `%${name}%`);
+        const searchValue = email || name || phone;
+        if (searchValue) {
+          query += ` AND (u.email LIKE ? OR u.phone LIKE ? OR u.first_name LIKE ? OR u.last_name LIKE ?)`;
+          totalCountQuery += ` AND (email LIKE ? OR phone LIKE ? OR first_name LIKE ? OR last_name LIKE ?)`;
+          const searchPattern = `%${searchValue}%`;
+          params.push(searchPattern, searchPattern, searchPattern, searchPattern);
         }
       }
 
@@ -347,7 +343,7 @@ class UserController {
 
       const { rows } = await db.query(query, params);
       const { rows: totalCountRows } = await db.query(totalCountQuery, params.slice(0, params.length - 2));
-
+      console.log(query);
       const users = rows.map((row) => ({
         ...row,
         offpeaks: JSON.parse(row.offpeaks),
