@@ -254,6 +254,34 @@ class AcessosController {
       return res.status(500).json({ status: false, message: "Erro ao remover entrada." });
     }
   }
+
+  static async UpdateEntryCount(req, res, next) {
+    const { userId, actualCard, entryCount } = req.body;
+
+    // Validar as entradas
+    if (!userId || isNaN(parseInt(userId)) || !actualCard || isNaN(parseInt(actualCard)) || !entryCount || isNaN(parseInt(entryCount))) {
+      return res.status(200).json({ status: false, message: "Dados de entrada inválidos" });
+    }
+
+    try {
+      const updateQuery = `
+        UPDATE entry_cards
+        SET entry_count = ?
+        WHERE user_id = ? AND card_id = ?
+      `;
+
+      const result = await db.query(updateQuery, [entryCount, userId, actualCard]);
+
+      if (result.affectedRows === 0) {
+        return res.status(200).json({ status: false, message: "Utilizador não encontrado ou nenhuma linha atualizada" });
+      }
+
+      return res.status(200).json({ status: true, message: "Contagem de entradas atualizada com sucesso" });
+    } catch (error) {
+      Logger.error(`Erro ao atualizar a contagem de entradas para o utilizador com ID ${userId}:`, error);
+      return res.status(200).json({ status: false, message: "Erro Interno do Servidor" });
+    }
+  }
 }
 
 module.exports = AcessosController;

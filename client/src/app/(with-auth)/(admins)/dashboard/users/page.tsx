@@ -2,13 +2,14 @@
 import React, { useState, useEffect } from "react";
 import { Card, Table, Checkbox, Pagination as MantinePagination, Center, Text, Select, Flex, Badge, SimpleGrid, Skeleton, Grid, Tooltip, ActionIcon, rem, Group, Button, Modal, TextInput } from "@mantine/core";
 import { deleteUser, getAllUsers } from "@/services/user.service";
-import { IconArrowRight, IconCards, IconEye, IconPencil, IconPlus, IconSearch, IconTrash } from "@tabler/icons-react";
+import { IconArrowRight, IconCards, IconEye, IconPencil, IconPlus, IconSearch, IconSticker, IconTrash } from "@tabler/icons-react";
 import AddUserModal from "@/components/user-modal/add";
 import { useDisclosure } from "@mantine/hooks";
 import EditUserModal from "@/components/user-modal/edit";
 import { notifications } from "@mantine/notifications";
 import { usePathname } from "next/navigation";
 import AsignOffpeakModal from "@/components/user-modal/assign-offpick";
+import CarimbosModal from "@/components/user-modal/carimbos-modal";
 
 function getBadge(user_type: string){
   if (user_type === 'admin')
@@ -45,6 +46,7 @@ function Users() {
   const [isModalOpenAdd, setIsModalOpenAdd] = useState<boolean>(false);
   const [isModalOpenEdit, setIsModalOpenEdit] = useState<boolean>(false);
   const [isModalOpenOffpeak, setIsModalOpenOffpeak] = useState<boolean>(false);
+  const [isModalOpenCarimbos, setIsModalOpenCarimbos] = useState<boolean>(false);
   const [editUserId, setEditUserId] = useState<number | null>(null);
   const [deleteUserId, setDeleteUserId] = useState<number | null>(null);
   const [opened, { open, close }] = useDisclosure(false);
@@ -100,6 +102,11 @@ function Users() {
   const handleOffpeak = (userId: number) =>{
     setEditUserId(userId);
     setIsModalOpenOffpeak(true);
+  };
+
+  const handleCarimbos = (userId: number) => {
+    setEditUserId(userId);
+    setIsModalOpenCarimbos(true);
   };
   
   const handleElementsPerPageChange = (value: string | null) => {
@@ -158,6 +165,11 @@ function Users() {
               <IconCards size={20} stroke={1.5} />
             </ActionIcon>
           </Tooltip>
+          <Tooltip label={"Ver/Editar Carimbos"} withArrow position="top">
+            <ActionIcon color="yellow" variant="subtle" onClick={() => handleCarimbos(element.user_id)}>
+              <IconSticker size={20} stroke={1.5} />
+            </ActionIcon>
+          </Tooltip>
         </Group>
       </Table.Td>
     </Table.Tr>
@@ -171,6 +183,8 @@ function Users() {
       <EditUserModal isModalOpen={isModalOpenEdit} setIsModalOpen={setIsModalOpenEdit} fetchData={fetchData} userId={editUserId} />
 
       <AsignOffpeakModal isModalOpen={isModalOpenOffpeak} setIsModalOpen={setIsModalOpenOffpeak} fetchData={fetchData} userId={editUserId} />
+
+      <CarimbosModal isModalOpen={isModalOpenCarimbos} setIsModalOpen={setIsModalOpenCarimbos} fetchData={fetchData} userId={editUserId} />
 
       <Modal opened={opened} onClose={close} withCloseButton={false}>
         <Center>

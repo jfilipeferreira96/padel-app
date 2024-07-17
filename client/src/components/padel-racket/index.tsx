@@ -15,7 +15,7 @@ export function PadelRacket(props: Props) {
   return (
     <div className={classes.card}>
       <Flex align={"center"}>
-        {isFilled && <Image src={`paddle_6688583.png`} alt={number.toString()} width={100} height={100} />}
+        {isFilled && <Image src={`/paddle_6688583.png`} alt={number.toString()} width={100} height={100} />}
         {isNumberTen && (
           <>
             <div className={isFilled ? classes.freeimage : ""}>

@@ -343,7 +343,7 @@ class UserController {
 
       const { rows } = await db.query(query, params);
       const { rows: totalCountRows } = await db.query(totalCountQuery, params.slice(0, params.length - 2));
-     
+
       const users = rows.map((row) => ({
         ...row,
         offpeaks: JSON.parse(row.offpeaks),
@@ -466,7 +466,7 @@ class UserController {
 
     try {
       // Verificar se o utilizador solicitado é o mesmo que está a fazer a requisição
-      if (req.user?.id !== parseInt(userId)) {
+      if (req.user?.id !== parseInt(userId) && req.user?.user_type !== "admin") {
         return res.status(200).json({ status: false, error: "Forbidden", message: "You are not allowed to access this resource" });
       }
 

@@ -36,3 +36,12 @@ export const removeEntry = async (entryId: number) => {
     throw error;
   }
 };
+
+export const updateEntryCount = async (userId: number | string, actualCard: number, entryCount: number) => {
+  try {
+    const response = await api.post(endpoints.updateEntryCountRoute, { userId, actualCard, entryCount });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};

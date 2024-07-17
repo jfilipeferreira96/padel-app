@@ -17,7 +17,7 @@ export function CartaoJogos(props: Props) {
   return (
     <div className={classes.rounded}>
       <Flex align={"center"}>
-        {isFilled && <Image src={`paddle_6688583.png`} alt={number.toString()} width={isMobile ? 80 : 100} height={isMobile ? 80 : 100} />}
+        {isFilled && <Image src={`/paddle_6688583.png`} alt={number.toString()} width={isMobile ? 80 : 100} height={isMobile ? 80 : 100} />}
 
         {isNumberTen && (
           <>

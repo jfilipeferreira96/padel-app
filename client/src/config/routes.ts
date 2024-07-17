@@ -22,6 +22,7 @@ export const endpoints = {
   /*################## ACESSOS #############################*/
   acessosEntryRoute: `/api/acessos/entry`,
   acessosValidateRoute: `/api/acessos/validate`,
+  updateEntryCountRoute: `/api/acessos/update-entry-count`,
   /*################## OFFpeakS #############################*/
   getOffpeakCard: "/api/offpeak/offpeak-card",
   getAllOffpeakCards: "/api/offpeak/offpeak-cards",
