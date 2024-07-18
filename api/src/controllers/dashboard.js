@@ -55,12 +55,12 @@ class DashboardController {
           params.push(searchPattern, searchPattern, searchPattern, searchPattern);
         }
 
-        if (validated_by !== undefined && validated_by === true) {
+        if (validated_by !== undefined && validated_by === false) {
           query += ` AND e.validated_by IS NOT NULL`;
           totalCountQuery += ` AND e.validated_by IS NOT NULL`;
         }
 
-        if (validated_by !== undefined && validated_by === false) {
+        if (validated_by !== undefined && validated_by === true) {
           query += ` AND e.validated_by IS NULL`;
           totalCountQuery += ` AND e.validated_by IS NULL`;
         }
