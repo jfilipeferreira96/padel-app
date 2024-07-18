@@ -6,6 +6,7 @@ import { getUserPunchCard } from "@/services/user.service";
 import { useSession } from "@/providers/SessionProvider";
 import Carimbos from "../carimbos";
 import { updateEntryCount } from "@/services/acessos.service";
+import { createUserCardCarimbos } from "@/services/dashboard.service";
 
 interface Props {
   isModalOpen: boolean;
@@ -42,12 +43,19 @@ const CarimbosModal: React.FC<Props> = ({ isModalOpen, setIsModalOpen, userId, f
         if (!userId) return;
 
         const response = await getUserPunchCard(userId as any);
-
+        
         if (response.status) {
           const card = response.actual_card[0];
+          
           if (card) {
             setActualCard(card); 
             setEntryCount(card.entry_count ?? 0); 
+          } else {
+            const createCard = await createUserCardCarimbos(userId as any);
+            if (createCard.status) {
+              setActualCard(createCard.card);
+              setEntryCount(createCard.card.entry_count ?? 0);
+            }
           }
         } else {
           notifications.show({

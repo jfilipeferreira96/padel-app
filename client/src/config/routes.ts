@@ -17,6 +17,7 @@ export const endpoints = {
   updateAccount: `/api/auth/account`,
   /*################## Dashboard #############################*/
   dashboardEntriesRoute: `/api/dashboard/entries`,
+  manuallyCreateCard: `/api/dashboard/manually-card`,
   dashboardCardsRoute: `/api/dashboard/cards`,
   configRoute: `/api/dashboard/configs`,
   /*################## ACESSOS #############################*/

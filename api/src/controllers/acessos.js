@@ -53,10 +53,10 @@ class AcessosController {
 
       // Verificar se o utilizador tem alguma entrada nos últimos 10 minutos
       const recentEntryQuery = `
-      SELECT entry_id
-      FROM entries
-      WHERE user_id = (SELECT user_id FROM users WHERE ${userIdentifier.column} = ?) AND entry_time >= NOW() - INTERVAL 10 MINUTE
-    `;
+        SELECT entry_id
+        FROM entries
+        WHERE user_id = (SELECT user_id FROM users WHERE ${userIdentifier.column} = ?) AND entry_time >= NOW() - INTERVAL 10 MINUTE
+      `;
       const { rows: recentEntries } = await db.query(recentEntryQuery, [userIdentifier.value]);
 
       if (recentEntries.length > 0) {
@@ -165,8 +165,7 @@ class AcessosController {
           // Verificar se o utilizador já possui um cartão ativo
           const { rows: existingCard } = await db.query(
             `SELECT card_id, entry_count FROM entry_cards
-              WHERE user_id = (SELECT user_id FROM entries WHERE entry_id = ?) AND is_active = 1
-            `,
+                     WHERE user_id = (SELECT user_id FROM entries WHERE entry_id = ?) AND is_active = 1`,
             [entryId]
           );
 
@@ -185,24 +184,41 @@ class AcessosController {
             const cardId = existingCard[0].card_id;
             const entryCount = parseInt(existingCard[0].entry_count);
 
-            if (entryCount + 1 <= MAX_ENTRIES_PER_CARD) {
+            if (entryCount < MAX_ENTRIES_PER_CARD) {
               // Define se é especial ou não baseado na quantidade de entradas
               const isSpecial = entryCount + 1 === MAX_ENTRIES_PER_CARD ? 1 : 0;
               const isCardActive = entryCount + 1 === MAX_ENTRIES_PER_CARD ? 0 : 1;
 
               await db.query(
                 `UPDATE entry_cards 
-                    SET entry_count = entry_count + 1, is_active = ? 
-                WHERE card_id = ?`,
+                             SET entry_count = entry_count + 1, is_active = ? 
+                             WHERE card_id = ?`,
                 [isCardActive, cardId]
               );
 
               await db.query(
                 `INSERT INTO card_entries 
-                  (card_id, entry_id, num_of_entries, is_special)
-                VALUES (?, ?, ?, ?)`,
+                             (card_id, entry_id, num_of_entries, is_special)
+                             VALUES (?, ?, ?, ?)`,
                 [cardId, entryId, entryCount + 1, isSpecial]
               );
+
+              successCount++;
+              successfulIds.push(entryId);
+            } else if (entryCount === MAX_ENTRIES_PER_CARD) {
+              // Se o cartão atual tem 10 entradas, desativar o cartão antigo e criar um novo cartão
+              await db.query(
+                `UPDATE entry_cards 
+                             SET is_active = 0 
+                             WHERE card_id = ?`,
+                [cardId]
+              );
+
+              const { rows: newCard } = await db.query("INSERT INTO entry_cards (user_id) VALUES ((SELECT user_id FROM entries WHERE entry_id = ?))", [entryId]);
+              const newCardId = newCard.insertId;
+
+              // Criar uma entrada no novo card_entries
+              await db.query("INSERT INTO card_entries (card_id, entry_id, num_of_entries) VALUES (?, ?, ?)", [newCardId, entryId, 1]);
 
               successCount++;
               successfulIds.push(entryId);
@@ -257,7 +273,6 @@ class AcessosController {
 
   static async UpdateEntryCount(req, res, next) {
     const { userId, actualCard, entryCount } = req.body;
-
     // Validar as entradas
     if (!userId || isNaN(parseInt(userId)) || !actualCard || isNaN(parseInt(actualCard)) || !entryCount || isNaN(parseInt(entryCount))) {
       return res.status(200).json({ status: false, message: "Dados de entrada inválidos" });

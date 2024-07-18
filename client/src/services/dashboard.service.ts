@@ -47,3 +47,12 @@ export const updateConfig = async (configData: any): Promise<{ status: string; m
     throw error;
   }
 };
+
+export const createUserCardCarimbos = async (id: string) => {
+  try {
+    const response = await api.get(`${endpoints.manuallyCreateCard}/${id}`);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};

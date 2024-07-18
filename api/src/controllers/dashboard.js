@@ -186,6 +186,57 @@ class DashboardController {
       return res.status(200).json({ status: false, message: "Error creating configs." });
     }
   }
+
+  static async CreateCarimbosManually(req, res) {
+    try {
+      const { userId } = req.params;
+      // Verificar se o userId foi fornecido
+      if (!userId) {
+        return res.status(200).json({ status: false, message: "ID do utilizador é obrigatório." });
+      }
+
+      // Verificar se existe um cartão ativo para o userId fornecido
+      const checkActiveCardQuery = `
+      SELECT COUNT(*) AS active_card_count
+      FROM entry_cards
+      WHERE user_id = ? AND is_active = 1
+    `;
+
+      const { rows: activeCardResult } = await db.query(checkActiveCardQuery, [userId]);
+      const activeCardCount = activeCardResult[0].active_card_count;
+
+      // Se existir um cartão ativo, retornar um erro
+      if (activeCardCount > 0) {
+        return res.status(200).json({ status: false, message: "O utilizador já possui um cartão ativo." });
+      }
+
+      // Inserir uma nova entrada com entry_count = 0
+      const insertEntryQuery = `
+      INSERT INTO entry_cards (user_id, entry_count)
+      VALUES (?, 0)
+    `;
+
+      const { rows: newEntryResult } = await db.query(insertEntryQuery, [userId]);
+      const insertedCardId = newEntryResult.insertId;
+      // Buscar todas as informações do cartão recém-criado
+      const getCardInfoQuery = `
+      SELECT card_id, user_id, created_at, is_active, entry_count
+      FROM entry_cards
+      WHERE card_id = ?
+    `;
+
+      const { rows: cardInfo } = await db.query(getCardInfoQuery, [insertedCardId]);
+
+      return res.status(201).json({
+        status: true,
+        message: "Cartão de entrada criado com sucesso.",
+        card: cardInfo[0],
+      });
+    } catch (error) {
+      Logger.error("Erro ao criar cartão de entrada:", error);
+      return res.status(200).json({ status: false, message: "Erro ao criar cartão de entrada." });
+    }
+  }
 }
 
 module.exports = DashboardController;

@@ -12,38 +12,44 @@ interface CarimbosProps {
 const Carimbos: React.FC<CarimbosProps> = ({ userId }) => {
   const [rackets, setRackets] = useState<{ isFilled: boolean }[]>(Array(10).fill({ isFilled: false }));
   const [isLoading, setIsLoading] = useState(true);
-  
-  useEffect(() => {
-    const fetchCard = async () => {
-      try {
-        const response = await getUserPunchCard(userId as string);
-        
-        if (response.status) {
-          const card = response.actual_card[0];
-          if (card) {
-            const entryCount = card.entry_count ?? 0;
-            let updatedRackets = [];
 
-            for (let i = 1; i <= 10; i++) {
-              updatedRackets.push({ isFilled: i <= entryCount });
-            }
+  // Function to fetch card data
+  const fetchCard = async () => {
+    try {
+      const response = await getUserPunchCard(userId as string);
 
-            setRackets(updatedRackets);
+      if (response.status) {
+        const card = response.actual_card[0];
+        if (card) {
+          const entryCount = card.entry_count ?? 0;
+          let updatedRackets = [];
+
+          for (let i = 1; i <= 10; i++) {
+            updatedRackets.push({ isFilled: i <= entryCount });
           }
-          setIsLoading(false);
+
+          setRackets(updatedRackets);
         }
-      } catch (error) {
-        console.error("Error fetching card data:", error);
-        notifications.show({
-          title: "Erro",
-          message: "Algo correu mal",
-          color: "red",
-        });
         setIsLoading(false);
       }
-    };
+    } catch (error) {
+      console.error("Error fetching card data:", error);
+      notifications.show({
+        title: "Erro",
+        message: "Algo correu mal",
+        color: "red",
+      });
+      setIsLoading(false);
+    }
+  };
 
+
+  useEffect(() => {
     fetchCard();
+
+    const intervalId = setInterval(fetchCard, 20000); 
+
+    return () => clearInterval(intervalId); 
   }, [userId]);
 
   if (isLoading) {
