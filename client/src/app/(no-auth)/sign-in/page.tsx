@@ -92,11 +92,11 @@ export default function IniciarSessao() {
         <StyledPaper withBorder shadow="md" p={30} mt={30} radius="md">
           <TextInput className="specialinput" label="Email" placeholder="you@gmail.com" required {...form.getInputProps("email")} />
           <PasswordInput className="specialinput" label="Palavra-passe" placeholder="A sua palavra-passe" required mt="md" {...form.getInputProps("password")} />
-          <Group justify={"flex-end"} mt="lg">
-            {/* <Anchor component="button" size="sm">
+          {/* <Group justify={"flex-end"} mt="sm" mb={"sm"} onClick={() => router.push(routes.forgotpassword.url)}>
+            <Anchor component="button" size="sm" c="dimmed">
               Esqueceu-se da palavra-passe?
-            </Anchor> */}
-          </Group>
+            </Anchor>
+          </Group> */}
           <Button fullWidth type="submit" disabled={isLoading}>
             Iniciar sessão
           </Button>

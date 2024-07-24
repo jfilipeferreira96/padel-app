@@ -173,15 +173,9 @@ CREATE UNIQUE INDEX idx_unique_phone ON users(phone);
 
 --------- New:
 
-CREATE TABLE IF NOT EXISTS password_resets (
-    reset_id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT NOT NULL,
-    token VARCHAR(255) NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    expires_at TIMESTAMP NOT NULL,
-    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
-);
-
+ALTER TABLE users 
+ADD COLUMN reset_password_token VARCHAR(255),
+ADD COLUMN reset_password_expires TIMESTAMP;
 
 -- Testes:
 

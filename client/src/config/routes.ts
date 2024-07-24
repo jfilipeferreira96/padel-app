@@ -6,6 +6,9 @@ export const endpoints = {
   /*################## Auth #############################*/
   loginRoute: `/api/auth/login`,
   registerRoute: `/api/auth/register`,
+  resetPassword: `/api/auth/reset-password`,
+  forgotPassword: `/api/auth/forgot-password`,
+  checkToken: `/api/auth/check-token`,
   logoutRoute: `/api/auth/logout`,
   /*################## Users #############################*/
   cardsRoute: `/api/auth/users/cards/`,
@@ -75,6 +78,9 @@ export const routes = {
   },
   signin: {
     url: "/sign-in",
+  },
+  forgotpassword: {
+    url: "/forgot-password",
   },
   register: {
     url: "/register",

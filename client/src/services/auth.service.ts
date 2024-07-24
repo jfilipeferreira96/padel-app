@@ -46,3 +46,40 @@ export const register = async (data: RegisterData) => {
     throw error;
   }
 };
+
+export interface ResetPasswordData {
+  token: string;
+  newPassword: string;
+}
+
+export const resetPassword = async (data: ResetPasswordData) => {
+  try {
+    const response = await api.post(endpoints.resetPassword, data);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+
+export interface ForgotPasswordData {
+  email: string;
+}
+
+export const forgotPassword = async (data: ForgotPasswordData) => {
+  try {
+    const response = await api.post(endpoints.forgotPassword, data);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const checkToken = async (data: string) => {
+  try {
+    const response = await api.post(endpoints.checkToken, data);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};

@@ -1,5 +1,5 @@
 "use client";
-import { /* resetPassword */ } from "@/services/auth.service"; // Certifique-se de ter um serviço para resetar a palavra-passe
+import { forgotPassword } from "@/services/auth.service"; // Certifique-se de ter um serviço para resetar a palavra-passe
 import { TextInput, Paper, Title, Text, Container, Group, Button, Center, Flex, useComputedColorScheme, UnstyledButton, Anchor, rem, Box } from "@mantine/core";
 import { useForm, zodResolver } from "@mantine/form";
 import { useRouter } from "next/navigation";
@@ -8,7 +8,6 @@ import { notifications } from "@mantine/notifications";
 import styled from "styled-components";
 import { z } from "zod";
 import Image from "next/image";
-import { IconArrowLeft } from "@tabler/icons-react";
 import { routes } from "@/config/routes";
 
 const StyledPaper = styled(Paper)`
@@ -30,7 +29,7 @@ export default function EsqueceuPassword() {
   const onSubmitHandler = useCallback(async (data: { email: string }) => {
     setIsLoading(true);
     try {
-     /*  const response = await resetPassword(data.email);
+      const response = await forgotPassword(data);
 
       if (response.status) {
         notifications.show({
@@ -38,13 +37,13 @@ export default function EsqueceuPassword() {
           message: "Verifique o seu email para instruções de redefinição de palavra-passe.",
           color: "green",
         });
-        router.push(routes.login.url); // Redireciona para a página de login após sucesso
+        router.push(routes.signin.url); // Redireciona para a página de login após sucesso
       } else {
         notifications.show({
           message: response.message,
           color: "red",
         });
-      } */
+      }
     } catch (error) {
       notifications.show({
         title: "Erro",
@@ -83,20 +82,16 @@ export default function EsqueceuPassword() {
 
           <StyledPaper withBorder shadow="md" p={30} mt={30} radius="md">
             <TextInput className="specialinput" label="Email" placeholder="you@gmail.com" required {...form.getInputProps("email")} />
+            <Group justify={"flex-end"} mt="sm" mb={"sm"} onClick={() => router.push(routes.signin.url)}>
+              <Anchor component="button" size="sm" c="dimmed">
+                Voltar à pagina de entrada
+              </Anchor>
+            </Group>
 
             <Button fullWidth type="submit" disabled={isLoading} mt="md">
               Enviar Instruções
             </Button>
-            <Group justify="space-between" mt="lg">
-              <Anchor c="dimmed" size="sm">
-                <Center inline>
-                  <IconArrowLeft style={{ width: rem(18), height: rem(18), top: "2px", position: "relative" }} stroke={1.5} onClick={() => router.push(routes.signin.url)} />
-                  <Box ml={5} onClick={() => router.push(routes.signin.url)}>
-                    Voltar à pagina de entrada
-                  </Box>
-                </Center>
-              </Anchor>
-            </Group>
+   
           </StyledPaper>
         </form>
       </Center>

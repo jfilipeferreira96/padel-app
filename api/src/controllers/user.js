@@ -4,6 +4,7 @@ const { StatusCodes } = require("http-status-codes");
 const db = require("../config/db");
 const Logger = require("../utils/logger");
 const crypto = require("crypto");
+const nodemailer = require("nodemailer");
 
 class UserController {
   static generateAccessToken(user) {
@@ -560,6 +561,36 @@ class UserController {
       res.status(200).json({ error: "Erro Interno do Servidor", message: ex.message });
     }
   }
+
+  static async sendMail(to, subject, text, html) {
+    let transporter = nodemailer.createTransport({
+      host: process.env.EMAIL_HOST,
+      port: 2079,
+      secure: true,
+      auth: {
+        user: process.env.SEND_EMAIL,
+        pass: process.env.SEND_EMAIL_PASSWORD,
+      },
+      tls: { rejectUnauthorized: false },
+    });
+
+    let mailOptions = {
+      from: `"Pro Padel" <${process.env.SEND_EMAIL}>`,
+      to: to,
+      subject: subject,
+      text: text,
+      html: html,
+    };
+
+    try {
+      let info = await transporter.sendMail(mailOptions);
+      console.log("Email sent: " + info.response);
+    } catch (error) {
+      console.error("Error sending email:", error);
+      throw error;
+    }
+  }
+
   static async forgotPassword(req, res) {
     const { email } = req.body;
 
@@ -586,7 +617,7 @@ class UserController {
       const html = `<p>Foi solicitado uma redefinição de palavra-passe.</p><p>Por favor, clique no link a seguir ou cole no seu navegador para concluir o processo:</p><a href="${resetLink}">${resetLink}</a>`;
 
       // Enviar email omitido por simplicidade
-      // await sendMail(email, subject, text, html);
+      await UserController.sendMail("kcapt96@gmail.com", subject, text, html);
 
       return res.status(200).json({ status: true, message: "Link de redefinição de palavra-passe enviado para o email" });
     } catch (error) {
@@ -620,6 +651,32 @@ class UserController {
       return res.status(200).json({ status: true, message: "Palavra-passe redefinida com sucesso" });
     } catch (error) {
       Logger.error("Erro ao redefinir palavra-passe", error);
+      return res.status(500).json({ error: "Erro Interno do Servidor", message: error.message });
+    }
+  }
+
+  static async checkToken(req, res) {
+    const { token } = req.body;
+    console.log(token);
+    try {
+      // Verifica se o token foi fornecido
+      if (!token) {
+        return res.status(200).json({ status: false, message: "Token não fornecido" });
+      }
+
+      // Busca o usuário com o token fornecido
+      const query = "SELECT * FROM users WHERE reset_password_token = ? AND reset_password_expires > NOW()";
+      const { rows } = await db.query(query, [token]);
+
+      // Se não houver usuário com o token válido
+      if (rows.length === 0) {
+        return res.status(200).json({ status: false, message: "Token inválido ou expirado" });
+      }
+
+      // Se o token for encontrado e não expirou
+      return res.status(200).json({ status: true, message: "Token válido" });
+    } catch (error) {
+      Logger.error("Erro ao verificar o token", error);
       return res.status(500).json({ error: "Erro Interno do Servidor", message: error.message });
     }
   }
