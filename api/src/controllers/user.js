@@ -617,7 +617,7 @@ class UserController {
       const html = `<p>Foi solicitado uma redefinição de palavra-passe.</p><p>Por favor, clique no link a seguir ou cole no seu navegador para concluir o processo:</p><a href="${resetLink}">${resetLink}</a>`;
 
       // Enviar email omitido por simplicidade
-      await UserController.sendMail("kcapt96@gmail.com", subject, text, html);
+      await UserController.sendMail(email, subject, text, html);
 
       return res.status(200).json({ status: true, message: "Link de redefinição de palavra-passe enviado para o email" });
     } catch (error) {
