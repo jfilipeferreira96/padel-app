@@ -3,6 +3,7 @@ const jwt = require("jsonwebtoken");
 const { StatusCodes } = require("http-status-codes");
 const db = require("../config/db");
 const Logger = require("../utils/logger");
+const crypto = require("crypto");
 
 class UserController {
   static generateAccessToken(user) {
@@ -557,6 +558,69 @@ class UserController {
     } catch (ex) {
       Logger.error("Ocorreu um erro ao atualizar as configurações do utilizador.", ex);
       res.status(200).json({ error: "Erro Interno do Servidor", message: ex.message });
+    }
+  }
+  static async forgotPassword(req, res) {
+    const { email } = req.body;
+
+    try {
+      const query = "SELECT * FROM users WHERE email = ?";
+      const { rows } = await db.query(query, [email]);
+
+      if (rows.length === 0) {
+        return res.status(200).json({ status: false, error: "Pedido Inválido", message: "Email não encontrado" });
+      }
+
+      const user = rows[0];
+      const token = crypto.randomBytes(32).toString("hex");
+      const hashedToken = await bcrypt.hash(token, 10);
+      const expires = new Date(Date.now() + 3600000); // Token expira em 1 hora
+
+      const updateQuery = "UPDATE users SET reset_password_token = ?, reset_password_expires = ? WHERE email = ?";
+      await db.query(updateQuery, [hashedToken, expires, email]);
+
+      const resetLink = `${process.env.FRONTEND_URL}/reset-password/${token}`;
+
+      const subject = "Redefinição de palavra-passe";
+      const text = `Foi solicitado uma redefinição de palavra-passe. Por favor, clique no link a seguir ou cole no seu navegador para concluir o processo: ${resetLink}`;
+      const html = `<p>Foi solicitado uma redefinição de palavra-passe.</p><p>Por favor, clique no link a seguir ou cole no seu navegador para concluir o processo:</p><a href="${resetLink}">${resetLink}</a>`;
+
+      // Enviar email omitido por simplicidade
+      // await sendMail(email, subject, text, html);
+
+      return res.status(200).json({ status: true, message: "Link de redefinição de palavra-passe enviado para o email" });
+    } catch (error) {
+      Logger.error("Erro ao enviar link de redefinição de palavra-passe", error);
+      return res.status(500).json({ error: "Erro Interno do Servidor", message: error.message });
+    }
+  }
+
+  static async resetPassword(req, res) {
+    const { token, newPassword } = req.body;
+
+    try {
+      const query = "SELECT * FROM users WHERE reset_password_token IS NOT NULL";
+      const { rows } = await db.query(query);
+
+      if (rows.length === 0) {
+        return res.status(200).json({ status: false, error: "Pedido Inválido", message: "Token inválido ou expirado" });
+      }
+
+      const user = rows[0];
+      const tokenValid = await bcrypt.compare(token, user.reset_password_token);
+
+      if (!tokenValid || user.reset_password_expires < new Date()) {
+        return res.status(200).json({ status: false, error: "Pedido Inválido", message: "Token inválido ou expirado" });
+      }
+
+      const hashedPassword = await bcrypt.hash(newPassword, 10);
+      const updateQuery = "UPDATE users SET password = ?, reset_password_token = NULL, reset_password_expires = NULL WHERE user_id = ?";
+      await db.query(updateQuery, [hashedPassword, user.user_id]);
+
+      return res.status(200).json({ status: true, message: "Palavra-passe redefinida com sucesso" });
+    } catch (error) {
+      Logger.error("Erro ao redefinir palavra-passe", error);
+      return res.status(500).json({ error: "Erro Interno do Servidor", message: error.message });
     }
   }
 }

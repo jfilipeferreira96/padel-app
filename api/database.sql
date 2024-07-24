@@ -11,15 +11,9 @@ CREATE TABLE IF NOT EXISTS users (
 );
 
 -- Criar a tabela 'locations'
-CREATE TABLE IF NOT EXISTS locations (
-    location_id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
-    address VARCHAR(255) NOT NULL,
-    city VARCHAR(100) NOT NULL,
-    country VARCHAR(100) NOT NULL,
-    href VARCHAR(255) DEFAULT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+ALTER TABLE users 
+ADD COLUMN reset_password_token VARCHAR(255),
+ADD COLUMN reset_password_expires TIMESTAMP;
 
 INSERT INTO `locations` (`location_id`, `name`, `address`, `city`, `country`,  `href`, `created_at`) VALUES 
 (NULL, 'Pro Padel - Mozelos', 'Rua Bairro da Mata, 644, Santa Maria de Lamas', 'Mozelos', 'Portugal', '', current_timestamp()),
@@ -176,6 +170,18 @@ VALUES
 ALTER TABLE users 
 ADD COLUMN phone VARCHAR(15) DEFAULT NULL UNIQUE;
 CREATE UNIQUE INDEX idx_unique_phone ON users(phone);
+
+--------- New:
+
+CREATE TABLE IF NOT EXISTS password_resets (
+    reset_id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    token VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    expires_at TIMESTAMP NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+);
+
 
 -- Testes:
 
