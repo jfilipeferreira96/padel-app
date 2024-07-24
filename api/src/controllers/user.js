@@ -630,7 +630,7 @@ class UserController {
 
   static async resetPassword(req, res) {
     const { token, newPassword } = req.body;
-
+    console.log(req.body);
     try {
       const query = "SELECT * FROM users WHERE reset_password_token IS NOT NULL AND reset_password_expires > NOW()";
       const { rows } = await db.query(query);
@@ -640,11 +640,6 @@ class UserController {
       }
 
       const user = rows[0];
-      const tokenValid = await bcrypt.compare(token, user.reset_password_token);
-
-      if (!tokenValid) {
-        return res.status(200).json({ status: false, error: "Pedido Inválido", message: "Token inválido ou expirado" });
-      }
 
       const hashedPassword = await bcrypt.hash(newPassword, 10);
       const updateQuery = "UPDATE users SET password = ?, reset_password_token = NULL, reset_password_expires = NULL WHERE user_id = ?";
@@ -658,8 +653,7 @@ class UserController {
   }
 
   static async checkToken(req, res) {
-    const { token } = req.body;
-
+    const { token } = req.params;
     try {
       // Verifica se o token foi fornecido
       if (!token) {

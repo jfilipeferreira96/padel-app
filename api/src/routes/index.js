@@ -27,7 +27,7 @@ authRoutes.post("/login", UserController.login);
 
 authRoutes.post("/forgot-password", UserController.forgotPassword);
 authRoutes.post("/reset-password", UserController.resetPassword);
-authRoutes.post("/check-token", UserController.checkToken);
+authRoutes.get("/checktoken/:token", UserController.checkToken);
 
 /***************** AUTH ROUTES *****************/
 routes.use("/api/auth", authRoutes);

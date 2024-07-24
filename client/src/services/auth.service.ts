@@ -75,9 +75,9 @@ export const forgotPassword = async (data: ForgotPasswordData) => {
   }
 };
 
-export const checkToken = async (data: string) => {
+export const checkToken = async (token: string) => {
   try {
-    const response = await api.post(endpoints.checkToken, data);
+    const response = await api.get(`${endpoints.checkToken}/${token}`);
     return response.data;
   } catch (error) {
     throw error;

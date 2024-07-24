@@ -97,10 +97,14 @@ export default function ResetPasswordPage({ params: { token } }: { params: { tok
         if (response.status) {
           notifications.show({
             title: "Sucesso",
-            message: "Palavra-passe redefinida com sucesso. Redirecionando para o login...",
+            message: "Palavra-passe redefinida com sucesso.",
             color: "green",
           });
-          router.push(routes.signin.url); // Redireciona para a página de login após sucesso
+
+          setTimeout(() => {
+            router.push(routes.signin.url); 
+          }, 4000);
+          
         } else {
           notifications.show({
             message: response.message,

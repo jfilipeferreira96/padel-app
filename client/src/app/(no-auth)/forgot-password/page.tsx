@@ -37,7 +37,11 @@ export default function EsqueceuPassword() {
           message: "Verifique o seu email para instruções de redefinição de palavra-passe.",
           color: "green",
         });
-        router.push(routes.signin.url); // Redireciona para a página de login após sucesso
+
+        setTimeout(() => {
+          router.push(routes.signin.url); // Redireciona para a página de login após o atraso
+        }, 4000);
+        
       } else {
         notifications.show({
           message: response.message,

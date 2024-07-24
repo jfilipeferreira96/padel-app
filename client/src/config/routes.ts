@@ -7,8 +7,8 @@ export const endpoints = {
   loginRoute: `/api/auth/login`,
   registerRoute: `/api/auth/register`,
   resetPassword: `/api/auth/reset-password`,
-  forgotPassword: `/api/auth/forgot-password`,
-  checkToken: `/api/auth/check-token`,
+  forgotPassword: `/api/auth/forgotpassword`,
+  checkToken: `/api/auth/checktoken`,
   logoutRoute: `/api/auth/logout`,
   /*################## Users #############################*/
   cardsRoute: `/api/auth/users/cards/`,
