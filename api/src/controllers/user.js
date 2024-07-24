@@ -564,14 +564,17 @@ class UserController {
 
   static async sendMail(to, subject, text, html) {
     let transporter = nodemailer.createTransport({
+      pool: true,
       host: process.env.EMAIL_HOST,
-      port: 2079,
+      port: 465,
       secure: true,
       auth: {
         user: process.env.SEND_EMAIL,
         pass: process.env.SEND_EMAIL_PASSWORD,
       },
-      tls: { rejectUnauthorized: false },
+      tls: {
+        rejectUnauthorized: false,
+      },
     });
 
     let mailOptions = {
