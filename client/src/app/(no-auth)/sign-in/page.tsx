@@ -97,7 +97,7 @@ export default function IniciarSessao() {
               Esqueceu-se da palavra-passe?
             </Anchor>
           </Group> */}
-          <Button fullWidth type="submit" disabled={isLoading}>
+          <Button fullWidth type="submit" disabled={isLoading} mt="lg">
             Iniciar sessão
           </Button>
         </StyledPaper>
