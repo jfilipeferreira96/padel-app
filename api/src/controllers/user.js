@@ -607,11 +607,10 @@ class UserController {
 
       const user = rows[0];
       const token = crypto.randomBytes(32).toString("hex");
-      const hashedToken = await bcrypt.hash(token, 10);
       const expires = new Date(Date.now() + 3600000); // Token expira em 1 hora
 
       const updateQuery = "UPDATE users SET reset_password_token = ?, reset_password_expires = ? WHERE email = ?";
-      await db.query(updateQuery, [hashedToken, expires, email]);
+      await db.query(updateQuery, [token, expires, email]);
 
       const resetLink = `${process.env.FRONTEND_URL}/reset-password/${token}`;
 
@@ -633,7 +632,7 @@ class UserController {
     const { token, newPassword } = req.body;
 
     try {
-      const query = "SELECT * FROM users WHERE reset_password_token IS NOT NULL";
+      const query = "SELECT * FROM users WHERE reset_password_token IS NOT NULL AND reset_password_expires > NOW()";
       const { rows } = await db.query(query);
 
       if (rows.length === 0) {
@@ -643,7 +642,7 @@ class UserController {
       const user = rows[0];
       const tokenValid = await bcrypt.compare(token, user.reset_password_token);
 
-      if (!tokenValid || user.reset_password_expires < new Date()) {
+      if (!tokenValid) {
         return res.status(200).json({ status: false, error: "Pedido Inválido", message: "Token inválido ou expirado" });
       }
 
@@ -660,14 +659,13 @@ class UserController {
 
   static async checkToken(req, res) {
     const { token } = req.body;
-    console.log(token);
+
     try {
       // Verifica se o token foi fornecido
       if (!token) {
         return res.status(200).json({ status: false, message: "Token não fornecido" });
       }
 
-      // Busca o usuário com o token fornecido
       const query = "SELECT * FROM users WHERE reset_password_token = ? AND reset_password_expires > NOW()";
       const { rows } = await db.query(query, [token]);
 
