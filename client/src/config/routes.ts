@@ -60,6 +60,9 @@ export const routes = {
   carimbos: {
     url: "/carimbos",
   },
+  vouchers: {
+    url: "/vouchers",
+  },
   qrcode: {
     url: "/qrcode",
   },

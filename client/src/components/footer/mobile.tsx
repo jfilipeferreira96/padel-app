@@ -1,5 +1,5 @@
 import { rem, Flex, useComputedColorScheme, Tooltip, Menu, Group, HoverCard, Center, Text, Divider, SimpleGrid, Box, Button, UnstyledButton, ThemeIcon, useMantineTheme } from "@mantine/core";
-import {  IconCards, IconTournament, IconCalendarTime, IconHome, IconChevronDown, IconSquareRoundedNumber1, IconSquareRoundedNumber2, IconQrcode, IconSticker } from "@tabler/icons-react";
+import {  IconCards, IconTournament, IconCalendarTime, IconHome, IconChevronDown, IconSquareRoundedNumber1, IconSquareRoundedNumber2, IconQrcode, IconSticker, IconGiftCard } from "@tabler/icons-react";
 import classes from "./MobileFooter.module.css";
 import Image from "next/image";
 import { useEffect, useState } from "react";
@@ -111,8 +111,7 @@ export function MobileFooter() {
       icon: <IconQrcode style={{ width: "100%", height: rem(25) }} stroke={1.5} />,
       label: "QR Code",
       url: routes.qrcode.url,
-      onClick: () =>
-      {
+      onClick: () => {
         router.push(routes.home.url);
       },
     },
@@ -120,12 +119,11 @@ export function MobileFooter() {
       icon: <IconSticker style={{ width: "100%", height: rem(25) }} stroke={1.5} />,
       label: "Carimbos",
       url: routes.carimbos.url,
-      onClick: () =>
-      {
+      onClick: () => {
         router.push(routes.home.url);
       },
     },
-/*     {
+    /*     {
       icon: <IconTournament style={{ width: "100%", height: rem(25) }} stroke={1.5} />,
       label: "Torneios",
       onClick: () => window.open(config.torneios ?? "", "_blank"),
@@ -138,6 +136,14 @@ export function MobileFooter() {
       hide: (!config.ligas || config.ligas == "") ? true : false,
     }, */
     {
+      icon: <IconGiftCard style={{ width: "100%", height: rem(25) }} stroke={1.5} />,
+      label: "Vouchers",
+      url: routes.vouchers.url,
+      onClick: () => {
+        router.push(routes.vouchers.url);
+      },
+    },
+    {
       icon: <IconCards style={{ width: "100%", height: rem(25) }} stroke={1.5} />,
       label: "Off Peak",
       url: routes.offpeaks.url,
@@ -145,13 +151,13 @@ export function MobileFooter() {
         router.push(routes.offpeaks.url);
       },
     },
-    {
+    /* {
       icon: <IconCalendarTime style={{ width: "100%", height: rem(25) }} stroke={1.5} />,
       label: "Reservar",
       url: "#",
       onClick: () => { },
       isReservar: true,
-    },
+    }, */
   ];
   
   useEffect(() => {
