@@ -1,16 +1,16 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { Text, Title, Center, Loader, UnstyledButton, Box, Image, rem, Tabs } from "@mantine/core";
+import { Text, Title, Center, Loader, UnstyledButton, Box, Image, rem, Tabs, SegmentedControl } from "@mantine/core";
 import classes from "./classes.module.css";
 import { useSession } from "@/providers/SessionProvider";
 import "@mantine/carousel/styles.css";
-import { IconPhoto, IconMessageCircle, IconSettings } from "@tabler/icons-react";
 
 function VouchersPage() {
   const { user } = useSession();
   const [isLoading, setIsLoading] = useState<boolean>(true);
-    const iconStyle = { width: rem(12), height: rem(12) };
-
+  const iconStyle = { width: rem(12), height: rem(12) };
+  const [selectedTab, setSelectedTab] = useState<string>('Por usar');
+  const [vouchers, setVouchers] = useState<{ status: string; id: number }[]>([]);
 
   const fetchData = async () => {
     setIsLoading(true);
@@ -38,26 +38,32 @@ function VouchersPage() {
 
   return (
     <div>
-      <Tabs defaultValue="gallery">
-        <Tabs.List>
-          <Tabs.Tab value="gallery" leftSection={<IconPhoto style={iconStyle} />}>
-            Gallery
-          </Tabs.Tab>
-          <Tabs.Tab value="messages" leftSection={<IconMessageCircle style={iconStyle} />}>
-            Messages
-          </Tabs.Tab>
 
-        </Tabs.List>
-
-        <Tabs.Panel value="gallery">Gallery tab content</Tabs.Panel>
-
-        <Tabs.Panel value="messages">Messages tab content</Tabs.Panel>
-
-      </Tabs>
       <Title mt={15} className="productheader">
-        Vouchers - Por 
+        Vouchers
       </Title>
-      <Box mt={20}></Box>
+      <SegmentedControl
+        mt={10}
+        radius="md"
+        fullWidth
+        value={selectedTab}
+        onChange={setSelectedTab}
+        data={['Por usar', 'Usados']}
+      />
+      <Box mt={20}>
+        {vouchers.length === 0 && <Text>Nenhum voucher encontrado</Text>}
+        {vouchers.length > 0 && selectedTab === 'Por usar' &&
+          <>
+          <Text>Por usar</Text>
+          </>
+        }
+
+        {vouchers.length > 0 && selectedTab === 'Usados' &&
+          <>
+            <Text>Por usar</Text>
+          </>
+        }
+      </Box>
     </div>
   );
 }

@@ -47,6 +47,7 @@ import {
   IconQrcode,
   IconSticker,
   IconX,
+  IconGift,
 } from "@tabler/icons-react";
 import classes from "./HeaderMegaMenu.module.css";
 import cx from "clsx";
@@ -271,7 +272,7 @@ export function HeaderMegaMenu() {
               router.push(routes.vouchers.url), closeDrawer();
             }}
           >
-            <IconGiftCard style={{ width: rem(30), height: rem(25), marginRight: "8px" }} stroke={1.5} /> Vouchers
+            <IconGift style={{ width: rem(30), height: rem(25), marginRight: "8px" }} stroke={1.5} /> Vouchers
           </div>
 
           {config.torneios && config.torneios !== "" && (

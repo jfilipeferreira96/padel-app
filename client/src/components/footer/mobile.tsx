@@ -1,5 +1,5 @@
 import { rem, Flex, useComputedColorScheme, Tooltip, Menu, Group, HoverCard, Center, Text, Divider, SimpleGrid, Box, Button, UnstyledButton, ThemeIcon, useMantineTheme } from "@mantine/core";
-import {  IconCards, IconTournament, IconCalendarTime, IconHome, IconChevronDown, IconSquareRoundedNumber1, IconSquareRoundedNumber2, IconQrcode, IconSticker, IconGiftCard } from "@tabler/icons-react";
+import {  IconCards, IconTournament, IconCalendarTime, IconHome, IconChevronDown, IconSquareRoundedNumber1, IconSquareRoundedNumber2, IconQrcode, IconSticker, IconGiftCard, IconGift } from "@tabler/icons-react";
 import classes from "./MobileFooter.module.css";
 import Image from "next/image";
 import { useEffect, useState } from "react";
@@ -136,7 +136,7 @@ export function MobileFooter() {
       hide: (!config.ligas || config.ligas == "") ? true : false,
     }, */
     {
-      icon: <IconGiftCard style={{ width: "100%", height: rem(25) }} stroke={1.5} />,
+      icon: <IconGift style={{ width: "100%", height: rem(25) }} stroke={1.5} />,
       label: "Vouchers",
       url: routes.vouchers.url,
       onClick: () => {
