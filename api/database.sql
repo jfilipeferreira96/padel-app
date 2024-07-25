@@ -177,6 +177,28 @@ ALTER TABLE users
 ADD COLUMN reset_password_token VARCHAR(255),
 ADD COLUMN reset_password_expires TIMESTAMP;
 
+CREATE TABLE IF NOT EXISTS vouchers (
+    voucher_id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    image_url VARCHAR(255) DEFAULT NULL
+);
+
+CREATE TABLE IF NOT EXISTS user_vouchers (
+    user_voucher_id INT AUTO_INCREMENT PRIMARY KEY,
+    voucher_id INT NOT NULL,
+    assigned_by INT NOT NULL,
+    assigned_to INT NOT NULL,
+    assigned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    activated_by INT DEFAULT NULL,
+    activated_at TIMESTAMP DEFAULT NULL,
+    FOREIGN KEY (voucher_id) REFERENCES vouchers(voucher_id) ON DELETE CASCADE,
+    FOREIGN KEY (assigned_by) REFERENCES users(user_id) ON DELETE CASCADE,
+    FOREIGN KEY (assigned_to) REFERENCES users(user_id) ON DELETE CASCADE,
+    FOREIGN KEY (activated_by) REFERENCES users(user_id) ON DELETE SET NULL
+);
+
+
 -- Testes:
 
 INSERT INTO users (password, email, user_type, first_name, last_name, birthdate) 
