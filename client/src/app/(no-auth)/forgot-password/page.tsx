@@ -86,16 +86,15 @@ export default function EsqueceuPassword() {
 
           <StyledPaper withBorder shadow="md" p={30} mt={30} radius="md">
             <TextInput className="specialinput" label="Email" placeholder="you@gmail.com" required {...form.getInputProps("email")} />
-            <Group justify={"flex-end"} mt="sm" mb={"sm"} onClick={() => router.push(routes.signin.url)}>
-              <Anchor component="button" size="sm" c="dimmed">
+            <Group justify={"flex-end"} mt="sm" mb={"sm"}>
+              <Text style={{cursor:"pointer"}} component="a" size="sm" c="dimmed" onClick={() => router.push(routes.signin.url)}>
                 Voltar à pagina de entrada
-              </Anchor>
+              </Text>
             </Group>
 
             <Button fullWidth type="submit" disabled={isLoading} mt="md">
               Enviar Instruções
             </Button>
-   
           </StyledPaper>
         </form>
       </Center>

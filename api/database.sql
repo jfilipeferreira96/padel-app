@@ -191,13 +191,14 @@ CREATE TABLE IF NOT EXISTS user_vouchers (
     assigned_to INT NOT NULL,
     assigned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     activated_by INT DEFAULT NULL,
-    activated_at TIMESTAMP DEFAULT NULL,
+    activated_at TIMESTAMP NULL,
     FOREIGN KEY (voucher_id) REFERENCES vouchers(voucher_id) ON DELETE CASCADE,
     FOREIGN KEY (assigned_by) REFERENCES users(user_id) ON DELETE CASCADE,
     FOREIGN KEY (assigned_to) REFERENCES users(user_id) ON DELETE CASCADE,
     FOREIGN KEY (activated_by) REFERENCES users(user_id) ON DELETE SET NULL
 );
 
+INSERT INTO `vouchers` (`voucher_id`, `name`, `created_at`, `image_url`) VALUES (NULL, 'Voucher 1h', current_timestamp(), './voucher_1h.png'), (NULL, 'Voucher 1h30', current_timestamp(), './voucher_1h30.png'), (NULL, 'Voucher 1 mês - Aulas', current_timestamp(), './voucher_aulas.png');
 
 -- Testes:
 

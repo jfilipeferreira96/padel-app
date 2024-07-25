@@ -90,6 +90,7 @@ export const routes = {
     entries: "/dashboard/entries",
     articles: "/dashboard/articles",
     offpeak: "/dashboard/offpeak",
+    vouchers: "/dashboard/vouchers",
     orders: "/dashboard/orders",
     users: "/dashboard/users",
     validations: "/dashboard/validations",

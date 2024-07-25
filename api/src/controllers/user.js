@@ -21,7 +21,7 @@ class UserController {
     try {
       const { email, password } = req.body;
       if (!email || !password) {
-        return res.status(200).json({ status: false, error: "Bad Request", message: "Email and password are required" });
+        return res.status(200).json({ status: false, error: "Pedido Inválido", message: "Email e password são obrigatórios" });
       }
 
       const query = `
@@ -49,7 +49,7 @@ class UserController {
       const { rows } = await db.query(query, [email]);
 
       if (rows.length === 0) {
-        return res.status(200).json({ error: "Unauthorized", status: false, message: "Incorrect Email or Password" });
+        return res.status(200).json({ error: "Não Autorizado", status: false, message: "Email ou Password incorretos" });
       }
 
       const user = rows[0];
@@ -57,7 +57,7 @@ class UserController {
       const isPasswordValid = await bcrypt.compare(password, user.password);
 
       if (!isPasswordValid) {
-        return res.status(200).json({ error: "Unauthorized", status: false, message: "Incorrect Email or Password" });
+        return res.status(200).json({ error: "Não Autorizado", status: false, message: "Email ou Password incorretos" });
       }
 
       let locations = [];
@@ -101,8 +101,8 @@ class UserController {
         accessToken,
       });
     } catch (ex) {
-      Logger.error("An error occurred during login.", ex);
-      res.status(500).json({ error: "Internal Server Error", message: ex.message });
+      Logger.error("Ocorreu um erro durante o login.", ex);
+      res.status(500).json({ error: "Erro Interno do Servidor", message: ex.message });
     }
   }
 
