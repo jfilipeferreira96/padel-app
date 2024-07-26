@@ -187,6 +187,7 @@ CREATE TABLE IF NOT EXISTS vouchers (
 CREATE TABLE IF NOT EXISTS user_vouchers (
     user_voucher_id INT AUTO_INCREMENT PRIMARY KEY,
     voucher_id INT NOT NULL,
+    reason TEXT DEFAULT NULL,
     assigned_by INT NOT NULL,
     assigned_to INT NOT NULL,
     assigned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

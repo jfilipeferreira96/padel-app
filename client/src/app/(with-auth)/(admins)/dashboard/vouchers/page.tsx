@@ -1,10 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { Card, Table, Checkbox, Pagination as MantinePagination, Center, Text, Select, Flex, Badge, Skeleton, Grid, Group, Tooltip, ActionIcon, rem, Button, TextInput, Box } from "@mantine/core";
-/* import { getUserVouchers } from "@/services/voucher.service";
- */
+import { Card, Table, Badge, Select, Flex, Tooltip, ActionIcon, TextInput, Box, Text, Group, Pagination } from "@mantine/core";
 import { IconRefresh, IconSearch } from "@tabler/icons-react";
-import { notifications } from "@mantine/notifications";
 import { useLocation } from "@/providers/LocationProvider";
 import { usePathname } from "next/navigation";
 
@@ -19,11 +16,11 @@ function getBadge(activated_by: number | null)
     }
 }
 
+// Interface para os vouchers
 interface Voucher
 {
     id: number;
     name: string;
-    image_url: string;
     assigned_at: string;
     assigned_by: number;
     activated_at: string | null;
@@ -31,9 +28,11 @@ interface Voucher
     user_email: string;
     user_first_name: string;
     user_last_name: string;
+    phone: string;
     admin_email: string;
     admin_first_name: string;
     admin_last_name: string;
+    reason: string;
 }
 
 function VoucherHistory()
@@ -51,14 +50,15 @@ function VoucherHistory()
     const { location } = useLocation();
     const [searchTerm, setSearchTerm] = useState<string>("");
 
-    const fetchData = async () => {
+    // Função para buscar dados (simulação)
+    const fetchData = async () =>
+    {
         setLoading(true);
         if (!location || !location.value) return;
         try
         {
-          /*   const response = await getUserVouchers(location.value, searchTerm, activePage, elementsPerPage);
-            if (response)
-            {
+            /* const response = await getUserVouchers(location.value, searchTerm, activePage, elementsPerPage);
+            if (response) {
                 setVouchers(response.data);
                 setTotalVouchers(response.pagination.total || 0);
                 setActivePage(response.pagination.page || 1);
@@ -106,20 +106,23 @@ function VoucherHistory()
                     {getBadge(voucher.activated_by).name}
                 </Badge>
             </Table.Td>
+            <Table.Td>{voucher.name}</Table.Td>
             <Table.Td>
                 {voucher.user_first_name} {voucher.user_last_name}
             </Table.Td>
             <Table.Td>{voucher.user_email}</Table.Td>
-            <Table.Td>{voucher.name}</Table.Td>
-            <Table.Td>{voucher.activated_at ? `${voucher.admin_first_name} ${voucher.admin_last_name}` : "-"}</Table.Td>
+            <Table.Td>{voucher.phone}</Table.Td>
+            <Table.Td>{voucher.assigned_at ? `${voucher.admin_first_name} ${voucher.admin_last_name}` : "-"}</Table.Td>
             <Table.Td>{new Date(voucher.assigned_at).toLocaleString()}</Table.Td>
+            <Table.Td>{voucher.reason}</Table.Td>
+            <Table.Td>{voucher.activated_at ? `${voucher.admin_first_name} ${voucher.admin_last_name}` : "-"}</Table.Td>
+            <Table.Td>{voucher.activated_at ? new Date(voucher.activated_at).toLocaleString() : "-"}</Table.Td>
         </Table.Tr>
     ));
 
     return (
         <>
             <h1>Histórico de Atribuição de Vouchers</h1>
-
             <Card withBorder shadow="md" p={30} mt={10} radius="md" style={{ flex: 1 }}>
                 <Box maw={600}>
                     <TextInput
@@ -129,7 +132,7 @@ function VoucherHistory()
                         onChange={handleSearch}
                         placeholder="Pesquisar por nome ou email"
                         rightSectionWidth={42}
-                        leftSection={<IconSearch style={{ width: rem(18), height: rem(18) }} stroke={1.5} />}
+                        leftSection={<IconSearch style={{ width: "18px", height: "18px" }} stroke={1.5} />}
                         mb={"lg"}
                     />
                 </Box>
@@ -159,11 +162,15 @@ function VoucherHistory()
                         <Table.Thead>
                             <Table.Tr>
                                 <Table.Th>Estado</Table.Th>
+                                <Table.Th>Voucher</Table.Th>
                                 <Table.Th>Nome</Table.Th>
                                 <Table.Th>Email</Table.Th>
-                                <Table.Th>Voucher</Table.Th>
-                                <Table.Th>Validador</Table.Th>
+                                <Table.Th>Telefone</Table.Th>
+                                <Table.Th>Atribuido Por</Table.Th>
                                 <Table.Th>Data de Atribuição</Table.Th>
+                                <Table.Th>Razão</Table.Th>
+                                <Table.Th>Ativado Por</Table.Th>
+                                <Table.Th>Data de Ativação</Table.Th>
                             </Table.Tr>
                         </Table.Thead>
                         <Table.Tbody>{rows}</Table.Tbody>
@@ -175,7 +182,7 @@ function VoucherHistory()
                         <Text>
                             A mostrar {initialIndex + 1} a {Math.min(finalIndex, totalVouchers)} de {totalVouchers} vouchers
                         </Text>
-                        <MantinePagination total={Math.ceil(totalVouchers / elementsPerPage)} onChange={handlePageChange} />
+                        <Pagination total={Math.ceil(totalVouchers / elementsPerPage)} onChange={handlePageChange} />
                     </Flex>
                 )}
             </Card>
