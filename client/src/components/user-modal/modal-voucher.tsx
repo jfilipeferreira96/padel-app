@@ -41,7 +41,7 @@ export default function ModalVoucher({ isModalOpen, setIsModalOpen, userId, fetc
   const { user } = useSession();
   const pathname = usePathname();
   const [opened, { open, close }] = useDisclosure(false);
-  const [voucherData, setVouchersData] = useState<{ created_at: "2024-07-25T19:44:59.000Z"; image_url: "./voucher_1h.png"; name: "Voucher 1h"; voucher_id: 1 }[] | null>(null);
+  const [voucherData, setVouchersData] = useState<{ created_at: string; image_url: string; name: string; voucher_id: number }[] | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [userVouchers, setUserVouchers] = useState<Voucher[]>([]);
   const [activePage, setActivePage] = useState<number>(1);
@@ -51,6 +51,10 @@ export default function ModalVoucher({ isModalOpen, setIsModalOpen, userId, fetc
   });
   const [totalVouchers, setTotalVouchers] = useState<number>(0);
   const [searchTerm, setSearchTerm] = useState<string>("");
+
+  const [isActive, setIsActive] = useState<string>("0");
+  const [selectedVoucher, setSelectedVoucher] = useState<string | null>(null);
+  const [reason, setReason] = useState<string>("");
 
   useEffect(() => {
     if (isModalOpen && userId) {
@@ -67,6 +71,9 @@ export default function ModalVoucher({ isModalOpen, setIsModalOpen, userId, fetc
       setVouchersData(null);
       setUserVouchers([]);
       setIsLoading(true);
+      setIsActive("0");
+      setSelectedVoucher(null);
+      setReason("");
     }
   }, [opened, setIsModalOpen]);
 
@@ -82,9 +89,9 @@ export default function ModalVoucher({ isModalOpen, setIsModalOpen, userId, fetc
       };
 
       const [vouchers, vouchersResponse] = await Promise.all([getAllVouchers(), getAllVouchersHistory(pagination)]);
-      console.log(vouchers)
+      console.log(vouchers);
       if (vouchers.status) {
-        //setVouchersData(userResponse.data);
+        setVouchersData(vouchers.data);
       }
       if (vouchersResponse.status) {
         setUserVouchers(vouchersResponse.data);
@@ -123,6 +130,9 @@ export default function ModalVoucher({ isModalOpen, setIsModalOpen, userId, fetc
   };
 
   const onSubmit = async () => {
+    console.log("is_active:", isActive);
+    console.log("selected_voucher:", selectedVoucher);
+     console.log("reason:", reason);
     // Implementação da lógica de submissão aqui
   };
 
@@ -164,81 +174,92 @@ export default function ModalVoucher({ isModalOpen, setIsModalOpen, userId, fetc
   ));
 
   return (
-    <Modal opened={opened} onClose={close} title="Ver/atribuir vouchers" size="xl">
+    <Modal opened={opened} onClose={close} title="Ver/atribuir vouchers" size="xxl">
       {isLoading ? (
         <Center mt={50} mih={"40vh"}>
           <Loader color="blue" />
         </Center>
       ) : (
         <>
-          <Group justify="space-between" align="center" mb={"lg"}>
-            <Flex align={"center"}>
-              <Text>A mostrar</Text>
-              <Select
-                data={["10", "20", "30", "50"]}
-                value={elementsPerPage.toString()}
-                allowDeselect={false}
-                style={{ width: "80px", marginLeft: "8px" }}
-                ml={4}
-                mr={4}
-                onChange={(value) => handleElementsPerPageChange(value)}
-              />
-              <Text>vouchers</Text>
-            </Flex>
-          </Group>
+          <Card>
+            <Center>
+              <h3>Histórico de vouchers</h3>
+              </Center>
+              
+            <Group justify="space-between" align="center" mb={"lg"}>
+              <Flex align={"center"}>
+                <Text>A mostrar</Text>
+                <Select
+                  data={["10", "20", "30", "50"]}
+                  value={elementsPerPage.toString()}
+                  allowDeselect={false}
+                  style={{ width: "80px", marginLeft: "8px" }}
+                  ml={4}
+                  mr={4}
+                  onChange={(value) => handleElementsPerPageChange(value)}
+                />
+                <Text>vouchers</Text>
+              </Flex>
+            </Group>
 
-          <Table.ScrollContainer minWidth={500}>
-            <Table highlightOnHover>
-              <Table.Thead>
-                <Table.Tr>
-                  <Table.Th>Estado</Table.Th>
-                  <Table.Th>Voucher</Table.Th>
-                  <Table.Th>Nome</Table.Th>
-                  <Table.Th>Email</Table.Th>
-                  <Table.Th>Telefone</Table.Th>
-                  <Table.Th>Atribuido Por</Table.Th>
-                  <Table.Th>Data de Atribuição</Table.Th>
-                  <Table.Th>Razão</Table.Th>
-                  <Table.Th>Ativado Por</Table.Th>
-                  <Table.Th>Data de Ativação</Table.Th>
-                  <Table.Th>Ações</Table.Th>
-                </Table.Tr>
-              </Table.Thead>
-              <Table.Tbody>{rows}</Table.Tbody>
-            </Table>
-          </Table.ScrollContainer>
+            <Table.ScrollContainer minWidth={500}>
+              <Table highlightOnHover>
+                <Table.Thead>
+                  <Table.Tr>
+                    <Table.Th>Estado</Table.Th>
+                    <Table.Th>Voucher</Table.Th>
+                    <Table.Th>Nome</Table.Th>
+                    <Table.Th>Email</Table.Th>
+                    <Table.Th>Telefone</Table.Th>
+                    <Table.Th>Atribuido Por</Table.Th>
+                    <Table.Th>Data de Atribuição</Table.Th>
+                    <Table.Th>Razão</Table.Th>
+                    <Table.Th>Ativado Por</Table.Th>
+                    <Table.Th>Data de Ativação</Table.Th>
+                    <Table.Th>Ações</Table.Th>
+                  </Table.Tr>
+                </Table.Thead>
+                <Table.Tbody>{rows}</Table.Tbody>
+              </Table>
+            </Table.ScrollContainer>
 
-          {userVouchers.length > 0 && (
-            <Flex justify={"space-between"} mt={"lg"}>
-              <Text>
-                A mostrar {initialIndex + 1} a {Math.min(finalIndex, totalVouchers)} de {totalVouchers} vouchers
-              </Text>
-              <Pagination total={Math.ceil(totalVouchers / elementsPerPage)} onChange={handlePageChange} />
-            </Flex>
-          )}
-
+            {userVouchers.length > 0 && (
+              <Flex justify={"space-between"} mt={"lg"}>
+                <Text>
+                  A mostrar {initialIndex + 1} a {Math.min(finalIndex, totalVouchers)} de {totalVouchers} vouchers
+                </Text>
+                <Pagination total={Math.ceil(totalVouchers / elementsPerPage)} onChange={handlePageChange} />
+              </Flex>
+            )}
+          </Card>
           <Divider my="md" mt={"lg"} />
-          <h3>Adicionar vouchers</h3>
-
-       {/*    <Select
+          <Card>
+            <Center>
+              <h3>Adicionar vouchers</h3>
+            </Center>
+            <Select
               className="specialinput"
               label="Vouchers disponíveis"
               placeholder="Selecione um voucher"
-              data={availableLocations.map((loc) => loc.label)}
-              defaultValue={location?.label}
-              onChange={handleLocationChange}
+              data={voucherData ? voucherData.map((v) => ({ value: v.voucher_id.toString(), label: v.name })) : []}
+              value={selectedVoucher}
+              onChange={setSelectedVoucher}
+              name="selected_voucher"
             />
- */}
-          <Radio.Group name="is_active" label="Ativo" withAsterisk required mb={"sm"}>
-            <Group mt="xs" defaultValue={"0"}>
-              <Radio value={"1"} label="Sim" icon={CheckIcon} />
-              <Radio value={"0"} label="Não" icon={CheckIcon} defaultChecked checked />
-            </Group>
-          </Radio.Group>
 
-          <Button fullWidth mt="lg" type="submit" onClick={() => onSubmit()}>
-            Guardar
-          </Button>
+            <TextInput className="specialinput" label="Razão de atruibir" placeholder="Digite a razão" value={reason} onChange={(event) => setReason(event.currentTarget.value)} name="reason" />
+
+            <Radio.Group name="is_active" label="Desejar ativar este voucher?" mb={"sm"} value={isActive} onChange={setIsActive} mt={"lg"}>
+              <Group mt="xs">
+                <Radio value={"1"} label="Sim" icon={CheckIcon} />
+                <Radio value={"0"} label="Não" icon={CheckIcon} />
+              </Group>
+            </Radio.Group>
+
+            <Button fullWidth mt="lg" type="submit" onClick={() => onSubmit()}>
+              Guardar
+            </Button>
+          </Card>
         </>
       )}
     </Modal>

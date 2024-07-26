@@ -10,7 +10,10 @@ const vouchersRoutes = express.Router();
 vouchersRoutes.post("/voucher", authenticateToken, VouchersController.addVoucher);
 
 // Rota responsável por retornar todos os vouchers COM PAGINAÇÃO
-vouchersRoutes.post("/vouchers", authenticateToken, VouchersController.getAllVouchers);
+vouchersRoutes.post("/vouchers", authenticateToken, VouchersController.getVouchersHistory);
+
+// Rota responsável por retornar todos os vouchers COM PAGINAÇÃO
+vouchersRoutes.get("/vouchers", authenticateToken, VouchersController.getAllVouchers);
 
 // Rota responsável por obter um único voucher
 vouchersRoutes.get("/voucher/:id", authenticateToken, VouchersController.getVoucher);

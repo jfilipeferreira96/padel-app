@@ -10,6 +10,7 @@ import { notifications } from "@mantine/notifications";
 import { usePathname } from "next/navigation";
 import AsignOffpeakModal from "@/components/user-modal/assign-offpick";
 import CarimbosModal from "@/components/user-modal/carimbos-modal";
+import ModalVoucher from "@/components/user-modal/modal-voucher";
 
 function getBadge(user_type: string){
   if (user_type === 'admin')
@@ -191,13 +192,13 @@ function Users() {
   return (
     <>
       <h1>Utilizadores do Sistema</h1>
-
       <AddUserModal isModalOpen={isModalOpenAdd} setIsModalOpen={setIsModalOpenAdd} fetchData={fetchData} />
       <EditUserModal isModalOpen={isModalOpenEdit} setIsModalOpen={setIsModalOpenEdit} fetchData={fetchData} userId={editUserId} />
-
       <AsignOffpeakModal isModalOpen={isModalOpenOffpeak} setIsModalOpen={setIsModalOpenOffpeak} fetchData={fetchData} userId={editUserId} />
 
       <CarimbosModal isModalOpen={isModalOpenCarimbos} setIsModalOpen={setIsModalOpenCarimbos} fetchData={fetchData} userId={editUserId} />
+
+      <ModalVoucher isModalOpen={isModalOpenVouchers} setIsModalOpen={setIsModalOpenVouchers} fetchData={fetchData} userId={editUserId} />
 
       <Modal opened={opened} onClose={close} withCloseButton={false}>
         <Center>
@@ -234,7 +235,6 @@ function Users() {
           Confirmo
         </Button>
       </Modal>
-
       <Grid>
         <Grid.Col span={{ base: 0, sm: 0, md: 3, lg: 3 }}></Grid.Col>
         <Grid.Col span={{ base: 12, sm: 12, md: 6, lg: 6 }}>
@@ -251,7 +251,6 @@ function Users() {
           </Card>
         </Grid.Col>
       </Grid>
-
       <Card withBorder shadow="md" p={30} mt={10} radius="md" style={{ flex: 1 }}>
         <Group justify="space-between" align="center" mb={"lg"}>
           <Flex align={"center"}>

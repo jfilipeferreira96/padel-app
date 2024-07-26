@@ -34,6 +34,13 @@ export const endpoints = {
   updateOffpeakCard: "/api/offpeak/offpeak-card",
   deleteOffpeakCard: "/api/offpeak/offpeak-card",
   assignOffpeakCard: "/api/offpeak/offpeak-card/assign",
+  /*################## VOUCHERS #############################*/
+  getVoucher: "/api/voucher/voucher",
+  getAllVouchers: "/api/voucher/vouchers",
+  addVoucher: "/api/voucher/voucher",
+  updateVoucher: "/api/voucher/voucher",
+  deleteVoucher: "/api/voucher/voucher",
+  assignVoucher: "/api/voucher/voucher/assign",
   /*################## News #############################*/
   // Rotas para Notícias
   addNews: `/api/articles/add`,

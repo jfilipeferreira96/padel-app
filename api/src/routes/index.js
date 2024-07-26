@@ -37,7 +37,7 @@ routes.use("/api/acessos", authenticateToken, acessosRoutes);
 routes.use("/api/dashboard", authenticateToken, dashboardRoutes);
 routes.use("/api/articles", authenticateToken, articlesRoutes);
 routes.use("/api/offpeak", authenticateToken, offpeakCardsRoutes);
-routes.use("/api/vouchers", authenticateToken, vouchersRoutes);
+routes.use("/api/voucher", authenticateToken, vouchersRoutes);
 
 // Servir arquivos estáticos da pasta /uploads
 routes.use("/api/uploads", express.static(path.join(__dirname, "../uploads")));

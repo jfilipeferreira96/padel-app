@@ -25,12 +25,12 @@ class VouchersController {
     }
   }
 
-  static async getAllVouchers(req, res, next) {
+  static async getVouchersHistory(req, res, next) {
     try {
-        const { page = 1, limit = 15, orderBy = "v.voucher_id", order = "ASC" } = req.body.pagination || {};
+      const { page = 1, limit = 15, orderBy = "v.voucher_id", order = "ASC" } = req.body.pagination || {};
 
-        // Consulta inicial sem as condições WHERE
-        let query = `
+      // Consulta inicial sem as condições WHERE
+      let query = `
         SELECT uv.user_voucher_id, uv.voucher_id, v.name as voucher_name, uv.reason, uv.assigned_at, uv.activated_at, 
                u.email AS user_email, u.first_name AS user_first_name, u.last_name AS user_last_name, u.phone,
                a.email AS admin_email, a.first_name AS admin_first_name, a.last_name AS admin_last_name,
@@ -43,7 +43,7 @@ class VouchersController {
         WHERE 1 = 1
         `;
 
-        let totalCountQuery = `
+      let totalCountQuery = `
         SELECT COUNT(*) AS count
         FROM user_vouchers uv
         LEFT JOIN vouchers v ON uv.voucher_id = v.voucher_id
@@ -53,40 +53,68 @@ class VouchersController {
         WHERE 1 = 1
         `;
 
-        const params = [];
+      const params = [];
 
-        // Filtros
-        if (req.body.filters) {
-            const { name } = req.body.filters;
+      // Filtros
+      if (req.body.filters) {
+        const { name } = req.body.filters;
 
-            if (name) {
-                query += ` AND v.name LIKE ?`;
-                totalCountQuery += ` AND v.name LIKE ?`;
-                params.push(`%${name}%`);
-            }
+        if (name) {
+          query += ` AND v.name LIKE ?`;
+          totalCountQuery += ` AND v.name LIKE ?`;
+          params.push(`%${name}%`);
         }
+      }
 
-        const offset = (page - 1) * limit;
+      const offset = (page - 1) * limit;
 
-        // Finalizando a consulta com ORDER BY, LIMIT e OFFSET
-        query += ` ORDER BY ${orderBy} ${order} LIMIT ? OFFSET ?`;
-        params.push(limit, offset);
+      // Finalizando a consulta com ORDER BY, LIMIT e OFFSET
+      query += ` ORDER BY ${orderBy} ${order} LIMIT ? OFFSET ?`;
+      params.push(limit, offset);
 
-        // Executando as consultas
-        const { rows } = await db.query(query, params);
-        const { rows: totalCountRows } = await db.query(totalCountQuery, params.slice(0, -2)); // Removendo limit e offset para a consulta de contagem
+      // Executando as consultas
+      const { rows } = await db.query(query, params);
+      const { rows: totalCountRows } = await db.query(totalCountQuery, params.slice(0, -2)); // Removendo limit e offset para a consulta de contagem
 
-        return res.status(200).json({
-            status: true,
-            data: rows,
-            pagination: { page, limit, orderBy, order, total: parseInt(totalCountRows[0].count) },
-        });
+      return res.status(200).json({
+        status: true,
+        data: rows,
+        pagination: { page, limit, orderBy, order, total: parseInt(totalCountRows[0].count) },
+      });
     } catch (ex) {
-        Logger.error("Ocorreu um erro ao buscar os vouchers.", ex);
-        res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: "Erro Interno do Servidor", message: ex.message });
+      Logger.error("Ocorreu um erro ao buscar os vouchers.", ex);
+      res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: "Erro Interno do Servidor", message: ex.message });
     }
   }
 
+  static async getAllVouchers(req, res, next) {
+    try {
+      // Consulta inicial sem as condições WHERE
+      let query = `
+        SELECT * FROM vouchers
+        WHERE 1 = 1
+        `;
+
+      let totalCountQuery = `
+        SELECT COUNT(*) AS count
+        FROM vouchers
+        WHERE 1 = 1
+        `;
+
+      // Executando as consultas
+      const { rows } = await db.query(query);
+      const { rows: totalCountRows } = await db.query(totalCountQuery);
+
+      return res.status(200).json({
+        status: true,
+        data: rows,
+        total: totalCountRows,
+      });
+    } catch (ex) {
+      Logger.error("Ocorreu um erro ao buscar os vouchers.", ex);
+      res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: "Erro Interno do Servidor", message: ex.message });
+    }
+  }
 
   static async getVoucher(req, res, next) {
     try {
@@ -207,7 +235,7 @@ class VouchersController {
     }
   }
 
-   static async getUserVouchers(req, res, next) {
+  static async getUserVouchers(req, res, next) {
     try {
       const userId = req.params.userId;
 
