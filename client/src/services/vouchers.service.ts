@@ -74,6 +74,15 @@ export const deleteVoucher = async (voucherId: number) => {
   }
 };
 
+export const getUserVouchers = async (userId: number) => {
+  try {
+    const response = await api.get(`${endpoints.userVoucher}/${userId}`);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
 export const assignVoucher = async (data: { user_id: number; voucher_ids: number[]; assigned_by: number }) => {
   try {
     const response = await api.post(endpoints.assignVoucher, data);

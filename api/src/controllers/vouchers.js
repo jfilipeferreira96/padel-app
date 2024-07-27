@@ -250,24 +250,33 @@ class VouchersController {
     try {
       const userId = req.params.userId;
 
+      // Verificação básica para garantir que userId seja fornecido
+      if (!userId) {
+        return res.status(StatusCodes.BAD_REQUEST).json({ error: "Bad Request", message: "O ID do utilizador é obrigatório." });
+      }
+
       const query = `
         SELECT v.*, uv.assigned_at, uv.assigned_by, uv.activated_at, uv.activated_by
         FROM vouchers v
-        JOIN user_vouchers uv ON v.id = uv.voucher_id
-        WHERE uv.user_id = ?
+        JOIN user_vouchers uv ON v.voucher_id = uv.voucher_id
+        WHERE uv.user_voucher_id = ?
         ORDER BY uv.assigned_at DESC
       `;
 
+      // Executando a consulta no banco de dados
       const { rows } = await db.query(query, [userId]);
 
+      // Verificando se não foram encontrados vouchers
       if (rows.length === 0) {
-        return res.status(StatusCodes.OK).json({ status: false, message: "Nenhum voucher encontrado para este usuário." });
+        return res.status(StatusCodes.OK).json({ status: true, data: [], message: "Nenhum voucher encontrado para este utilizador." });
       }
 
+      // Retornando os dados dos vouchers
       return res.status(StatusCodes.OK).json({ status: true, data: rows });
     } catch (ex) {
-      Logger.error("Ocorreu um erro ao buscar os vouchers do usuário.", ex);
-      res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: "Erro Interno do Servidor", message: ex.message });
+      // Logando o erro e retornando uma resposta de erro
+      Logger.error("Ocorreu um erro ao buscar os vouchers do utilizador.", ex);
+      return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: "Erro Interno do Servidor", message: ex.message });
     }
   }
 }
