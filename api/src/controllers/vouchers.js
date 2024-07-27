@@ -56,8 +56,8 @@ class VouchersController {
 
       // Filtros
       if (req.body.filters) {
-        const { email, name, phone } = req.body.filters;
-
+        const { email, name, phone, validated_by } = req.body.filters;
+        console.log(validated_by);
         const searchValue = email || name || phone;
         if (searchValue) {
           query += ` AND (u.email LIKE ? OR u.phone LIKE ? OR u.first_name LIKE ? OR u.last_name LIKE ?)`;
@@ -65,10 +65,20 @@ class VouchersController {
           const searchPattern = `%${searchValue}%`;
           params.push(searchPattern, searchPattern, searchPattern, searchPattern);
         }
+
+        if (validated_by !== undefined && validated_by === false) {
+          query += ` AND uv.activated_by IS NOT NULL`;
+          totalCountQuery += ` AND uv.activated_by IS NOT NULL`;
+        }
+
+        if (validated_by !== undefined && validated_by === true) {
+          query += ` AND uv.activated_by IS NULL`;
+          totalCountQuery += ` AND uv.activated_by IS NULL`;
+        }
       }
 
       const offset = (page - 1) * limit;
-
+      console.log(query);
       // Finalizando a consulta com ORDER BY, LIMIT e OFFSET
       query += ` ORDER BY ${orderBy} ${order} LIMIT ? OFFSET ?`;
       params.push(limit, offset);
