@@ -4,6 +4,7 @@ import { Card, TextInput, Button, Group } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { notifications } from "@mantine/notifications";
 import { getConfig, updateConfig } from "@/services/dashboard.service";
+import { useSession } from "@/providers/SessionProvider";
 
 interface FormValues {
   torneios: string;
@@ -11,6 +12,8 @@ interface FormValues {
 }
 
 function Configurations() {
+  const { user, fetchConfig } = useSession();
+
   const form = useForm<FormValues>({
     initialValues: {
       torneios: "",
@@ -54,6 +57,7 @@ function Configurations() {
           message: "Configurações atualizadas com sucesso",
           color: "green",
         });
+        fetchConfig();
       } else {
         notifications.show({
           title: "Erro",

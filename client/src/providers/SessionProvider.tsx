@@ -32,7 +32,8 @@ interface SessionContextProps {
   logout: () => void;
   isReady: boolean;
   updateUser: (newUserData: Partial<User>) => void;
-  config: { torneios: string; ligas: string, isReady: boolean };
+  config: { torneios: string; ligas: string; isReady: boolean };
+  fetchConfig: () => void;
 }
 
 const SessionContext = createContext<SessionContextProps | undefined>(undefined);
@@ -151,7 +152,7 @@ export const SessionProvider: React.FC<SessionProviderProps> = ({ children }) =>
     setUser(updatedUser);
   };
 
-  return <SessionContext.Provider value={{ isReady, user, sessionLogin, logout, updateUser, config }}>{children}</SessionContext.Provider>;
+  return <SessionContext.Provider value={{ isReady, user, sessionLogin, logout, updateUser, config, fetchConfig }}>{children}</SessionContext.Provider>;
 };
 
 export const useSession = (): SessionContextProps => {
