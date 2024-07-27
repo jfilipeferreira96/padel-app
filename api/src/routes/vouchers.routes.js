@@ -28,7 +28,7 @@ vouchersRoutes.delete("/voucher/:id", authenticateToken, VouchersController.dele
 vouchersRoutes.post("/voucher/assign", authenticateToken, VouchersController.assignVoucher);
 
 // Rota responsável por ativar um voucher associado a um utilizador
-vouchersRoutes.put("/voucher/activate/:id", authenticateToken, VouchersController.activateVoucher);
+vouchersRoutes.post("/activate", authenticateToken, VouchersController.activateVoucher);
 
 // Rota responsável por obter todos os vouchers de um utilizador
 vouchersRoutes.get("/user/:userId/vouchers", authenticateToken, VouchersController.getUserVouchers);

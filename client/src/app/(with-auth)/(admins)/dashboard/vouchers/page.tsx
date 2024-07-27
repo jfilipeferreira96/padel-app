@@ -1,13 +1,14 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { Card, Table, Badge, Select, Flex, Tooltip, ActionIcon, TextInput, Box, Text, Group, Pagination, rem } from "@mantine/core";
-import { IconCheck, IconRefresh, IconSearch } from "@tabler/icons-react";
+import { Card, Table, Badge, Select, Flex, Tooltip, ActionIcon, TextInput, Box, Text, Group, Pagination, rem, Modal, Center, Button } from "@mantine/core";
+import { IconCheck, IconRefresh, IconSearch, IconTrash } from "@tabler/icons-react";
 import { useLocation } from "@/providers/LocationProvider";
 import { usePathname } from "next/navigation";
-import { getAllVouchersHistory } from "@/services/vouchers.service";
+import { getAllVouchersHistory, deleteVoucher, ativarVoucher, } from "@/services/vouchers.service";
+import { useDisclosure } from "@mantine/hooks";
+import { notifications } from "@mantine/notifications";
 
-function getBadge(activated_by: number | null)
-{
+function getBadge(activated_by: string | null) {
     if (!activated_by)
     {
         return { name: "Não ativado", color: "red" };
@@ -19,7 +20,7 @@ function getBadge(activated_by: number | null)
 
 // Interface para os vouchers
 interface Voucher {
-  id: number;
+  voucher_id: number;
   voucher_name: string;
   assigned_at: string;
   assigned_by: number;
@@ -48,8 +49,8 @@ function VoucherHistory()
     const [totalVouchers, setTotalVouchers] = useState<number>(0);
     const { location } = useLocation();
     const [searchTerm, setSearchTerm] = useState<string>("");
-
-    // Função para buscar dados (simulação)
+    const [opened, { open, close }] = useDisclosure(false);
+    const [deleteId, setDeleteId] = useState<number | null>(null);
 
     const fetchData = async () => {
           setLoading(true);
@@ -57,12 +58,18 @@ function VoucherHistory()
             const pagination = {
               page: activePage,
               limit: elementsPerPage,
-              orderBy: "v.voucher_id",
+              orderBy: "uv.assigned_at",
               order: "DESC",
             };
 
-            const response = await getAllVouchersHistory(pagination);
-            console.log(response);
+            const filters = {
+              email: searchTerm ?? null,
+              name: searchTerm ?? null,
+              phone: searchTerm ?? null,
+            };
+            
+            const response = await getAllVouchersHistory(pagination, filters);
+            
             if (response.status) {
                 setVouchers(response.data);
                 setTotalVouchers(response.pagination.total || 0);
@@ -76,9 +83,37 @@ function VoucherHistory()
           }
         };
 
+    const onValidate = async (id: number) => {
+      try {
+        const response = await ativarVoucher(id);
+
+        if (response.status) {
+          notifications.show({
+            title: "Sucesso",
+            message: "",
+            color: "green",
+          });
+        }
+        if (response.status === false) {
+          notifications.show({
+            message: response.message,
+            color: "red",
+          });
+        }
+
+        fetchData();
+      } catch (error) {
+        notifications.show({
+          title: "Erro",
+          message: "Algo correu mal",
+          color: "red",
+        });
+      }
+    };
+  
     useEffect(() => {
         fetchData();
-    }, [activePage, elementsPerPage, location, searchTerm]);
+    }, [activePage, elementsPerPage, searchTerm]);
 
     const handlePageChange = (page: number) =>
     {
@@ -103,11 +138,11 @@ function VoucherHistory()
     const initialIndex = (activePage - 1) * elementsPerPage;
     const finalIndex = initialIndex + elementsPerPage;
 
-    const rows = vouchers.map((voucher) => (
-      <Table.Tr key={voucher.id}>
+    const rows = vouchers.map((voucher, index) => (
+      <Table.Tr key={index}>
         <Table.Td>
-          <Badge variant="filled" size="md" fw={700} color={getBadge(voucher.activated_by).color} style={{ minWidth: "110px" }}>
-            {getBadge(voucher.activated_by).name}
+          <Badge variant="filled" size="md" fw={700} color={getBadge(voucher.activated_at).color} style={{ minWidth: "110px" }}>
+            {getBadge(voucher.activated_at).name}
           </Badge>
         </Table.Td>
         <Table.Td>{voucher.voucher_name}</Table.Td>
@@ -127,8 +162,20 @@ function VoucherHistory()
               <>-</>
             ) : (
               <>
+                <Tooltip label={"Remover voucher"} withArrow position="top">
+                  <ActionIcon
+                    variant="subtle"
+                    color="red"
+                    onClick={() => {
+                      setDeleteId(voucher.voucher_id);
+                      open();
+                    }}
+                  >
+                    <IconTrash style={{ width: rem(20), height: rem(20) }} stroke={1.5} />
+                  </ActionIcon>
+                </Tooltip>
                 <Tooltip label={"Ativar voucher"} withArrow position="top">
-                  <ActionIcon variant="subtle" color="green" onClick={() => console.log("123")}>
+                  <ActionIcon variant="subtle" color="green" onClick={() => onValidate(voucher.voucher_id)}>
                     <IconCheck style={{ width: rem(20), height: rem(20) }} stroke={1.5} />
                   </ActionIcon>
                 </Tooltip>
@@ -142,6 +189,43 @@ function VoucherHistory()
     return (
       <>
         <h1>Histórico de Atribuição de Vouchers</h1>
+
+        <Modal opened={opened} onClose={close} withCloseButton={false}>
+          <Center>
+            <h3>Tem a certeza que pretende eliminar?</h3>
+          </Center>
+          <Button
+            fullWidth
+            variant="filled"
+            color="red"
+            size="md"
+            onClick={() => {
+              if (deleteId) {
+                deleteVoucher(deleteId)
+                  .then((res) => {
+                    if (res.status === true) {
+                      notifications.show({
+                        message: res.message,
+                        color: "red",
+                      });
+                    } else {
+                      notifications.show({
+                        title: "Erro",
+                        message: "Algo correu mal",
+                        color: "red",
+                      });
+                    }
+                  })
+                  .finally(() => {
+                    close(), fetchData();
+                  });
+              }
+            }}
+          >
+            Confirmo
+          </Button>
+        </Modal>
+
         <Card withBorder shadow="md" p={30} mt={10} radius="md" style={{ flex: 1 }}>
           <Box maw={600}>
             <TextInput
@@ -149,7 +233,7 @@ function VoucherHistory()
               size="md"
               value={searchTerm}
               onChange={handleSearch}
-              placeholder="Pesquisar por nome ou email"
+              placeholder="Pesquisar por nome, email ou telemóvel"
               rightSectionWidth={42}
               leftSection={<IconSearch style={{ width: "18px", height: "18px" }} stroke={1.5} />}
               mb={"lg"}

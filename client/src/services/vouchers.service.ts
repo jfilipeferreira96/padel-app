@@ -1,6 +1,7 @@
 import api from "@/config/api";
 import { endpoints } from "@/config/routes";
 import { Pagination } from "./dashboard.service";
+import { Filters } from "./user.service";
 
 export interface VoucherData {
   id: number;
@@ -28,9 +29,9 @@ export const getVoucher = async (voucherId: number) => {
   }
 };
 
-export const getAllVouchersHistory = async (pagination: Pagination) => {
+export const getAllVouchersHistory = async (pagination: Pagination, filters: Filters) => {
   try {
-    const response = await api.post(endpoints.getAllVouchers, { pagination });
+    const response = await api.post(endpoints.getAllVouchers, { pagination, filters });
     return response.data;
   } catch (error) {
     throw error;
@@ -76,6 +77,16 @@ export const deleteVoucher = async (voucherId: number) => {
 export const assignVoucher = async (data: { user_id: number; voucher_ids: number[]; assigned_by: number }) => {
   try {
     const response = await api.post(endpoints.assignVoucher, data);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+
+export const ativarVoucher = async (id: number) => {
+  try {
+    const response = await api.post(endpoints.ativarVoucher, {id});
     return response.data;
   } catch (error) {
     throw error;

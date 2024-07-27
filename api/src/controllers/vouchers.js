@@ -27,42 +27,43 @@ class VouchersController {
 
   static async getVouchersHistory(req, res, next) {
     try {
-      const { page = 1, limit = 15, orderBy = "v.voucher_id", order = "ASC" } = req.body.pagination || {};
+      const { page = 1, limit = 15, orderBy = "uv.voucher_id", order = "ASC" } = req.body.pagination || {};
 
-      // Consulta inicial sem as condições WHERE
       let query = `
-        SELECT uv.user_voucher_id, uv.voucher_id, v.name as voucher_name, uv.reason, uv.assigned_at, uv.activated_at, 
-               u.email AS user_email, u.first_name AS user_first_name, u.last_name AS user_last_name, u.phone,
-               a.email AS admin_email, a.first_name AS admin_first_name, a.last_name AS admin_last_name,
-               act.email AS activated_by_email, act.first_name AS activated_by_first_name, act.last_name AS activated_by_last_name
-        FROM user_vouchers uv
-        LEFT JOIN vouchers v ON uv.voucher_id = v.voucher_id
-        LEFT JOIN users u ON uv.assigned_to = u.user_id
-        LEFT JOIN users a ON uv.assigned_by = a.user_id
-        LEFT JOIN users act ON uv.activated_by = act.user_id
-        WHERE 1 = 1
-        `;
+      SELECT uv.user_voucher_id, uv.voucher_id, v.name as voucher_name, uv.reason, uv.assigned_at, uv.activated_at, 
+             u.email AS user_email, u.first_name AS user_first_name, u.last_name AS user_last_name, u.phone,
+             a.email AS admin_email, a.first_name AS admin_first_name, a.last_name AS admin_last_name,
+             act.email AS activated_by_email, act.first_name AS activated_by_first_name, act.last_name AS activated_by_last_name
+      FROM user_vouchers uv
+      LEFT JOIN vouchers v ON uv.voucher_id = v.voucher_id
+      LEFT JOIN users u ON uv.assigned_to = u.user_id
+      LEFT JOIN users a ON uv.assigned_by = a.user_id
+      LEFT JOIN users act ON uv.activated_by = act.user_id
+      WHERE 1 = 1
+    `;
 
       let totalCountQuery = `
-        SELECT COUNT(*) AS count
-        FROM user_vouchers uv
-        LEFT JOIN vouchers v ON uv.voucher_id = v.voucher_id
-        LEFT JOIN users u ON uv.assigned_to = u.user_id
-        LEFT JOIN users a ON uv.assigned_by = a.user_id
-        LEFT JOIN users act ON uv.activated_by = act.user_id
-        WHERE 1 = 1
-        `;
+      SELECT COUNT(*) AS count
+      FROM user_vouchers uv
+      LEFT JOIN vouchers v ON uv.voucher_id = v.voucher_id
+      LEFT JOIN users u ON uv.assigned_to = u.user_id
+      LEFT JOIN users a ON uv.assigned_by = a.user_id
+      LEFT JOIN users act ON uv.activated_by = act.user_id
+      WHERE 1 = 1
+    `;
 
       const params = [];
 
       // Filtros
       if (req.body.filters) {
-        const { name } = req.body.filters;
+        const { email, name, phone } = req.body.filters;
 
-        if (name) {
-          query += ` AND v.name LIKE ?`;
-          totalCountQuery += ` AND v.name LIKE ?`;
-          params.push(`%${name}%`);
+        const searchValue = email || name || phone;
+        if (searchValue) {
+          query += ` AND (u.email LIKE ? OR u.phone LIKE ? OR u.first_name LIKE ? OR u.last_name LIKE ?)`;
+          totalCountQuery += ` AND (u.email LIKE ? OR u.phone LIKE ? OR u.first_name LIKE ? OR u.last_name LIKE ?)`;
+          const searchPattern = `%${searchValue}%`;
+          params.push(searchPattern, searchPattern, searchPattern, searchPattern);
         }
       }
 
@@ -166,7 +167,7 @@ class VouchersController {
   static async deleteVoucher(req, res, next) {
     try {
       const voucherId = req.params.id;
-
+      console.log(voucherId);
       const query = `
         DELETE FROM vouchers
         WHERE voucher_id = ?
@@ -209,8 +210,8 @@ class VouchersController {
 
   static async activateVoucher(req, res, next) {
     try {
-      const userVoucherId = req.params.id;
-      const { activated_by } = req.body;
+      const { id: userVoucherId } = req.body;
+      const activated_by = req.user?.id;
 
       if (!activated_by) {
         return res.status(200).json({ status: false, message: "Campos obrigatórios em falta." });
