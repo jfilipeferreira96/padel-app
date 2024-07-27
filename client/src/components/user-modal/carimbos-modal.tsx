@@ -82,9 +82,10 @@ const CarimbosModal: React.FC<Props> = ({ isModalOpen, setIsModalOpen, userId, f
   }, [opened, userId]);
 
   const onSubmit = async () => {
+    console.log(1)
     try {
-      if (!userId || !actualCard || !entryCount) return;
-
+      if (!userId || !actualCard || !entryCount == null || !entryCount == undefined) return;
+      console.log(2)
         const response = await updateEntryCount(userId, actualCard?.card_id, entryCount as number);
       
       if (response.status) {
@@ -131,7 +132,7 @@ const CarimbosModal: React.FC<Props> = ({ isModalOpen, setIsModalOpen, userId, f
             <>
               <Carimbos userId={userId} />
 
-              <NumberInput mt={"lg"} className="specialinput" label="Editar Nº de Entrada" placeholder="Insira o número que pretende" value={entryCount} min={0} mb={"sm"} onChange={(value) => setEntryCount(value)} />
+              <NumberInput mt={"lg"} className="specialinput" label="Editar Nº de Entrada" placeholder="Insira o número que pretende" value={entryCount} min={0} mb={"sm"} onChange={(value) => setEntryCount(value)} max={10} />
 
               <Button fullWidth mt="lg" type="submit" onClick={onSubmit}>
                 Guardar

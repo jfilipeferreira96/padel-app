@@ -274,7 +274,7 @@ class AcessosController {
   static async UpdateEntryCount(req, res, next) {
     const { userId, actualCard, entryCount } = req.body;
     // Validar as entradas
-    if (!userId || isNaN(parseInt(userId)) || !actualCard || isNaN(parseInt(actualCard)) || !entryCount || isNaN(parseInt(entryCount))) {
+    if (!userId || isNaN(parseInt(userId)) || !actualCard || isNaN(parseInt(actualCard)) || entryCount === undefined || isNaN(parseInt(entryCount))) {
       return res.status(200).json({ status: false, message: "Dados de entrada inválidos" });
     }
 
