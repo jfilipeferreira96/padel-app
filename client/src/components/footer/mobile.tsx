@@ -99,14 +99,14 @@ export function MobileFooter() {
   const { config } = useSession();
   
   const data = [
-    {
+    /* {
       icon: <IconHome style={{ width: "100%", height: rem(25) }} stroke={1.5} />,
       label: "Início",
       url: routes.home.url,
       onClick: () => {
         router.push(routes.home.url);
       },
-    },
+    }, */
     {
       icon: <IconQrcode style={{ width: "100%", height: rem(25) }} stroke={1.5} />,
       label: "QR Code",
@@ -151,13 +151,13 @@ export function MobileFooter() {
         router.push(routes.offpeaks.url);
       },
     },
-    /* {
+    {
       icon: <IconCalendarTime style={{ width: "100%", height: rem(25) }} stroke={1.5} />,
       label: "Reservar",
       url: "#",
       onClick: () => { },
       isReservar: true,
-    }, */
+    },
   ];
   
   useEffect(() => {

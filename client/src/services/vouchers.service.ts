@@ -83,7 +83,7 @@ export const getUserVouchers = async (userId: number) => {
   }
 };
 
-export const assignVoucher = async (data: { user_id: number; voucher_ids: number[]; assigned_by: number }) => {
+export const assignVoucher = async (data: { voucher_id: number; is_active: number; reason: string; assigned_to: number }) => {
   try {
     const response = await api.post(endpoints.assignVoucher, data);
     return response.data;

@@ -84,7 +84,7 @@ const Home = () => {
   const [data, setData] = useState<{ title: string; image_path: string; download_path: string; date: string; is_active: boolean }[]>([]);
   const [totalElements, setTotalElements] = useState(0);
   const [page, setPage] = useState(1);
-  const elementsPerPage = 9;
+  const elementsPerPage = 4;
 
   useEffect(() => {
     const fetchCard = async () => {

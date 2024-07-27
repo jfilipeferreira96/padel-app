@@ -67,7 +67,7 @@ export default function ModalVoucher({ isModalOpen, setIsModalOpen, userId, fetc
         if (res.status === true) {
           notifications.show({
             message: res.message,
-            color: "red",
+            color: "green",
           });
         } else {
           notifications.show({
@@ -199,12 +199,35 @@ export default function ModalVoucher({ isModalOpen, setIsModalOpen, userId, fetc
     }
   };
 
-  const onSubmit = async () => {
-    console.log("is_active:", isActive);
-    console.log("selected_voucher:", selectedVoucher);
-     console.log("reason:", reason);
-    // Implementação da lógica de submissão aqui
-  };
+   const onSubmit = async () => {
+     if (!selectedVoucher || !reason || !userId) {
+       notifications.show({
+         title: "Erro",
+         message: "Por favor, preencha todos os campos obrigatórios.",
+         color: "red",
+       });
+       return;
+     }
+
+     try {
+       const response = await assignVoucher({
+         voucher_id: Number(selectedVoucher),
+         is_active: Number(isActive),
+         reason,
+         assigned_to: userId,
+       });
+
+       if (response.status) {
+         notifications.show({ title: "Sucesso", message: response.message, color: "green" });
+         fetchData();
+         close();
+       } else {
+         notifications.show({ title: "Erro", message: response.message, color: "red" });
+       }
+     } catch (error) {
+       notifications.show({ title: "Erro", message: "Algo correu mal", color: "red" });
+     }
+   };
 
   const initialIndex = (activePage - 1) * elementsPerPage;
   const finalIndex = initialIndex + elementsPerPage;

@@ -88,7 +88,7 @@ function News()
         if (res.status === true) {
           notifications.show({
             message: res.message,
-            color: "red",
+            color: "green",
           });
         } else {
           notifications.show({

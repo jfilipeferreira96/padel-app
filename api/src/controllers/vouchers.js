@@ -184,7 +184,7 @@ class VouchersController {
       const voucherId = req.params.id;
 
       const query = `
-        DELETE FROM user_voucher
+        DELETE FROM user_vouchers
         WHERE user_voucher_id = ?
       `;
 
@@ -203,18 +203,31 @@ class VouchersController {
 
   static async assignVoucher(req, res, next) {
     try {
-      const { voucher_id, assigned_by, assigned_to } = req.body;
-
-      if (!voucher_id || !assigned_by || !assigned_to) {
+      const { voucher_id, assigned_to, reason, is_active } = req.body;
+      const assigned_by = req.user?.id;
+      console.log(voucher_id, assigned_to, reason, is_active);
+      console.log(assigned_by);
+      if (!voucher_id || !assigned_by || !assigned_to || !reason) {
         return res.status(200).json({ status: false, message: "Todos os campos são obrigatórios." });
       }
 
-      const query = `
+      if (!is_active) {
+        const query = `
         INSERT INTO user_vouchers (voucher_id, assigned_by, assigned_to)
         VALUES (?, ?, ?)
       `;
 
-      await db.query(query, [voucher_id, assigned_by, assigned_to]);
+        await db.query(query, [voucher_id, assigned_by, assigned_to]);
+      }
+
+      if (is_active) {
+        const query = `
+        INSERT INTO user_vouchers (voucher_id, assigned_by, assigned_to, activated_by, activated_at)
+        VALUES (?, ?, ?, ?, NOW())
+      `;
+
+        await db.query(query, [voucher_id, assigned_by, assigned_to, assigned_by]);
+      }
 
       return res.status(201).json({ status: true, message: "Voucher atribuído com sucesso." });
     } catch (ex) {
@@ -264,7 +277,7 @@ class VouchersController {
         SELECT v.*, uv.assigned_at, uv.assigned_by, uv.activated_at, uv.activated_by
         FROM vouchers v
         JOIN user_vouchers uv ON v.voucher_id = uv.voucher_id
-        WHERE uv.user_voucher_id = ?
+        WHERE uv.assigned_to = ?
         ORDER BY uv.assigned_at DESC
       `;
 
