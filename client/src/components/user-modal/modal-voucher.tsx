@@ -4,8 +4,8 @@ import { Modal, Table, Text, Button, Center, Loader, Paper, Divider, Badge, Tool
 import { useDisclosure } from "@mantine/hooks";
 import { notifications } from "@mantine/notifications";
 import { getUser, UserData } from "@/services/user.service";
-import { getAllVouchersHistory, assignVoucher, getAllVouchers } from "@/services/vouchers.service";
-import { IconCheck, IconRefresh, IconSearch } from "@tabler/icons-react";
+import { getAllVouchersHistory, assignVoucher, getAllVouchers, ativarVoucher, deleteVoucher } from "@/services/vouchers.service";
+import { IconCheck, IconRefresh, IconSearch, IconTrash } from "@tabler/icons-react";
 import { useSession } from "@/providers/SessionProvider";
 import { usePathname } from "next/navigation";
 
@@ -16,12 +16,17 @@ interface Props {
   fetchData: () => Promise<void>;
 }
 
-function getBadge(activated_by: number | null) {
-  return activated_by ? { name: "Ativado", color: "green" } : { name: "Não ativado", color: "red" };
+function getBadge(activated_by: string | null) {
+  if (!activated_by) {
+    return { name: "Não ativado", color: "red" };
+  } else {
+    return { name: "Ativado", color: "green" };
+  }
 }
 
 interface Voucher {
-  id: number;
+  user_voucher_id: number;
+  voucher_id: number;
   voucher_name: string;
   assigned_at: string;
   assigned_by: number;
@@ -56,6 +61,64 @@ export default function ModalVoucher({ isModalOpen, setIsModalOpen, userId, fetc
   const [selectedVoucher, setSelectedVoucher] = useState<string | null>(null);
   const [reason, setReason] = useState<string>("");
 
+  const onDelete = async (id: number) => {
+    try {
+      deleteVoucher(id).then((res) => {
+        if (res.status === true) {
+          notifications.show({
+            message: res.message,
+            color: "red",
+          });
+        } else {
+          notifications.show({
+            title: "Erro",
+            message: "Algo correu mal",
+            color: "red",
+          });
+        }
+      });
+      if (userId) {
+        fetchUserData(userId);
+      }
+    } catch (error) {
+      notifications.show({
+        title: "Erro",
+        message: "Algo correu mal",
+        color: "red",
+      });
+    }
+  }
+    const onValidate = async (id: number) => {
+      try {
+        
+        const response = await ativarVoucher(id);
+
+        if (response.status) {
+          notifications.show({
+            title: "Sucesso",
+            message: "",
+            color: "green",
+          });
+        }
+        if (response.status === false) {
+          notifications.show({
+            message: response.message,
+            color: "red",
+          });
+        }
+        if (userId) {
+          fetchUserData(userId);
+        }
+        fetchData();
+      } catch (error) {
+        notifications.show({
+          title: "Erro",
+          message: "Algo correu mal",
+          color: "red",
+        });
+      }
+  };
+  
   useEffect(() => {
     if (isModalOpen && userId) {
       fetchUserData(userId);
@@ -88,8 +151,15 @@ export default function ModalVoucher({ isModalOpen, setIsModalOpen, userId, fetc
         order: "DESC",
       };
 
-      const [vouchers, vouchersResponse] = await Promise.all([getAllVouchers(), getAllVouchersHistory(pagination)]);
-      console.log(vouchers);
+       const filters: any = {
+         email: searchTerm ?? null,
+         name: searchTerm ?? null,
+         phone: searchTerm ?? null,
+         assigned_to: userId,
+       };
+
+      const [vouchers, vouchersResponse] = await Promise.all([getAllVouchers(), getAllVouchersHistory(pagination, filters)]);
+      
       if (vouchers.status) {
         setVouchersData(vouchers.data);
       }
@@ -140,10 +210,10 @@ export default function ModalVoucher({ isModalOpen, setIsModalOpen, userId, fetc
   const finalIndex = initialIndex + elementsPerPage;
 
   const rows = userVouchers.map((voucher) => (
-    <Table.Tr key={voucher.id}>
+    <Table.Tr key={voucher.voucher_id}>
       <Table.Td>
-        <Badge variant="filled" size="md" fw={700} color={getBadge(voucher.activated_by).color} style={{ minWidth: "110px" }}>
-          {getBadge(voucher.activated_by).name}
+        <Badge variant="filled" size="md" fw={700} color={getBadge(voucher.activated_at).color} style={{ minWidth: "110px" }}>
+          {getBadge(voucher.activated_at).name}
         </Badge>
       </Table.Td>
       <Table.Td>{voucher.voucher_name}</Table.Td>
@@ -162,11 +232,24 @@ export default function ModalVoucher({ isModalOpen, setIsModalOpen, userId, fetc
           {voucher.activated_at ? (
             <>-</>
           ) : (
-            <Tooltip label={"Ativar voucher"} withArrow position="top">
-              <ActionIcon variant="subtle" color="green" onClick={() => console.log("123")}>
-                <IconCheck style={{ width: rem(20), height: rem(20) }} stroke={1.5} />
-              </ActionIcon>
-            </Tooltip>
+            <>
+              <Tooltip label={"Remover voucher"} withArrow position="top">
+                <ActionIcon
+                  variant="subtle"
+                  color="red"
+                  onClick={() => {
+                    onDelete(voucher.user_voucher_id);
+                  }}
+                >
+                  <IconTrash style={{ width: rem(20), height: rem(20) }} stroke={1.5} />
+                </ActionIcon>
+              </Tooltip>
+              <Tooltip label={"Ativar voucher"} withArrow position="top">
+                <ActionIcon variant="subtle" color="green" onClick={() => onValidate(voucher.user_voucher_id)}>
+                  <IconCheck style={{ width: rem(20), height: rem(20) }} stroke={1.5} />
+                </ActionIcon>
+              </Tooltip>
+            </>
           )}
         </Group>
       </Table.Td>
@@ -184,52 +267,62 @@ export default function ModalVoucher({ isModalOpen, setIsModalOpen, userId, fetc
           <Card>
             <Center>
               <h3>Histórico de vouchers</h3>
-              </Center>
-              
-            <Group justify="space-between" align="center" mb={"lg"}>
-              <Flex align={"center"}>
-                <Text>A mostrar</Text>
-                <Select
-                  data={["10", "20", "30", "50"]}
-                  value={elementsPerPage.toString()}
-                  allowDeselect={false}
-                  style={{ width: "80px", marginLeft: "8px" }}
-                  ml={4}
-                  mr={4}
-                  onChange={(value) => handleElementsPerPageChange(value)}
-                />
-                <Text>vouchers</Text>
-              </Flex>
-            </Group>
-
-            <Table.ScrollContainer minWidth={500}>
-              <Table highlightOnHover>
-                <Table.Thead>
-                  <Table.Tr>
-                    <Table.Th>Estado</Table.Th>
-                    <Table.Th>Voucher</Table.Th>
-                    <Table.Th>Nome</Table.Th>
-                    <Table.Th>Email</Table.Th>
-                    <Table.Th>Telefone</Table.Th>
-                    <Table.Th>Atribuido Por</Table.Th>
-                    <Table.Th>Data de Atribuição</Table.Th>
-                    <Table.Th>Razão</Table.Th>
-                    <Table.Th>Ativado Por</Table.Th>
-                    <Table.Th>Data de Ativação</Table.Th>
-                    <Table.Th>Ações</Table.Th>
-                  </Table.Tr>
-                </Table.Thead>
-                <Table.Tbody>{rows}</Table.Tbody>
-              </Table>
-            </Table.ScrollContainer>
-
+            </Center>
+            {userVouchers.length === 0 && (
+              <>
+                <Box miw={600}>
+                  <Center>
+                    <Text>Este utilizador não tem vouchers atribuídos.</Text>
+                  </Center>
+                </Box>
+              </>
+            )}
             {userVouchers.length > 0 && (
-              <Flex justify={"space-between"} mt={"lg"}>
-                <Text>
-                  A mostrar {initialIndex + 1} a {Math.min(finalIndex, totalVouchers)} de {totalVouchers} vouchers
-                </Text>
-                <Pagination total={Math.ceil(totalVouchers / elementsPerPage)} onChange={handlePageChange} />
-              </Flex>
+              <>
+                <Group justify="space-between" align="center" mb={"lg"}>
+                  <Flex align={"center"}>
+                    <Text>A mostrar</Text>
+                    <Select
+                      data={["10", "20", "30", "50"]}
+                      value={elementsPerPage.toString()}
+                      allowDeselect={false}
+                      style={{ width: "80px", marginLeft: "8px" }}
+                      ml={4}
+                      mr={4}
+                      onChange={(value) => handleElementsPerPageChange(value)}
+                    />
+                    <Text>vouchers</Text>
+                  </Flex>
+                </Group>
+
+                <Table.ScrollContainer minWidth={500}>
+                  <Table highlightOnHover>
+                    <Table.Thead>
+                      <Table.Tr>
+                        <Table.Th>Estado</Table.Th>
+                        <Table.Th>Voucher</Table.Th>
+                        <Table.Th>Nome</Table.Th>
+                        <Table.Th>Email</Table.Th>
+                        <Table.Th>Telefone</Table.Th>
+                        <Table.Th>Atribuido Por</Table.Th>
+                        <Table.Th>Data de Atribuição</Table.Th>
+                        <Table.Th>Razão</Table.Th>
+                        <Table.Th>Ativado Por</Table.Th>
+                        <Table.Th>Data de Ativação</Table.Th>
+                        <Table.Th>Ações</Table.Th>
+                      </Table.Tr>
+                    </Table.Thead>
+                    <Table.Tbody>{rows}</Table.Tbody>
+                  </Table>
+                </Table.ScrollContainer>
+
+                <Flex justify={"space-between"} mt={"lg"}>
+                  <Text>
+                    A mostrar {initialIndex + 1} a {Math.min(finalIndex, totalVouchers)} de {totalVouchers} vouchers
+                  </Text>
+                  <Pagination total={Math.ceil(totalVouchers / elementsPerPage)} onChange={handlePageChange} />
+                </Flex>
+              </>
             )}
           </Card>
           <Divider my="md" mt={"lg"} />

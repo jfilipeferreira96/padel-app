@@ -199,7 +199,7 @@ CREATE TABLE IF NOT EXISTS user_vouchers (
     FOREIGN KEY (activated_by) REFERENCES users(user_id) ON DELETE SET NULL
 );
 
-INSERT INTO `vouchers` (`voucher_id`, `name`, `created_at`, `image_url`) VALUES (NULL, 'Voucher 1h', current_timestamp(), './voucher_1h.png'), (NULL, 'Voucher 1h30', current_timestamp(), './voucher_1h30.png'), (NULL, 'Voucher 1 mês - Aulas', current_timestamp(), './voucher_aulas.png');
+INSERT INTO `vouchers` (`voucher_id`, `name`, `created_at`, `image_url`) VALUES (NULL, 'Voucher 1h', current_timestamp(), './vouchers/voucher_1h.png'), (NULL, 'Voucher 1h30', current_timestamp(), './vouchers/voucher_1h30.png'), (NULL, 'Voucher 1 mês - Aulas', current_timestamp(), './vouchers/voucher_aulas.png');
 
 -- Testes:
 

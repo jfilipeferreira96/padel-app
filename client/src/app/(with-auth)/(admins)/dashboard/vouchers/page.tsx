@@ -18,6 +18,7 @@ function getBadge(activated_by: string | null) {
 
 // Interface para os vouchers
 interface Voucher {
+  user_voucher_id: number;
   voucher_id: number;
   voucher_name: string;
   assigned_at: string;
@@ -74,7 +75,6 @@ function VoucherHistory() {
       } else if (filterOption === "Ver não ativados") {
         filters.validated_by = true;
       }
-      console.log(filters);
 
       const response = await getAllVouchersHistory(pagination, filters);
 
@@ -176,7 +176,7 @@ function VoucherHistory() {
                   variant="subtle"
                   color="red"
                   onClick={() => {
-                    setDeleteId(voucher.voucher_id);
+                    setDeleteId(voucher.user_voucher_id);
                     open();
                   }}
                 >
@@ -184,7 +184,7 @@ function VoucherHistory() {
                 </ActionIcon>
               </Tooltip>
               <Tooltip label={"Ativar voucher"} withArrow position="top">
-                <ActionIcon variant="subtle" color="green" onClick={() => onValidate(voucher.voucher_id)}>
+                <ActionIcon variant="subtle" color="green" onClick={() => onValidate(voucher.user_voucher_id)}>
                   <IconCheck style={{ width: rem(20), height: rem(20) }} stroke={1.5} />
                 </ActionIcon>
               </Tooltip>

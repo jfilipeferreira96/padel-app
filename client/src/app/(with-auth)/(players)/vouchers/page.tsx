@@ -33,7 +33,6 @@ function VouchersPage() {
 
     try {
       const response = await getUserVouchers(user.id);
-      console.log(response);
       if (response.status) {
         setVouchers(response.data);
       }
@@ -46,7 +45,12 @@ function VouchersPage() {
   };
 
   useEffect(() => {
-    fetchData();
+    fetchData(); // Fetch data initially
+
+    const intervalId = setInterval(fetchData, 30000); // Fetch data every 30 seconds
+
+    // Cleanup function to clear the interval on component unmount
+    return () => clearInterval(intervalId);
   }, [user]);
 
   if (isLoading) {

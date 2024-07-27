@@ -56,8 +56,8 @@ class VouchersController {
 
       // Filtros
       if (req.body.filters) {
-        const { email, name, phone, validated_by } = req.body.filters;
-        console.log(validated_by);
+        const { email, name, phone, validated_by, assigned_to } = req.body.filters;
+
         const searchValue = email || name || phone;
         if (searchValue) {
           query += ` AND (u.email LIKE ? OR u.phone LIKE ? OR u.first_name LIKE ? OR u.last_name LIKE ?)`;
@@ -75,10 +75,15 @@ class VouchersController {
           query += ` AND uv.activated_by IS NULL`;
           totalCountQuery += ` AND uv.activated_by IS NULL`;
         }
-      }
 
+        if (assigned_to) {
+          query += ` AND uv.assigned_to = ?`;
+          totalCountQuery += ` AND uv.assigned_to = ?`;
+          params.push(assigned_to);
+        }
+      }
       const offset = (page - 1) * limit;
-      console.log(query);
+
       // Finalizando a consulta com ORDER BY, LIMIT e OFFSET
       query += ` ORDER BY ${orderBy} ${order} LIMIT ? OFFSET ?`;
       params.push(limit, offset);
@@ -177,10 +182,10 @@ class VouchersController {
   static async deleteVoucher(req, res, next) {
     try {
       const voucherId = req.params.id;
-      console.log(voucherId);
+
       const query = `
-        DELETE FROM vouchers
-        WHERE voucher_id = ?
+        DELETE FROM user_voucher
+        WHERE user_voucher_id = ?
       `;
 
       const { rows } = await db.query(query, [voucherId]);
