@@ -25,6 +25,11 @@ app.use((req, res, next) => {
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
+app.use((req, res, next) => {
+  res.set("Cache-Control", "no-store, no-cache, must-revalidate, private");
+  next();
+});
+
 // CORS configuration
 const corsOptions = {
   origin: ["http://localhost:3005", "https://localhost:3005", "https://app.pro-padel.pt/", "https://app.pro-padel.pt", "http://app.pro-padel.pt", , "http://app.pro-padel.pt/"],

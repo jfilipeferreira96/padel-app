@@ -30,6 +30,10 @@ api.interceptors.request.use(
       config.headers["Refresh-Token"] = refreshToken; // Corrigido refreshToken
     }
 
+    config.headers["Cache-Control"] = "no-cache, no-store, must-revalidate";
+    config.headers["Pragma"] = "no-cache";
+    config.headers["Expires"] = "0";
+
     return config;
   },
   (error) => {
