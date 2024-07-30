@@ -205,28 +205,27 @@ class VouchersController {
     try {
       const { voucher_id, assigned_to, reason, is_active } = req.body;
       const assigned_by = req.user?.id;
-      console.log(voucher_id, assigned_to, reason, is_active);
-      console.log(assigned_by);
+      
       if (!voucher_id || !assigned_by || !assigned_to || !reason) {
         return res.status(200).json({ status: false, message: "Todos os campos são obrigatórios." });
       }
 
       if (!is_active) {
         const query = `
-        INSERT INTO user_vouchers (voucher_id, assigned_by, assigned_to)
+        INSERT INTO user_vouchers (voucher_id, assigned_by, assigned_to, reason)
         VALUES (?, ?, ?)
       `;
 
-        await db.query(query, [voucher_id, assigned_by, assigned_to]);
+        await db.query(query, [voucher_id, assigned_by, assigned_to, reason]);
       }
 
       if (is_active) {
         const query = `
-        INSERT INTO user_vouchers (voucher_id, assigned_by, assigned_to, activated_by, activated_at)
-        VALUES (?, ?, ?, ?, NOW())
+        INSERT INTO user_vouchers (voucher_id, assigned_by, assigned_to, activated_by, reason, activated_at)
+        VALUES (?, ?, ?, ?, ?, NOW())
       `;
 
-        await db.query(query, [voucher_id, assigned_by, assigned_to, assigned_by]);
+        await db.query(query, [voucher_id, assigned_by, assigned_to, reason, assigned_by]);
       }
 
       return res.status(201).json({ status: true, message: "Voucher atribuído com sucesso." });
