@@ -221,11 +221,11 @@ class VouchersController {
 
       if (is_active) {
         const query = `
-        INSERT INTO user_vouchers (voucher_id, assigned_by, assigned_to, activated_by, reason, activated_at)
+        INSERT INTO user_vouchers (voucher_id, assigned_by, assigned_to, reason, activated_by,  activated_at)
         VALUES (?, ?, ?, ?, ?, NOW())
       `;
 
-        await db.query(query, [voucher_id, assigned_by, assigned_to, reason, assigned_by]);
+        await db.query(query, [voucher_id, assigned_by,reason, assigned_to, assigned_by]);
       }
 
       return res.status(201).json({ status: true, message: "Voucher atribuído com sucesso." });
