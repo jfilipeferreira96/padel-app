@@ -213,7 +213,7 @@ class VouchersController {
       if (!is_active) {
         const query = `
         INSERT INTO user_vouchers (voucher_id, assigned_by, assigned_to, reason)
-        VALUES (?, ?, ?)
+        VALUES (?, ?, ?, ?)
       `;
 
         await db.query(query, [voucher_id, assigned_by, assigned_to, reason]);
