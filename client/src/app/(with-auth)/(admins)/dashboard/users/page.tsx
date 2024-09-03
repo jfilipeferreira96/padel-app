@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { Card, Table, Checkbox, Pagination as MantinePagination, Center, Text, Select, Flex, Badge, SimpleGrid, Skeleton, Grid, Tooltip, ActionIcon, rem, Group, Button, Modal, TextInput } from "@mantine/core";
 import { deleteUser, getAllUsers } from "@/services/user.service";
-import { IconArrowRight, IconCards, IconEye, IconGift, IconPencil, IconPlus, IconSearch, IconSticker, IconTrash } from "@tabler/icons-react";
+import { IconBrandZoom, IconCards, IconEye, IconGift, IconPencil, IconPlus, IconSearch, IconSticker, IconTrash } from "@tabler/icons-react";
 import AddUserModal from "@/components/user-modal/add";
 import { useDisclosure } from "@mantine/hooks";
 import EditUserModal from "@/components/user-modal/edit";
@@ -184,6 +184,12 @@ function Users() {
               <IconGift size={20} stroke={1.5} />
             </ActionIcon>
           </Tooltip>
+
+          <Tooltip label={"Atribuir Créditos"} withArrow position="top">
+            <ActionIcon color="purple" variant="subtle" onClick={() => handleVouchers(element.user_id)}>
+              <IconBrandZoom size={20} stroke={1.5} />
+            </ActionIcon>
+          </Tooltip>
         </Group>
       </Table.Td>
     </Table.Tr>
@@ -199,6 +205,8 @@ function Users() {
       <CarimbosModal isModalOpen={isModalOpenCarimbos} setIsModalOpen={setIsModalOpenCarimbos} fetchData={fetchData} userId={editUserId} />
 
       <ModalVoucher isModalOpen={isModalOpenVouchers} setIsModalOpen={setIsModalOpenVouchers} fetchData={fetchData} userId={editUserId} />
+
+      {/* <ModalVoucher isModalOpen={isModalOpenVouchers} setIsModalOpen={setIsModalOpenVouchers} fetchData={fetchData} userId={editUserId} /> */}
 
       <Modal opened={opened} onClose={close} withCloseButton={false}>
         <Center>
