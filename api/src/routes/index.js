@@ -3,6 +3,7 @@ const path = require("path");
 const { Router } = require("express");
 const { authenticateToken } = require("../middleware/auth.middleware");
 const UserController = require("../controllers/user");
+const VideoController = require("../controllers/video");
 const authRoutes = require("./user.routes");
 const acessosRoutes = require("./acessos.routes");
 const dashboardRoutes = require("./dashboard.routes");
@@ -29,6 +30,7 @@ authRoutes.post("/login", UserController.login);
 authRoutes.post("/forgot-password", UserController.forgotPassword);
 authRoutes.post("/reset-password", UserController.resetPassword);
 authRoutes.get("/checktoken/:token", UserController.checkToken);
+routes.post("/api/video", VideoController.teste);
 
 /***************** AUTH ROUTES *****************/
 routes.use("/api/auth", authRoutes);
