@@ -218,10 +218,11 @@ CREATE TABLE IF NOT EXISTS videos_processed (
 CREATE TABLE IF NOT EXISTS users_credits_history (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
-    credits_before INT NOT NULL,
+    credits_before INT DEFAULT 0 NOT NULL,
     credits_after INT NOT NULL,
+    given_by INT DEFAULT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+    FOREIGN KEY (given_by) REFERENCES users(user_id) ON DELETE SET NULL
 );
 
 -- Testes:
