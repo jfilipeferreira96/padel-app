@@ -49,7 +49,7 @@ function VideoCredits() {
       const pagination = {
         page: activePage,
         limit: elementsPerPage,
-        orderBy: "uv.assigned_at",
+        orderBy: "uch.id",
         order: "DESC",
       };
 
