@@ -82,6 +82,7 @@ class UserController {
         phone: user.phone,
         birthdate: user.birthdate,
         locations,
+        video_credits: user.video_credits,
         offpeaks: JSON.parse(user.offpeaks || "[]"),
       });
 
@@ -96,6 +97,7 @@ class UserController {
           birthdate: user.birthdate,
           phone: user.phone,
           locations,
+          video_credits: user.video_credits,
           offpeaks: JSON.parse(user.offpeaks || "[]"),
         },
         accessToken,

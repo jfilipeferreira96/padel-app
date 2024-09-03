@@ -10,6 +10,7 @@ const dashboardRoutes = require("./dashboard.routes");
 const articlesRoutes = require("./article.routes");
 const offpeakCardsRoutes = require("./offpeak.routes");
 const vouchersRoutes = require("./vouchers.routes");
+const videoRoutes = require("./video.routes");
 
 const routes = Router();
 
@@ -30,7 +31,7 @@ authRoutes.post("/login", UserController.login);
 authRoutes.post("/forgot-password", UserController.forgotPassword);
 authRoutes.post("/reset-password", UserController.resetPassword);
 authRoutes.get("/checktoken/:token", UserController.checkToken);
-routes.post("/api/video", VideoController.teste);
+routes.post("/api/videos/teste", VideoController.teste);
 
 /***************** AUTH ROUTES *****************/
 routes.use("/api/auth", authRoutes);
@@ -40,6 +41,7 @@ routes.use("/api/dashboard", authenticateToken, dashboardRoutes);
 routes.use("/api/articles", authenticateToken, articlesRoutes);
 routes.use("/api/offpeak", authenticateToken, offpeakCardsRoutes);
 routes.use("/api/voucher", authenticateToken, vouchersRoutes);
+routes.use("/api/videos", authenticateToken, videoRoutes);
 
 // Servir arquivos estáticos da pasta /uploads
 routes.use("/api/uploads", express.static(path.join(__dirname, "../uploads")));

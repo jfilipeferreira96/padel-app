@@ -54,6 +54,13 @@ export const endpoints = {
   addOrder: `/api/orders/order`,
   getSingleOrder: `/api/orders/order`,
   getAllOrders: `/api/orders/orders`,
+  /*################## Videos #############################*/
+  getCreditsHistory: `/api/videos/credits-history`,
+  getVideosProcessed: `/api/videos/processed`,
+  updateUserCredits: `/api/videos/credits`,
+  addVideoProcessed: `/api/videos/processed/add`,
+  getSingleVideoProcessed: `/api/videos/processed`,
+  teste: `/api/videos/teste`,
 };
 
 export const routes = {
@@ -100,6 +107,7 @@ export const routes = {
     articles: "/dashboard/articles",
     offpeak: "/dashboard/offpeak",
     vouchers: "/dashboard/vouchers",
+    videoCredits: "/dashboard/video-credits",
     orders: "/dashboard/orders",
     users: "/dashboard/users",
     validations: "/dashboard/validations",

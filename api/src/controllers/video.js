@@ -4,15 +4,26 @@ const db = require("../config/db");
 const Logger = require("../utils/logger");
 
 class VideoController {
-  
   static async getCreditsHistory(req, res, next) {
     try {
       const { userId, name, email, phone } = req.body.filters || {};
+      const { page = 1, limit = 15, orderBy = "uch.created_at", order = "DESC" } = req.body.pagination || {};
 
       let query = `
-        SELECT uch.*, u.email, u.first_name, u.last_name, u.phone
+        SELECT uch.*, 
+              u.email AS user_email, u.first_name AS user_first_name, u.last_name AS user_last_name, u.phone,
+              a.email AS admin_email, a.first_name AS admin_first_name, a.last_name AS admin_last_name
         FROM users_credits_history uch
         LEFT JOIN users u ON uch.user_id = u.user_id
+        LEFT JOIN users a ON uch.given_by = a.user_id
+        WHERE 1 = 1
+      `;
+
+      let totalCountQuery = `
+        SELECT COUNT(*) as count
+        FROM users_credits_history uch
+        LEFT JOIN users u ON uch.user_id = u.user_id
+        LEFT JOIN users a ON uch.given_by = a.user_id
         WHERE 1 = 1
       `;
 
@@ -20,28 +31,42 @@ class VideoController {
 
       if (userId) {
         query += ` AND uch.user_id = ?`;
+        totalCountQuery += ` AND uch.user_id = ?`;
         params.push(userId);
       }
 
       if (name) {
         query += ` AND (u.first_name LIKE ? OR u.last_name LIKE ?)`;
+        totalCountQuery += ` AND (u.first_name LIKE ? OR u.last_name LIKE ?)`;
         const searchPattern = `%${name}%`;
         params.push(searchPattern, searchPattern);
       }
 
       if (email) {
         query += ` AND u.email LIKE ?`;
+        totalCountQuery += ` AND u.email LIKE ?`;
         params.push(`%${email}%`);
       }
 
       if (phone) {
         query += ` AND u.phone LIKE ?`;
+        totalCountQuery += ` AND u.phone LIKE ?`;
         params.push(`%${phone}%`);
       }
 
-      const { rows } = await db.query(query, params);
+      const offset = (page - 1) * limit;
 
-      return res.status(200).json({ status: true, data: rows });
+      query += ` ORDER BY ${orderBy} ${order} LIMIT ? OFFSET ?`;
+      params.push(limit, offset);
+
+      const { rows } = await db.query(query, params);
+      const { rows: totalCountRows } = await db.query(totalCountQuery, params.slice(0, params.length - 2));
+
+      return res.status(200).json({
+        status: true,
+        data: rows,
+        pagination: { page, limit, orderBy, order, total: parseInt(totalCountRows[0].count) },
+      });
     } catch (ex) {
       Logger.error("Ocorreu um erro ao buscar o histórico de créditos.", ex);
       res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: "Erro Interno do Servidor", message: ex.message });
@@ -51,9 +76,17 @@ class VideoController {
   static async getVideosProcessed(req, res, next) {
     try {
       const { userId, name, email, phone } = req.body.filters || {};
+      const { page = 1, limit = 15, orderBy = "vp.created_at", order = "DESC" } = req.body.pagination || {};
 
       let query = `
         SELECT vp.*, u.email, u.first_name, u.last_name, u.phone
+        FROM videos_processed vp
+        LEFT JOIN users u ON vp.user_id = u.user_id
+        WHERE 1 = 1
+      `;
+
+      let totalCountQuery = `
+        SELECT COUNT(*) as count
         FROM videos_processed vp
         LEFT JOIN users u ON vp.user_id = u.user_id
         WHERE 1 = 1
@@ -63,28 +96,42 @@ class VideoController {
 
       if (userId) {
         query += ` AND vp.user_id = ?`;
+        totalCountQuery += ` AND vp.user_id = ?`;
         params.push(userId);
       }
 
       if (name) {
         query += ` AND (u.first_name LIKE ? OR u.last_name LIKE ?)`;
+        totalCountQuery += ` AND (u.first_name LIKE ? OR u.last_name LIKE ?)`;
         const searchPattern = `%${name}%`;
         params.push(searchPattern, searchPattern);
       }
 
       if (email) {
         query += ` AND u.email LIKE ?`;
+        totalCountQuery += ` AND u.email LIKE ?`;
         params.push(`%${email}%`);
       }
 
       if (phone) {
         query += ` AND u.phone LIKE ?`;
+        totalCountQuery += ` AND u.phone LIKE ?`;
         params.push(`%${phone}%`);
       }
 
-      const { rows } = await db.query(query, params);
+      const offset = (page - 1) * limit;
 
-      return res.status(200).json({ status: true, data: rows });
+      query += ` ORDER BY ${orderBy} ${order} LIMIT ? OFFSET ?`;
+      params.push(limit, offset);
+
+      const { rows } = await db.query(query, params);
+      const { rows: totalCountRows } = await db.query(totalCountQuery, params.slice(0, params.length - 2));
+
+      return res.status(200).json({
+        status: true,
+        data: rows,
+        pagination: { page, limit, orderBy, order, total: parseInt(totalCountRows[0].count) },
+      });
     } catch (ex) {
       Logger.error("Ocorreu um erro ao buscar os vídeos processados.", ex);
       res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: "Erro Interno do Servidor", message: ex.message });
@@ -110,7 +157,7 @@ class VideoController {
       const creditsAfter = creditsBefore + credits;
 
       const updateQuery = `UPDATE users SET video_credits = ? WHERE user_id = ?`;
-      await db.query(updateQuery, [creditsAfter, userId]);
+      await db.query(updateQuery, [credits, userId]);
 
       const historyQuery = `
         INSERT INTO users_credits_history (user_id, credits_before, credits_after, given_by)
@@ -196,12 +243,12 @@ class VideoController {
   static async teste(req, res, next) {
     try {
       const { user } = req.body;
-      
+
       if (!user) {
         return res.json({
           status: false,
           error: "Pedido Inválido",
-          message: "Faltam campos"
+          message: "Faltam campos",
         });
       }
 
@@ -222,26 +269,25 @@ class VideoController {
 
       try {
         const requestUser = await verifyToken(user, secret);
-        console.log(requestUser); 
+        console.log(requestUser);
 
         return res.status(200).json({
           status: true,
-          message: "Token válido"
+          message: "Token válido",
         });
       } catch (err) {
         return res.json({
           status: false,
           error: "Pedido Inválido",
-          message: "Token inválido"
+          message: "Token inválido",
         });
       }
-
     } catch (ex) {
       Logger.error("Ocorreu um erro.", ex);
       res.status(500).json({
         status: false,
         error: "Erro Interno do Servidor",
-        message: ex.message
+        message: ex.message,
       });
     }
   }

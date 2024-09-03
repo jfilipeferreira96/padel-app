@@ -7,6 +7,7 @@ import { useLocation } from "@/providers/LocationProvider";
 import { useDisclosure, useMediaQuery } from "@mantine/hooks";
 import { usePathname, useRouter } from "next/navigation";
 import { routes } from "@/config/routes";
+import { IconBrandZoom } from "@tabler/icons-react";
 
 const data = [
   { label: "Validações de Entradas", icon: IconFingerprint, url: routes.dashboard.validations },
@@ -14,6 +15,7 @@ const data = [
   { label: "Cartões Off Peak", icon: IconCards, url: routes.dashboard.offpeak },
   { label: "Vouchers", icon: IconGift, url: routes.dashboard.vouchers },
   { label: "Noticias", icon: IconNews, url: routes.dashboard.articles },
+  { label: "Créditos para Vídeos", icon: IconBrandZoom, url: routes.dashboard.videoCredits },
   /*   { label: "Vendas", icon: IconShoppingCart, url: routes.dashboard.orders }, */
   { label: "Utilizadores do Sistema", icon: IconUser, url: routes.dashboard.users },
   { label: "Outras Configurações", icon: IconSettings, url: routes.dashboard.configurations },

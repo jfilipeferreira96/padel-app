@@ -11,6 +11,7 @@ import { usePathname } from "next/navigation";
 import AsignOffpeakModal from "@/components/user-modal/assign-offpick";
 import CarimbosModal from "@/components/user-modal/carimbos-modal";
 import ModalVoucher from "@/components/user-modal/modal-voucher";
+import VideosModal from "@/components/user-modal/videos-modal";
 
 function getBadge(user_type: string){
   if (user_type === 'admin')
@@ -49,6 +50,7 @@ function Users() {
   const [isModalOpenOffpeak, setIsModalOpenOffpeak] = useState<boolean>(false);
   const [isModalOpenCarimbos, setIsModalOpenCarimbos] = useState<boolean>(false);
   const [isModalOpenVouchers, setIsModalOpenVouchers] = useState<boolean>(false);
+  const [isModalOpenVideoCredits, setIsModalOpenVideoCredits] = useState<boolean>(false);
   const [editUserId, setEditUserId] = useState<number | null>(null);
   const [deleteUserId, setDeleteUserId] = useState<number | null>(null);
   const [opened, { open, close }] = useDisclosure(false);
@@ -114,6 +116,10 @@ function Users() {
   const handleVouchers = (userId: number) => {
     setEditUserId(userId);
     setIsModalOpenVouchers(true);
+  };
+   const handleVideoCredits = (userId: number) => {
+     setEditUserId(userId);
+     setIsModalOpenVideoCredits(true);
   };
   
   const handleElementsPerPageChange = (value: string | null) => {
@@ -186,7 +192,7 @@ function Users() {
           </Tooltip>
 
           <Tooltip label={"Atribuir Créditos"} withArrow position="top">
-            <ActionIcon color="purple" variant="subtle" onClick={() => handleVouchers(element.user_id)}>
+            <ActionIcon color="white" variant="subtle" onClick={() => handleVideoCredits(element.user_id)}>
               <IconBrandZoom size={20} stroke={1.5} />
             </ActionIcon>
           </Tooltip>
@@ -206,7 +212,7 @@ function Users() {
 
       <ModalVoucher isModalOpen={isModalOpenVouchers} setIsModalOpen={setIsModalOpenVouchers} fetchData={fetchData} userId={editUserId} />
 
-      {/* <ModalVoucher isModalOpen={isModalOpenVouchers} setIsModalOpen={setIsModalOpenVouchers} fetchData={fetchData} userId={editUserId} /> */}
+      <VideosModal isModalOpen={isModalOpenVideoCredits} setIsModalOpen={setIsModalOpenVideoCredits} fetchData={fetchData} userId={editUserId} />
 
       <Modal opened={opened} onClose={close} withCloseButton={false}>
         <Center>

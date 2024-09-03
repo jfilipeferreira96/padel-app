@@ -5,9 +5,10 @@ import type { NextApiRequest, NextApiResponse } from "next";
 
 async function postData(): Promise<{ status: boolean, error?: string, message?: string, data?: any }>
 {
+    
     try
     {
-        const response = await fetch(`http://127.0.0.1:5005/api/video`, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API}/api/videos/teste`, {
             method: 'POST',
             headers: {
                 'Accept': 'application/json',
@@ -24,6 +25,7 @@ async function postData(): Promise<{ status: boolean, error?: string, message?: 
     }
     catch (error)
     {
+        console.log(error)
         return { status: false };
     }
 }
@@ -62,6 +64,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         } */
     } else
     {
-        res.status(500).json({ message: 'Failed to post data' });
+        res.json({ message: 'Failed to post data' });
     }
 }

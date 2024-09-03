@@ -4,9 +4,9 @@ import { Card, Table, Badge, Select, Flex, Tooltip, ActionIcon, TextInput, Box, 
 import { IconCheck, IconRefresh, IconSearch, IconTrash } from "@tabler/icons-react";
 import { useLocation } from "@/providers/LocationProvider";
 import { usePathname } from "next/navigation";
-import { getAllVouchersHistory, deleteVoucher, ativarVoucher } from "@/services/vouchers.service";
 import { useDisclosure } from "@mantine/hooks";
 import { notifications } from "@mantine/notifications";
+import { getCreditsHistory } from "@/services/video.service";
 
 // Interface para os vouchers
 interface Voucher {
@@ -65,7 +65,7 @@ function VideoCredits() {
         filters.validated_by = true;
       }
 
-      const response = await getAllVouchersHistory(pagination, filters);
+      const response = await getCreditsHistory(pagination, filters);
 
       if (response.status) {
         setVouchers(response.data);
@@ -110,24 +110,21 @@ function VideoCredits() {
 
   const rows = vouchers.map((voucher, index) => (
     <Table.Tr key={index}>
-
       <Table.Td>
         {voucher.user_first_name} {voucher.user_last_name}
       </Table.Td>
       <Table.Td>{voucher.user_email}</Table.Td>
       <Table.Td>{voucher.phone}</Table.Td>
-      <Table.Td>{voucher.credits_after}</Table.Td>
       <Table.Td>{voucher.credits_before}</Table.Td>
+      <Table.Td>{voucher.credits_after}</Table.Td>
       <Table.Td>{voucher.given_by ? `${voucher.admin_first_name} ${voucher.admin_last_name}` : "-"}</Table.Td>
       <Table.Td>{new Date(voucher.created_at).toLocaleString()}</Table.Td>
-    
     </Table.Tr>
   ));
 
   return (
     <>
       <h1>Histórico de Atribuição de Créditos</h1>
-
 
       <Card withBorder shadow="md" p={30} mt={10} radius="md" style={{ flex: 1 }}>
         <Box maw={600}>
@@ -154,16 +151,16 @@ function VideoCredits() {
               mr={4}
               onChange={(value) => handleElementsPerPageChange(value)}
             />
-            <Text>vouchers</Text>
+            <Text>linhas</Text>
           </Flex>
-          <Group>
+          {/* <Group>
             <Select placeholder="Seleciona filtros" data={["Ver ativados", "Ver não ativados"]} value={filterOption} onChange={(value) => handleFilterChange(value)} />
             <Tooltip label={"Atualizar Tabela"} withArrow position="top">
               <ActionIcon variant="subtle" color="green" onClick={() => fetchData()} size="lg">
                 <IconRefresh size={18} />
               </ActionIcon>
             </Tooltip>
-          </Group>
+          </Group> */}
         </Group>
 
         <Table.ScrollContainer minWidth={500}>
@@ -186,7 +183,7 @@ function VideoCredits() {
         {vouchers.length > 0 && (
           <Flex justify={"space-between"} mt={"lg"}>
             <Text>
-              A mostrar {initialIndex + 1} a {Math.min(finalIndex, totalVouchers)} de {totalVouchers} vouchers
+              A mostrar {initialIndex + 1} a {Math.min(finalIndex, totalVouchers)} de {totalVouchers} linhas
             </Text>
             <Pagination total={Math.ceil(totalVouchers / elementsPerPage)} onChange={handlePageChange} />
           </Flex>
