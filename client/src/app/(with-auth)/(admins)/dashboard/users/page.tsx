@@ -192,7 +192,7 @@ function Users() {
           </Tooltip>
 
           <Tooltip label={"Atribuir Créditos"} withArrow position="top">
-            <ActionIcon color="white" variant="subtle" onClick={() => handleVideoCredits(element.user_id)}>
+            <ActionIcon color="gray" variant="subtle" onClick={() => handleVideoCredits(element.user_id)}>
               <IconBrandZoom size={20} stroke={1.5} />
             </ActionIcon>
           </Tooltip>
