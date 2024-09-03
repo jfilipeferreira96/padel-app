@@ -201,6 +201,29 @@ CREATE TABLE IF NOT EXISTS user_vouchers (
 
 INSERT INTO `vouchers` (`voucher_id`, `name`, `created_at`, `image_url`) VALUES (NULL, 'Voucher 1h', current_timestamp(), './vouchers/voucher_1h.png'), (NULL, 'Voucher 1h30', current_timestamp(), './vouchers/voucher_1h30.png'), (NULL, 'Voucher 1 mês - Aulas', current_timestamp(), './vouchers/voucher_aulas.png');
 
+ALTER TABLE users 
+ADD COLUMN video_credits INT DEFAULT NULL;
+
+CREATE TABLE IF NOT EXISTS videos_processed (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    location VARCHAR(255) NOT NULL,
+    status VARCHAR(50) DEFAULT 'processing',
+    error_message TEXT DEFAULT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS users_credits_history (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    credits_before INT NOT NULL,
+    credits_after INT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+);
+
 -- Testes:
 
 INSERT INTO users (password, email, user_type, first_name, last_name, birthdate) 
