@@ -6,60 +6,55 @@ const Logger = require("../utils/logger");
 class VideoController {
   static async getCreditsHistory(req, res, next) {
     try {
-      const { userId, name, email, phone } = req.body.filters || {};
-      const { page = 1, limit = 15, orderBy = "uch.created_at", order = "DESC" } = req.body.pagination || {};
-
       let query = `
-        SELECT uch.*, 
-              u.email AS user_email, u.first_name AS user_first_name, u.last_name AS user_last_name, u.phone,
-              a.email AS admin_email, a.first_name AS admin_first_name, a.last_name AS admin_last_name
-        FROM users_credits_history uch
-        LEFT JOIN users u ON uch.user_id = u.user_id
-        LEFT JOIN users a ON uch.given_by = a.user_id
-        WHERE 1 = 1
-      `;
+          SELECT uch.*, 
+                u.email AS user_email, u.first_name AS user_first_name, u.last_name AS user_last_name, u.phone,
+                a.email AS admin_email, a.first_name AS admin_first_name, a.last_name AS admin_last_name
+          FROM users_credits_history uch
+          LEFT JOIN users u ON uch.user_id = u.user_id
+          LEFT JOIN users a ON uch.given_by = a.user_id
+          WHERE 1 = 1
+        `;
 
       let totalCountQuery = `
-        SELECT COUNT(*) as count
-        FROM users_credits_history uch
-        LEFT JOIN users u ON uch.user_id = u.user_id
-        LEFT JOIN users a ON uch.given_by = a.user_id
-        WHERE 1 = 1
-      `;
+          SELECT COUNT(*) as count
+          FROM users_credits_history uch
+          LEFT JOIN users u ON uch.user_id = u.user_id
+          LEFT JOIN users a ON uch.given_by = a.user_id
+          WHERE 1 = 1
+        `;
 
       const params = [];
 
-      if (userId) {
-        query += ` AND uch.user_id = ?`;
-        totalCountQuery += ` AND uch.user_id = ?`;
-        params.push(userId);
+      // Filtros
+      if (req.body.filters) {
+        const { email, name, phone, userId } = req.body.filters;
+
+        const searchValue = email || name || phone;
+        if (searchValue) {
+          query += ` AND (u.email LIKE ? OR u.phone LIKE ? OR u.first_name LIKE ? OR u.last_name LIKE ?)`;
+          totalCountQuery += ` AND (u.email LIKE ? OR u.phone LIKE ? OR u.first_name LIKE ? OR u.last_name LIKE ?)`;
+          const searchPattern = `%${searchValue}%`;
+          params.push(searchPattern, searchPattern, searchPattern, searchPattern);
+        }
+
+        if (userId) {
+          query += ` AND uch.user_id = ?`;
+          totalCountQuery += ` AND uch.user_id = ?`;
+          params.push(userId);
+        }
       }
 
-      if (name) {
-        query += ` AND (u.first_name LIKE ? OR u.last_name LIKE ?)`;
-        totalCountQuery += ` AND (u.first_name LIKE ? OR u.last_name LIKE ?)`;
-        const searchPattern = `%${name}%`;
-        params.push(searchPattern, searchPattern);
-      }
-
-      if (email) {
-        query += ` AND u.email LIKE ?`;
-        totalCountQuery += ` AND u.email LIKE ?`;
-        params.push(`%${email}%`);
-      }
-
-      if (phone) {
-        query += ` AND u.phone LIKE ?`;
-        totalCountQuery += ` AND u.phone LIKE ?`;
-        params.push(`%${phone}%`);
-      }
-
+      const { page = 1, limit = 15, orderBy = "uch.created_at", order = "DESC" } = req.body.pagination || {};
       const offset = (page - 1) * limit;
 
       query += ` ORDER BY ${orderBy} ${order} LIMIT ? OFFSET ?`;
       params.push(limit, offset);
 
+      // Executar query principal
       const { rows } = await db.query(query, params);
+
+      // Executar query de contagem total
       const { rows: totalCountRows } = await db.query(totalCountQuery, params.slice(0, params.length - 2));
 
       return res.status(200).json({
