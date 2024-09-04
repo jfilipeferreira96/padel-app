@@ -17,6 +17,7 @@ export interface User {
   birthdate: string | Date;
   locations?: { location_id: number; location_name: string }[];
   offpeaks?: { offpeak_card_id: number; name: string; valid_until: Date; month: number; year: number }[];
+  video_credits?: number;
 }
 
 interface DecodedToken extends JwtPayload {

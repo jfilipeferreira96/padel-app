@@ -40,9 +40,9 @@ export const getCreditsHistory = async (pagination: Pagination, filters: Filters
 };
 
 // Serviço para obter vídeos processados
-export const getVideosProcessed = async (pagination: Pagination, filters: Filters) => {
+export const getVideosProcessed = async (pagination: Pagination) => {
   try {
-    const response = await api.post(endpoints.getVideosProcessed, { pagination, filters });
+    const response = await api.post(endpoints.getVideosProcessed, { pagination });
     return response.data;
   } catch (error) {
     throw error;
