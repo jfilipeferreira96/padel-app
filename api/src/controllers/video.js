@@ -70,7 +70,8 @@ class VideoController {
 
   static async getVideosProcessed(req, res, next) {
     try {
-      const { userId, name, email, phone } = req.body.filters || {};
+      const { name, email, phone } = req.body.filters || {};
+      const userId = req.body.userId;
       const { page = 1, limit = 15, orderBy = "vp.created_at", order = "DESC" } = req.body.pagination || {};
 
       let query = `
@@ -232,6 +233,38 @@ class VideoController {
     } catch (ex) {
       Logger.error("Ocorreu um erro ao buscar o vídeo.", ex);
       res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: "Erro Interno do Servidor", message: ex.message });
+    }
+  }
+
+  static async getCreditsPageParams(req, res, next) {
+    try {
+      const creditQuery = `
+        SELECT video_credits FROM users
+        WHERE user_id = ?
+      `;
+      const { rows: creditRows } = await db.query(creditQuery, [req.user.id]);
+
+      if (creditRows.length === 0) {
+        return res.json({ status: false, message: "Créditos não encontrados." });
+      }
+
+      const credits = creditRows[0].video_credits;
+
+      // Busca todos os campos disponíveis
+      const camposQuery = `
+        SELECT * FROM campos;
+      `;
+      const { rows: camposRows } = await db.query(camposQuery);
+
+      const data = {
+        credits,
+        campos: camposRows.length === 0 ? [] : camposRows,
+      };
+      console.log(data);
+      return res.status(StatusCodes.OK).json({ status: true, data });
+    } catch (ex) {
+      Logger.error("Ocorreu um erro ao buscar os dados da página de créditos.", ex);
+      return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: "Erro Interno do Servidor", message: ex.message });
     }
   }
 

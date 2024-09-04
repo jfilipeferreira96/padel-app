@@ -19,4 +19,7 @@ videoRoutes.post("/processed/add", authenticateToken, VideoController.addVideoPr
 // Rota responsável por retornar um vídeo processado específico
 videoRoutes.get("/processed/:id", authenticateToken, VideoController.getSingleVideoProcessed);
 
+// Rota responsável por retornar os params da pagina
+videoRoutes.get("/page-params", authenticateToken, VideoController.getCreditsPageParams);
+
 module.exports = videoRoutes;

@@ -225,6 +225,13 @@ CREATE TABLE IF NOT EXISTS users_credits_history (
     FOREIGN KEY (given_by) REFERENCES users(user_id) ON DELETE SET NULL
 );
 
+/* tabela dos  */
+CREATE TABLE IF NOT EXISTS campos (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Testes:
 
 INSERT INTO users (password, email, user_type, first_name, last_name, birthdate) 
