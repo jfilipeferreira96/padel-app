@@ -3,7 +3,7 @@ import React, { useState, useRef, useEffect } from "react";
 import classes from "./classes.module.css";
 import { useSession } from "@/providers/SessionProvider";
 import { IconGitBranch, IconGitPullRequest, IconGitCommit, IconMessageDots, IconEye } from '@tabler/icons-react';
-import { Timeline, Table, Checkbox, Pagination as MantinePagination, Center, Text, Select, Flex, SimpleGrid, Skeleton, Grid, Tooltip, ActionIcon, rem, Group, Button, Modal, Title, Badge, Mark } from "@mantine/core";
+import { Timeline, Table, Checkbox, Pagination as MantinePagination, Center, Text, Select, Flex, SimpleGrid, Skeleton, Grid, Tooltip, ActionIcon, rem, Group, Button, Modal, Title, Badge, Mark, Loader } from "@mantine/core";
 import { getVideosProcessed } from "@/services/video.service";
 
 function getBadge(status: string | null)
@@ -57,13 +57,12 @@ function ReviewVideos() {
   const [elementsPerPage, setElementsPerPage] = useState<number>(15);
 
   const fetchData = async () => {
-    setLoading(true);
     try
     {
       const pagination = {
         page: activePage,
         limit: elementsPerPage,
-        orderBy: "o.order_id",
+        orderBy: "vp.id",
         order: "DESC",
       };
 
@@ -138,6 +137,15 @@ function ReviewVideos() {
       </Table.Td>
     </Table.Tr>
   ));
+
+  if (!user || loading)
+  {
+    return (
+      <Center mt={100} mih={"50vh"}>
+        <Loader color="blue" />
+      </Center>
+    );
+  }
 
   return (
     <div>
