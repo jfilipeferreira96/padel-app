@@ -2,7 +2,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import classes from "./classes.module.css";
 import { useSession } from "@/providers/SessionProvider";
-import { IconGitBranch, IconGitPullRequest, IconGitCommit, IconMessageDots, IconEye, IconNumber1, IconNumber2, IconNumber3, IconNumber4 } from "@tabler/icons-react";
+import { IconGitBranch, IconGitPullRequest, IconGitCommit, IconMessageDots, IconEye, IconNumber1, IconNumber2, IconNumber3, IconNumber4, IconClock } from "@tabler/icons-react";
 import {
   Timeline,
   Table,
@@ -12,9 +12,6 @@ import {
   Text,
   Select,
   Flex,
-  SimpleGrid,
-  Skeleton,
-  Grid,
   Tooltip,
   ActionIcon,
   rem,
@@ -28,6 +25,9 @@ import {
   Paper,
 } from "@mantine/core";
 import { getCreditsVideoPage, getVideosProcessed } from "@/services/video.service";
+import { DateInput, TimeInput } from "@mantine/dates";
+import "@mantine/dates/styles.css";
+import dayjs from "dayjs"; 
 
 function getBadge(status: string | null) {
   if (status === "processing") {
@@ -47,6 +47,12 @@ function getBadge(status: string | null) {
   }
 }
 
+// Função para obter a data mínima permitida (14 dias atrás)
+const getMinDate = () => dayjs().subtract(14, 'day').toDate();
+
+// Função para obter a data máxima permitida (hoje)
+const getMaxDate = () => dayjs().endOf('day').toDate();
+
 interface Elemento {
   created_at: string;
   email: string;
@@ -59,6 +65,8 @@ interface Elemento {
   status: string;
   updated_at: string;
   user_id: number;
+  start_time: string;
+  end_time: string;
 }
 
 function ReviewVideos() {
@@ -67,10 +75,16 @@ function ReviewVideos() {
   const [loading, setLoading] = useState<boolean>(true);
   const [totalElements, setTotalElements] = useState<number>(0);
   const [creditos, setCreditos] = useState<number>(0);
-  const [campos, setCampos] = useState<{id:number, name: string}[]>();
+  const [campos, setCampos] = useState<{ id: number; name: string }[]>();
   const [activePage, setActivePage] = useState<number>(1);
   const [elementsPerPage, setElementsPerPage] = useState<number>(15);
-
+  const refInicio = useRef<HTMLInputElement>(null);
+  const refFim = useRef<HTMLInputElement>(null);
+  const [date, setDate] = useState<Date | null>(null);
+  const [horaInicio, setHoraInicio] = useState(null);
+  const [horaFim, setHoraFim] = useState(null);
+  const [error, setError] = useState("");
+  
   const handlePageChange = (page: number) => {
     setActivePage(page);
   };
@@ -82,71 +96,94 @@ function ReviewVideos() {
     }
   };
 
-    const fetchParams = async () => {
-      try {
-        const response = await getCreditsVideoPage();
-        if (response) {
-          return response;
-        } else {
-          return null;
-        }
-      } catch (error) {
-        console.error("Erro ao fazer o fetch dos parâmetros:", error);
+  const fetchParams = async () => {
+    try {
+      const response = await getCreditsVideoPage();
+      if (response) {
+        return response;
+      } else {
         return null;
       }
+    } catch (error) {
+      console.error("Erro ao fazer o fetch dos parâmetros:", error);
+      return null;
+    }
+  };
+
+  const handleHoraInicioChange = (value: React.SetStateAction<null>) => {
+      console.log(value)
+      setHoraInicio(value);
     };
 
-    const fetchData = async () => {
-      try {
-        const pagination = {
-          page: activePage,
-          limit: 10, 
-          orderBy: "vp.id",
-          order: "DESC",
-        };
-
-        const response = await getVideosProcessed(pagination, user?.id); 
-
-        if (response) {
-          return response;
-        } else {
-          return null;
-        }
-      } catch (error) {
-        console.error("Erro ao fazer o fetch dos dados:", error);
-        return null;
-      }
+    const handleHoraFimChange = (value: React.SetStateAction<null>) => {
+      setHoraFim(value);
     };
 
-    useEffect(() => {
-      const fetchDataConcurrently = async () => {
-        setLoading(true);
-
-        const [paramsData, fetchDataResponse] = await Promise.all([fetchParams(), fetchData()]);
-       
-        if (paramsData) {
-          setCreditos(paramsData.data.credits);
-          setCampos(paramsData.data.campos);
-        }
-
-        if (fetchDataResponse) {
-          setElementos(fetchDataResponse.data);
-          setTotalElements(fetchDataResponse.pagination.total || 0);
-          setActivePage(fetchDataResponse.pagination.page || 1);
-        }
-
-        setLoading(false);
+  const fetchData = async () => {
+    try {
+      const pagination = {
+        page: activePage,
+        limit: 10,
+        orderBy: "vp.id",
+        order: "DESC",
       };
 
-      fetchDataConcurrently();
-    }, []);
+      const response = await getVideosProcessed(pagination, user?.id);
+
+      if (response) {
+        return response;
+      } else {
+        return null;
+      }
+    } catch (error) {
+      console.error("Erro ao fazer o fetch dos dados:", error);
+      return null;
+    }
+  };
+
+  useEffect(() => {
+    const fetchDataConcurrently = async () => {
+      setLoading(true);
+
+      const [paramsData, fetchDataResponse] = await Promise.all([fetchParams(), fetchData()]);
+
+      if (paramsData) {
+        setCreditos(paramsData.data.credits);
+        setCampos(paramsData.data.campos);
+      }
+
+      if (fetchDataResponse) {
+        setElementos(fetchDataResponse.data);
+        setTotalElements(fetchDataResponse.pagination.total || 0);
+        setActivePage(fetchDataResponse.pagination.page || 1);
+      }
+
+      setLoading(false);
+    };
+
+    fetchDataConcurrently();
+  }, []);
 
   /* const initialIndex = (activePage - 1) * elementsPerPage;
   const finalIndex = initialIndex + elementsPerPage; */
+  const pickerControl1 = (
+    <ActionIcon variant="subtle" color="gray" onClick={() => refInicio.current?.showPicker()}>
+      <IconClock style={{ width: rem(16), height: rem(16) }} stroke={1.5} />
+    </ActionIcon>
+  );
 
+   const pickerControl2 = (
+     <ActionIcon variant="subtle" color="gray" onClick={() => refFim.current?.showPicker()}>
+       <IconClock style={{ width: rem(16), height: rem(16) }} stroke={1.5} />
+     </ActionIcon>
+   );
+  
   const rows = elementos?.map((element, index) => (
     <Table.Tr key={element.id}>
       <Table.Td>{index + 1}</Table.Td>
+      <Table.Td>{element.location}</Table.Td>
+      <Table.Td>{element.start_time.slice(0, -3)}</Table.Td>
+      <Table.Td>{element.end_time.slice(0, -3)}</Table.Td>
       <Table.Td>{new Date(element.created_at).toLocaleString()}</Table.Td>
       <Table.Td>
         <Badge variant="filled" size="md" fw={700} color={getBadge(element.status)?.color} style={{ minWidth: "110px" }}>
@@ -187,7 +224,9 @@ function ReviewVideos() {
       </Group>
 
       <>
-        <Text mt={"md"}>Como funciona?</Text>
+        <Text mt={"md"} fw={600}>
+          Como funciona?
+        </Text>
         <Timeline active={3} bulletSize={24} lineWidth={2} mt={"lg"} mb={"lg"}>
           <Timeline.Item bullet={<IconNumber1 size={16} />} title="Adquira Créditos">
             <Text c="dimmed" size="sm">
@@ -201,7 +240,7 @@ function ReviewVideos() {
             </Text>
           </Timeline.Item>
 
-          <Timeline.Item title="Processamento" bullet={<IconNumber3 size={16} />} lineVariant="dashed">
+          <Timeline.Item title="Processamento" bullet={<IconNumber3 size={16} />}>
             <Text c="dimmed" size="sm">
               O vídeo será processado e estará disponível em breve.
             </Text>
@@ -217,20 +256,38 @@ function ReviewVideos() {
         </Timeline>
       </>
 
-      {!creditos ? (
-        <>
-          {/*  Para fazer o pedido, é necessário ter créditos. Por favor, obtenha-os na recepção. */}
-          <Paper shadow="xs" p="sm" withBorder mt={"40"}>
-            <Text ta="center">Para fazer o pedido, é necessário ter créditos. Por favor, obtenha-os na recepção.</Text>
-          </Paper>
-        </>
-      ) : (
-        <>
-          <Paper shadow="xs" p="sm" withBorder mt={"40"}>
-            <Text ta="center">INPUTS COM BOTAO SUBMIT</Text>
-          </Paper>
-        </>
-      )}
+      <>
+        <Paper shadow="xs" p="sm" withBorder mt="lg">
+          <Text fw={600}>Requisitar vídeo</Text>
+          <Text size="sm" c="dimmed">
+            Para requisitar um vídeo, é necessário ter créditos disponíveis. Por favor, obtenha-os na recepção.
+          </Text>
+          <Flex align="center" justify="center" mb="md" mt="md" direction={{ base: "column", sm: "row" }} className={classes.flex}>
+            <DateInput
+              minDate={getMinDate()}
+              maxDate={getMaxDate()}
+              valueFormat="DD-MM-YYYY"
+              value={date}
+              withAsterisk
+              onChange={setDate}
+              label="Selecione uma data"
+              placeholder="DD-MM-YYYY"
+              mr={{ sm: "lg" }}
+              mb={{ base: "sm", sm: 0 }}
+            />
+            <TimeInput onChange={(e) => console.log(e.target.value)} withAsterisk label="Hora de Ínicio" ref={refInicio} mr={{ sm: "lg" }} mb={{ base: "sm", sm: 0 }} disabled={!creditos} rightSection={pickerControl1} />
+            <TimeInput withAsterisk label="Hora de Fim" ref={refFim} mr={{ sm: "lg" }} mb={{ base: "sm", sm: 0 }} disabled={!creditos} onChange={(e) => console.log(e.target.value)} rightSection={pickerControl2} />
+            <Select withAsterisk label="Selecione o campo" placeholder="Campo" data={["Ver por validar", "Ver validados"]} value="Ver por validar" onChange={(value) => console.log(value)} disabled={!creditos} />
+            
+          </Flex>
+
+          <Center>
+            <Button variant="light" size="sm" disabled={!creditos}>
+              Requisitar
+            </Button>
+          </Center>
+        </Paper>
+      </>
 
       {elementos.length > 0 && (
         <>
@@ -240,6 +297,9 @@ function ReviewVideos() {
                 <Table.Thead>
                   <Table.Tr>
                     <Table.Th>#</Table.Th>
+                    <Table.Th>Campo</Table.Th>
+                    <Table.Th>Ínicio</Table.Th>
+                    <Table.Th>Fim</Table.Th>
                     <Table.Th>Data de Requisição</Table.Th>
                     <Table.Th>Estado</Table.Th>
                     <Table.Th>Ações</Table.Th>
@@ -257,11 +317,11 @@ function ReviewVideos() {
               </Flex>
             )} */}
           </>
-          <Text mt="lg">
+          <Text mt="md" size="sm" c="dimmed">
             <Mark color="red" p={2} mr={4} c={"white"}>
               Atenção:
             </Mark>
-            Não se esqueça de descarregar os seus vídeos e clipes editados para os seus dispositivos. Estes serão eliminados após 48 horas.
+            Não se esqueça de descarregar os seus vídeos. Estes serão eliminados após 48 horas.
           </Text>
         </>
       )}

@@ -170,18 +170,18 @@ class VideoController {
 
   static async addVideoProcessed(req, res, next) {
     try {
-      const { location } = req.body;
+      const { location, start_time, end_time } = req.body;
       const userId = req.user?.id;
 
-      if (!location) {
-        return res.status(StatusCodes.BAD_REQUEST).json({ status: false, message: "A localização é obrigatória." });
+      if (!location || !start_time || !end_time) {
+        return res.status(StatusCodes.BAD_REQUEST).json({ status: false, message: "Campos em falta" });
       }
 
       const userQuery = `SELECT video_credits FROM users WHERE user_id = ?`;
       const { rows: userRows } = await db.query(userQuery, [userId]);
 
       if (userRows.length === 0) {
-        return res.status(StatusCodes.NOT_FOUND).json({ status: false, message: "Usuário não encontrado." });
+        return res.status(StatusCodes.NOT_FOUND).json({ status: false, message: "Utilizador não encontrado." });
       }
 
       const userCredits = userRows[0].video_credits || 0;
@@ -191,10 +191,10 @@ class VideoController {
       }
 
       const insertVideoQuery = `
-        INSERT INTO videos_processed (user_id, location)
+        INSERT INTO videos_processed (user_id, location, start_time, end_time)
         VALUES (?, ?)
       `;
-      await db.query(insertVideoQuery, [userId, location]);
+      await db.query(insertVideoQuery, [userId, location, start_time, end_time]);
 
       const updateCreditsQuery = `UPDATE users SET video_credits = video_credits - 1 WHERE user_id = ?`;
       await db.query(updateCreditsQuery, [userId]);
@@ -260,7 +260,7 @@ class VideoController {
         credits,
         campos: camposRows.length === 0 ? [] : camposRows,
       };
-      console.log(data);
+
       return res.status(StatusCodes.OK).json({ status: true, data });
     } catch (ex) {
       Logger.error("Ocorreu um erro ao buscar os dados da página de créditos.", ex);
@@ -297,7 +297,6 @@ class VideoController {
 
       try {
         const requestUser = await verifyToken(user, secret);
-        console.log(requestUser);
 
         return res.status(200).json({
           status: true,

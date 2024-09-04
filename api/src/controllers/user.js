@@ -632,7 +632,7 @@ class UserController {
 
   static async resetPassword(req, res) {
     const { token, newPassword } = req.body;
-    console.log(req.body);
+    
     try {
       const query = "SELECT * FROM users WHERE reset_password_token IS NOT NULL AND reset_password_expires > NOW()";
       const { rows } = await db.query(query);
