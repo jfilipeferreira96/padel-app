@@ -40,14 +40,24 @@ export const getCreditsHistory = async (pagination: Pagination, filters: Filters
 };
 
 // Serviço para obter vídeos processados
-export const getVideosProcessed = async (pagination: Pagination) => {
+export const getVideosProcessed = async (pagination: Pagination, userId?: number) => {
   try {
-    const response = await api.post(endpoints.getVideosProcessed, { pagination });
+    const response = await api.post(endpoints.getVideosProcessed, { pagination, userId });
     return response.data;
   } catch (error) {
     throw error;
   }
 };
+
+export const getCreditsVideoPage = async () => {
+  try {
+    const response = await api.get(endpoints.getCreditsVideoPage);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
 
 // Serviço para atualizar os créditos do usuário
 export const updateUserCredits = async (userId: number, credits: number) => {

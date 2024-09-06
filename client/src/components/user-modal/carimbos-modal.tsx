@@ -82,11 +82,11 @@ const CarimbosModal: React.FC<Props> = ({ isModalOpen, setIsModalOpen, userId, f
   }, [opened, userId]);
 
   const onSubmit = async () => {
-    console.log(1)
+    
     try {
       if (!userId || !actualCard || !entryCount == null || !entryCount == undefined) return;
-      console.log(2)
-        const response = await updateEntryCount(userId, actualCard?.card_id, entryCount as number);
+      
+      const response = await updateEntryCount(userId, actualCard?.card_id, entryCount as number);
       
       if (response.status) {
         notifications.show({
