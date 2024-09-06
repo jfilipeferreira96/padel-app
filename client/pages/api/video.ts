@@ -1,4 +1,5 @@
 // pages/api/video.js
+/*
 import fs from 'fs';
 import path from 'path';
 import type { NextApiRequest, NextApiResponse } from "next";
@@ -44,7 +45,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     if (response.status)
     {
         // Lógica para quando a chamada API foi bem-sucedida
-        /* const videoPath = path.resolve('.', 'videos', 'video.mp4');
+        const videoPath = path.resolve('.', 'videos', 'video.mp4');
 
         if (fs.existsSync(videoPath))
         {
@@ -61,9 +62,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         else
         {
             res.status(404).json({ message: 'Video not found' });
-        } */
+        } 
     } else
     {
         res.json({ message: 'Failed to post data' });
     }
 }
+*/

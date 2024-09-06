@@ -286,6 +286,172 @@ class VideoController {
       });
     }
   }
+
+  static async getFullVideoStream(req, res, next) {
+    try {
+      const { videoId } = req.query;
+      const user = req.user;
+
+      if (!videoId) {
+        return res.json({ status: false, message: "Parâmetros em falta" });
+      }
+
+      const videoPath = path.join(__dirname, 'videos', videoId);
+      
+      if (!fs.existsSync(videoPath)) {
+        return res.json({ status: false, message: 'Vídeo não encontrado.' });
+      }
+
+      // Validação da permissão para ver o vídeo
+      const query = `
+        SELECT vp.id
+        FROM videos_processed vp
+        WHERE vp.id = ? AND vp.user_id = ?
+      `;
+
+      const { rows } = await db.query(query, [videoId, user.id]);
+
+      if (rows.length === 0) {
+        return res.json({ status: false, message: "Não tem permissões para ver este vídeo." });
+      }
+
+      const stat = fs.statSync(videoPath);
+      const fileSize = stat.size;
+      const range = req.headers.range;
+
+      if (!range) {
+        // Se o cliente não solicitou um intervalo, retorna o vídeo completo
+        res.writeHead(200, {
+          'Content-Length': fileSize,
+          'Content-Type': 'video/mp4'
+        });
+
+        // Enviar o arquivo completo
+        const videoStream = fs.createReadStream(videoPath);
+        videoStream.pipe(res);
+      } else {
+        // Tratamento do range para streaming parcial
+        const parts = range.replace(/bytes=/, "").split("-");
+        const start = parseInt(parts[0], 10);
+        const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
+
+        if (start >= fileSize || end >= fileSize) {
+          return res.status(416).json({ status: false, message: "Range não satisfatório." });
+        }
+
+        const chunkSize = (end - start) + 1;
+        res.writeHead(206, {
+          'Content-Range': `bytes ${start}-${end}/${fileSize}`,
+          'Accept-Ranges': 'bytes',
+          'Content-Length': chunkSize,
+          'Content-Type': 'video/mp4'
+        });
+
+        // Utilização de ffmpeg para transmitir o vídeo a partir do ponto de início
+        ffmpeg(videoPath)
+          .setStartTime(start / 1000) // Início em segundos
+          .setDuration(chunkSize / 1000) // Duração do trecho a ser enviado
+          .format('mp4')
+          .on('start', commandLine => {
+            console.log('Comando FFmpeg:', commandLine);
+          })
+          .on('stderr', stderrLine => {
+            console.error('FFmpeg stderr:', stderrLine);
+          })
+          .on('error', (err) => {
+            console.error('Erro ao processar o vídeo:', err);
+            if (!res.headersSent) {
+              res.status(500).json({ status: false, message: 'Erro ao processar o vídeo.' });
+            }
+          })
+          .pipe(res, { end: true });
+      }
+
+    } catch (ex) {
+      console.error("Ocorreu um erro ao buscar o vídeo.", ex);
+      res.status(500).json({ error: "Erro Interno do Servidor", message: ex.message });
+    }
+  }
+
+  static async streamTrimmedVideo(req, res, next) {
+    try {
+      const { videoId, start, end } = req.query;
+      const user = req.user;
+  
+      if (!videoId || !start || !end ) {
+        return res.json({ status: false, message: "Parâmetros em falta" });
+      }
+      
+      const startTime = parseFloat(start);
+      const endTime = parseFloat(end);
+      
+      if (isNaN(startTime) || isNaN(endTime) || startTime >= endTime) {
+        return res.json({ status: false, message: 'Parâmetros de tempo inválidos.' });
+      }
+
+      const videoPath = path.join(__dirname, 'videos', videoId);
+      if (!fs.existsSync(videoPath)) {
+        return res.json({ status: false, message: 'Vídeo não encontrado.' });
+      }
+
+      // Validação se tem a permissão para ver este video
+      const query = `
+        SELECT vp.id
+        FROM videos_processed vp
+        WHERE vp.id = ? AND vp.user_id
+      `;
+
+      const { rows } = await db.query(query, [videoId, user.id]);
+
+      if (rows.length === 0) {
+        return res.json({ status: false, message: "Não tem permissões para ver este vídeo." });
+      }
+      
+      // Define o caminho do arquivo temporário
+      const tempFilePath = path.join(__dirname, 'videos', `temp_${Date.now()}.mp4`);
+      
+      res.setHeader('Content-Type', 'video/mp4');
+      
+      const command = ffmpeg(videoPath)
+        .setStartTime(startTime)
+        .setDuration(endTime - startTime)
+        .output(tempFilePath)
+        .format('mp4');
+      
+      // Executa o comando FFmpeg
+      command.run();
+      
+      // Quando o FFmpeg termina a criação do vídeo cortado
+      command.on('end', () => {
+        fs.createReadStream(tempFilePath)
+          .pipe(res)
+          .on('finish', () => {
+            // Remove o arquivo temporário após o streaming
+            fs.unlink(tempFilePath, (err) => {
+              if (err) {
+                console.error('Erro ao remover o arquivo temporário:', err);
+              }
+            });
+          })
+          .on('error', (err) => {
+            console.error('Erro ao transmitir o vídeo:', err);
+            res.status(500).send('Erro ao transmitir o vídeo.');
+          });
+      });
+      
+      // Captura erros do FFmpeg
+      command.on('error', (err) => {
+        console.error('Erro ao processar o vídeo:', err);
+        if (!res.headersSent) {
+          res.status(500).send('Erro ao processar o vídeo.');
+        }
+      });
+    } catch (ex) {
+      Logger.error("Ocorreu um erro ao cortar o vídeo", ex);
+      res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: "Erro Interno do Servidor", message: ex.message });
+    }
+  }
+
 }
 
 module.exports = VideoController;

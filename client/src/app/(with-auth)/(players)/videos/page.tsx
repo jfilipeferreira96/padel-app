@@ -5,6 +5,8 @@ import { useSession } from "@/providers/SessionProvider";
 import { IconGitBranch, IconGitPullRequest, IconGitCommit, IconMessageDots, IconEye } from '@tabler/icons-react';
 import { Timeline, Table, Checkbox, Pagination as MantinePagination, Center, Text, Select, Flex, SimpleGrid, Skeleton, Grid, Tooltip, ActionIcon, rem, Group, Button, Modal, Title, Badge, Mark, Loader } from "@mantine/core";
 import { getVideosProcessed } from "@/services/video.service";
+import { routes } from "@/config/routes";
+import { useRouter } from "next/navigation";
 
 function getBadge(status: string | null)
 {
@@ -55,6 +57,7 @@ function ReviewVideos() {
   const [totalElements, setTotalElements] = useState<number>(0);
   const [activePage, setActivePage] = useState<number>(1);
   const [elementsPerPage, setElementsPerPage] = useState<number>(15);
+  const router = useRouter();
 
   const fetchData = async () => {
     try
@@ -126,7 +129,7 @@ function ReviewVideos() {
               variant="subtle"
               color="red"
               onClick={() => {
-                /* ABRIR NOVA PAGINA */
+                router.push(`${routes.stream.url}/${element.id}`)
               }}
             >
               <IconEye style={{ width: rem(20), height: rem(20) }} stroke={1.5} />

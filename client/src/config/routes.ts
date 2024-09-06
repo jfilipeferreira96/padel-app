@@ -101,6 +101,12 @@ export const routes = {
   register: {
     url: "/register",
   },
+  videos: {
+    url: "/videos",
+  },
+  stream: {
+    url: "/videos/stream",
+  },
   dashboard: {
     url: "/dashboard",
     entries: "/dashboard/entries",
