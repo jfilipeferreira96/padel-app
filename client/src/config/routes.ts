@@ -61,6 +61,7 @@ export const endpoints = {
   addVideoProcessed: `/api/videos/processed/add`,
   getSingleVideoProcessed: `/api/videos/processed`,
   getCreditsVideoPage: `/api/videos/page-params`,
+  completeVideo: `/api/videos/stream`
 };
 
 export const routes = {

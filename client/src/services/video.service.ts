@@ -89,3 +89,23 @@ export const getSingleVideoProcessed = async (videoId: number) => {
   }
 };
 
+/* //STREAMS
+export const fetchCompleteVideo = async (videoId: string) => {
+  try {
+    const response = await api.get(`${endpoints.completeVideo}/${videoId}`);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const parsedVideo = async (videoId: string) => {
+  try {
+    const response = await api.get(`${endpoints.completeVideo}/${videoId}`);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+ */

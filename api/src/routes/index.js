@@ -32,6 +32,10 @@ authRoutes.post("/forgot-password", UserController.forgotPassword);
 authRoutes.post("/reset-password", UserController.resetPassword);
 authRoutes.get("/checktoken/:token", UserController.checkToken);
 
+// STREAMS
+routes.get("/api/videos/stream", VideoController.getFullVideoStream);
+routes.get("/api/videos/stream-parsed", VideoController.streamTrimmedVideo);
+
 /***************** AUTH ROUTES *****************/
 routes.use("/api/auth", authRoutes);
 

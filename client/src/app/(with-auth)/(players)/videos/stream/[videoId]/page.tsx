@@ -25,8 +25,8 @@ function VideoStream({ params }: Props) {
 
   const fetchCompleteVideo = async () => {
     try {
-      if (videoId) {
-        const streamUrl = `http://localhost:5005/api/videos/stream/${videoId}`;
+      if (videoId) { // isto nao funciona pois 
+        const streamUrl = `http://localhost:5005/api/videos/stream?videoId=${videoId}&user=${user.id}`;
         setVideoUrl(streamUrl);
       }
       setLoading(false);

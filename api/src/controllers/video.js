@@ -2,6 +2,9 @@ const jwt = require("jsonwebtoken");
 const { StatusCodes } = require("http-status-codes");
 const db = require("../config/db");
 const Logger = require("../utils/logger");
+const fs = require("fs");
+const path = require("path");
+const ffmpeg = require("fluent-ffmpeg");
 
 class VideoController {
   static async getCreditsHistory(req, res, next) {
@@ -275,15 +278,15 @@ class VideoController {
 
   static async getFullVideoStream(req, res, next) {
     try {
-      const { videoId } = req.query;
-      const user = req.user;
+      const { videoId, user } = req.query;
+      console.log(videoId, user);
 
       if (!videoId) {
         return res.json({ status: false, message: "Parâmetros em falta" });
       }
 
-      const videoPath = path.join(__dirname, "videos", videoId);
-
+      const videoPath = path.join(__dirname, "..", "..", "videos", `${videoId}.mp4`);
+      console.log(videoPath);
       if (!fs.existsSync(videoPath)) {
         return res.json({ status: false, message: "Vídeo não encontrado." });
       }
@@ -295,7 +298,7 @@ class VideoController {
         WHERE vp.id = ? AND vp.user_id = ?
       `;
 
-      const { rows } = await db.query(query, [videoId, user.id]);
+      const { rows } = await db.query(query, [videoId, user]);
 
       if (rows.length === 0) {
         return res.json({ status: false, message: "Não tem permissões para ver este vídeo." });
@@ -374,7 +377,7 @@ class VideoController {
         return res.json({ status: false, message: "Parâmetros de tempo inválidos." });
       }
 
-      const videoPath = path.join(__dirname, "videos", videoId);
+      const videoPath = path.join(__dirname, "..", "..", "videos", `${videoId}.mp4`);
       if (!fs.existsSync(videoPath)) {
         return res.json({ status: false, message: "Vídeo não encontrado." });
       }
