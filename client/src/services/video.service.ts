@@ -89,12 +89,3 @@ export const getSingleVideoProcessed = async (videoId: number) => {
   }
 };
 
-// Serviço de teste (exemplo para validar tokens)
-export const teste = async (userToken: string) => {
-  try {
-    const response = await api.post(endpoints.teste, { user: userToken });
-    return response.data;
-  } catch (error) {
-    throw error;
-  }
-};

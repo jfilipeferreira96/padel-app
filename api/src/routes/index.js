@@ -31,7 +31,6 @@ authRoutes.post("/login", UserController.login);
 authRoutes.post("/forgot-password", UserController.forgotPassword);
 authRoutes.post("/reset-password", UserController.resetPassword);
 authRoutes.get("/checktoken/:token", UserController.checkToken);
-routes.post("/api/videos/teste", VideoController.teste);
 
 /***************** AUTH ROUTES *****************/
 routes.use("/api/auth", authRoutes);

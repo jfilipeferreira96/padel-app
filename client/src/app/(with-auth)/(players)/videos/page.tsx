@@ -165,6 +165,13 @@ function ReviewVideos() {
     };
 
     fetchDataConcurrently();
+
+    // Configura um intervalo de 30 segundos
+    const interval = setInterval(() => {
+      fetchDataConcurrently();
+    }, 30000); // 30 segundos em milissegundos
+
+    return () => clearInterval(interval);
   }, []);
 
   /* const initialIndex = (activePage - 1) * elementsPerPage;
@@ -260,7 +267,7 @@ function ReviewVideos() {
       </>
 
       <>
-        <Paper shadow="xs" p="sm" withBorder mt="lg">
+        <Paper shadow="xs" p="sm" withBorder mt="lg" mb="lg">
           <Text fw={600}>Requisitar vídeo</Text>
           <Text size="sm" c="dimmed">
             Para requisitar um vídeo, é necessário ter créditos disponíveis. Por favor, obtenha-os na recepção.
@@ -281,7 +288,6 @@ function ReviewVideos() {
             <TimeInput onChange={(e) => console.log(e.target.value)} withAsterisk label="Hora de Ínicio" ref={refInicio} mr={{ sm: "lg" }} mb={{ base: "sm", sm: 0 }} disabled={!creditos} rightSection={pickerControl1} />
             <TimeInput withAsterisk label="Hora de Fim" ref={refFim} mr={{ sm: "lg" }} mb={{ base: "sm", sm: 0 }} disabled={!creditos} onChange={(e) => console.log(e.target.value)} rightSection={pickerControl2} />
             <Select withAsterisk label="Selecione o campo" placeholder="Campo" data={["Ver por validar", "Ver validados"]} value="Ver por validar" onChange={(value) => console.log(value)} disabled={!creditos} />
-            
           </Flex>
 
           <Center>
@@ -294,7 +300,16 @@ function ReviewVideos() {
 
       {elementos.length > 0 && (
         <>
-          <>
+          <Paper shadow="xs" p="sm" withBorder>
+            <Text mt={"md"} fw={600}>
+              Os seus vídeos
+            </Text>
+            <Text mt="md" size="sm" c="dimmed">
+              <Mark color="red" p={2} mr={4} c={"white"}>
+                Atenção:
+              </Mark>
+              Não se esqueça de descarregar os seus vídeos. Estes serão eliminados após 48 horas.
+            </Text>
             <Table.ScrollContainer minWidth={500} mt={"lg"}>
               <Table highlightOnHover>
                 <Table.Thead>
@@ -319,13 +334,7 @@ function ReviewVideos() {
                 <MantinePagination total={Math.ceil(totalElements / elementsPerPage)} onChange={handlePageChange} />
               </Flex>
             )} */}
-          </>
-          <Text mt="md" size="sm" c="dimmed">
-            <Mark color="red" p={2} mr={4} c={"white"}>
-              Atenção:
-            </Mark>
-            Não se esqueça de descarregar os seus vídeos. Estes serão eliminados após 48 horas.
-          </Text>
+          </Paper>
         </>
       )}
     </div>

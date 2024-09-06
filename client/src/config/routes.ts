@@ -60,7 +60,6 @@ export const endpoints = {
   updateUserCredits: `/api/videos/credits`,
   addVideoProcessed: `/api/videos/processed/add`,
   getSingleVideoProcessed: `/api/videos/processed`,
-  teste: `/api/videos/teste`,
   getCreditsVideoPage: `/api/videos/page-params`,
 };
 

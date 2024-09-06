@@ -22,4 +22,8 @@ videoRoutes.get("/processed/:id", authenticateToken, VideoController.getSingleVi
 // Rota responsável por retornar os params da pagina
 videoRoutes.get("/page-params", authenticateToken, VideoController.getCreditsPageParams);
 
+// STREAMS
+videoRoutes.get("/stream", authenticateToken, VideoController.getFullVideoStream);
+videoRoutes.get("/stream-parsed", authenticateToken, VideoController.streamTrimmedVideo);
+
 module.exports = videoRoutes;

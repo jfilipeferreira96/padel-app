@@ -70,7 +70,7 @@ class VideoController {
 
   static async getVideosProcessed(req, res, next) {
     try {
-      const { name, email, phone } = req.body.filters || {};
+      const { name, email, phone, below_48h = true } = req.body.filters || {};
       const userId = req.body.userId;
       const { page = 1, limit = 15, orderBy = "vp.created_at", order = "DESC" } = req.body.pagination || {};
 
@@ -113,6 +113,11 @@ class VideoController {
         query += ` AND u.phone LIKE ?`;
         totalCountQuery += ` AND u.phone LIKE ?`;
         params.push(`%${phone}%`);
+      }
+
+      if (below_48h) {
+        query += ` AND vp.created_at >= NOW() - INTERVAL 48 HOUR`;
+        totalCountQuery += ` AND vp.created_at >= NOW() - INTERVAL 48 HOUR`;
       }
 
       const offset = (page - 1) * limit;
@@ -268,57 +273,6 @@ class VideoController {
     }
   }
 
-  static async teste(req, res, next) {
-    try {
-      const { user } = req.body;
-
-      if (!user) {
-        return res.json({
-          status: false,
-          error: "Pedido Inválido",
-          message: "Faltam campos",
-        });
-      }
-
-      const secret = process.env.JWT_SECRET;
-
-      // Função para verificar o token
-      const verifyToken = (token, secret) => {
-        return new Promise((resolve, reject) => {
-          jwt.verify(token, secret, (err, decoded) => {
-            if (err) {
-              reject(err);
-            } else {
-              resolve(decoded);
-            }
-          });
-        });
-      };
-
-      try {
-        const requestUser = await verifyToken(user, secret);
-
-        return res.status(200).json({
-          status: true,
-          message: "Token válido",
-        });
-      } catch (err) {
-        return res.json({
-          status: false,
-          error: "Pedido Inválido",
-          message: "Token inválido",
-        });
-      }
-    } catch (ex) {
-      Logger.error("Ocorreu um erro.", ex);
-      res.status(500).json({
-        status: false,
-        error: "Erro Interno do Servidor",
-        message: ex.message,
-      });
-    }
-  }
-
   static async getFullVideoStream(req, res, next) {
     try {
       const { videoId } = req.query;
@@ -328,10 +282,10 @@ class VideoController {
         return res.json({ status: false, message: "Parâmetros em falta" });
       }
 
-      const videoPath = path.join(__dirname, 'videos', videoId);
-      
+      const videoPath = path.join(__dirname, "videos", videoId);
+
       if (!fs.existsSync(videoPath)) {
-        return res.json({ status: false, message: 'Vídeo não encontrado.' });
+        return res.json({ status: false, message: "Vídeo não encontrado." });
       }
 
       // Validação da permissão para ver o vídeo
@@ -354,8 +308,8 @@ class VideoController {
       if (!range) {
         // Se o cliente não solicitou um intervalo, retorna o vídeo completo
         res.writeHead(200, {
-          'Content-Length': fileSize,
-          'Content-Type': 'video/mp4'
+          "Content-Length": fileSize,
+          "Content-Type": "video/mp4",
         });
 
         // Enviar o arquivo completo
@@ -371,34 +325,33 @@ class VideoController {
           return res.status(416).json({ status: false, message: "Range não satisfatório." });
         }
 
-        const chunkSize = (end - start) + 1;
+        const chunkSize = end - start + 1;
         res.writeHead(206, {
-          'Content-Range': `bytes ${start}-${end}/${fileSize}`,
-          'Accept-Ranges': 'bytes',
-          'Content-Length': chunkSize,
-          'Content-Type': 'video/mp4'
+          "Content-Range": `bytes ${start}-${end}/${fileSize}`,
+          "Accept-Ranges": "bytes",
+          "Content-Length": chunkSize,
+          "Content-Type": "video/mp4",
         });
 
         // Utilização de ffmpeg para transmitir o vídeo a partir do ponto de início
         ffmpeg(videoPath)
           .setStartTime(start / 1000) // Início em segundos
           .setDuration(chunkSize / 1000) // Duração do trecho a ser enviado
-          .format('mp4')
-          .on('start', commandLine => {
-            console.log('Comando FFmpeg:', commandLine);
+          .format("mp4")
+          .on("start", (commandLine) => {
+            console.log("Comando FFmpeg:", commandLine);
           })
-          .on('stderr', stderrLine => {
-            console.error('FFmpeg stderr:', stderrLine);
+          .on("stderr", (stderrLine) => {
+            console.error("FFmpeg stderr:", stderrLine);
           })
-          .on('error', (err) => {
-            console.error('Erro ao processar o vídeo:', err);
+          .on("error", (err) => {
+            console.error("Erro ao processar o vídeo:", err);
             if (!res.headersSent) {
-              res.status(500).json({ status: false, message: 'Erro ao processar o vídeo.' });
+              res.status(500).json({ status: false, message: "Erro ao processar o vídeo." });
             }
           })
           .pipe(res, { end: true });
       }
-
     } catch (ex) {
       console.error("Ocorreu um erro ao buscar o vídeo.", ex);
       res.status(500).json({ error: "Erro Interno do Servidor", message: ex.message });
@@ -409,21 +362,21 @@ class VideoController {
     try {
       const { videoId, start, end } = req.query;
       const user = req.user;
-  
-      if (!videoId || !start || !end ) {
+
+      if (!videoId || !start || !end) {
         return res.json({ status: false, message: "Parâmetros em falta" });
       }
-      
+
       const startTime = parseFloat(start);
       const endTime = parseFloat(end);
-      
+
       if (isNaN(startTime) || isNaN(endTime) || startTime >= endTime) {
-        return res.json({ status: false, message: 'Parâmetros de tempo inválidos.' });
+        return res.json({ status: false, message: "Parâmetros de tempo inválidos." });
       }
 
-      const videoPath = path.join(__dirname, 'videos', videoId);
+      const videoPath = path.join(__dirname, "videos", videoId);
       if (!fs.existsSync(videoPath)) {
-        return res.json({ status: false, message: 'Vídeo não encontrado.' });
+        return res.json({ status: false, message: "Vídeo não encontrado." });
       }
 
       // Validação se tem a permissão para ver este video
@@ -438,44 +391,44 @@ class VideoController {
       if (rows.length === 0) {
         return res.json({ status: false, message: "Não tem permissões para ver este vídeo." });
       }
-      
+
       // Define o caminho do arquivo temporário
-      const tempFilePath = path.join(__dirname, 'videos', `temp_${Date.now()}.mp4`);
-      
-      res.setHeader('Content-Type', 'video/mp4');
-      
+      const tempFilePath = path.join(__dirname, "videos", `temp_${Date.now()}.mp4`);
+
+      res.setHeader("Content-Type", "video/mp4");
+
       const command = ffmpeg(videoPath)
         .setStartTime(startTime)
         .setDuration(endTime - startTime)
         .output(tempFilePath)
-        .format('mp4');
-      
+        .format("mp4");
+
       // Executa o comando FFmpeg
       command.run();
-      
+
       // Quando o FFmpeg termina a criação do vídeo cortado
-      command.on('end', () => {
+      command.on("end", () => {
         fs.createReadStream(tempFilePath)
           .pipe(res)
-          .on('finish', () => {
+          .on("finish", () => {
             // Remove o arquivo temporário após o streaming
             fs.unlink(tempFilePath, (err) => {
               if (err) {
-                console.error('Erro ao remover o arquivo temporário:', err);
+                console.error("Erro ao remover o arquivo temporário:", err);
               }
             });
           })
-          .on('error', (err) => {
-            console.error('Erro ao transmitir o vídeo:', err);
-            res.status(500).send('Erro ao transmitir o vídeo.');
+          .on("error", (err) => {
+            console.error("Erro ao transmitir o vídeo:", err);
+            res.status(500).send("Erro ao transmitir o vídeo.");
           });
       });
-      
+
       // Captura erros do FFmpeg
-      command.on('error', (err) => {
-        console.error('Erro ao processar o vídeo:', err);
+      command.on("error", (err) => {
+        console.error("Erro ao processar o vídeo:", err);
         if (!res.headersSent) {
-          res.status(500).send('Erro ao processar o vídeo.');
+          res.status(500).send("Erro ao processar o vídeo.");
         }
       });
     } catch (ex) {
@@ -483,7 +436,6 @@ class VideoController {
       res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: "Erro Interno do Servidor", message: ex.message });
     }
   }
-
 }
 
 module.exports = VideoController;
