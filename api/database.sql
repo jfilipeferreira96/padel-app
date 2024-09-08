@@ -207,14 +207,16 @@ ADD COLUMN video_credits INT DEFAULT NULL;
 CREATE TABLE IF NOT EXISTS videos_processed (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
-    location VARCHAR(255) NOT NULL,
+    campo VARCHAR(255) NOT NULL,
+    date DATE NOT NULL, 
+    start_time TIME NOT NULL,  
+    end_time TIME NOT NULL,    
     status VARCHAR(50) DEFAULT 'processing',
     error_message TEXT DEFAULT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
-ALTER TABLE `videos_processed` ADD `start_time` TIME NOT NULL AFTER `location`, ADD `end_time` TIME NOT NULL AFTER `start_time`;
 
 CREATE TABLE IF NOT EXISTS users_credits_history (
     id INT AUTO_INCREMENT PRIMARY KEY,

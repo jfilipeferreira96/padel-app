@@ -4,7 +4,7 @@ import classes from "./classes.module.css";
 import { useSession } from "@/providers/SessionProvider";
 import { IconGitBranch, IconGitPullRequest, IconGitCommit, IconMessageDots, IconEye, IconNumber1, IconNumber2, IconNumber3, IconNumber4, IconClock } from "@tabler/icons-react";
 import { Timeline, Table, Checkbox, Pagination as MantinePagination, Center, Text, Select, Flex, Tooltip, ActionIcon, rem, Group, Button, Modal, Title, Badge, Mark, Loader, Paper } from "@mantine/core";
-import { getCreditsVideoPage, getVideosProcessed } from "@/services/video.service";
+import { addVideoProcessed, getCreditsVideoPage, getVideosProcessed } from "@/services/video.service";
 import { DateInput, TimeInput } from "@mantine/dates";
 import "@mantine/dates/styles.css";
 import dayjs from "dayjs";
@@ -45,14 +45,16 @@ interface Elemento {
   first_name: string;
   id: number;
   last_name: string;
-  location: string;
+  campo: string;
   phone: string;
   status: string;
   updated_at: string;
   user_id: number;
   start_time: string;
   end_time: string;
+  date: string;
 }
+
 const schema = z
   .object({
     date: z
@@ -176,17 +178,24 @@ function ReviewVideos() {
   });
 
   const onSubmitHandler = useCallback(async (data: any) => {
-    //setIsSubmiting(true);
-    console.log(data);
-    /*try {
-      //const response = await register(data);
+    setIsSubmiting(true);
+    
+    const payload = {
+      ...data,
+      date: dayjs(data.date).format("YYYY-MM-DD"),
+      campo: campos.find(c => c.label === data.campo)?.value
+    };
+    
+    try {
+      const response = await addVideoProcessed(payload);
        if (response.status) {
         notifications.show({
           title: "Sucesso",
           message: "",
           color: "green",
         });
-
+         fetchDataConcurrently();
+         form.reset();
       } else {
         notifications.show({
           title: "Erro",
@@ -202,7 +211,7 @@ function ReviewVideos() {
       });
     } finally {
       setIsSubmiting(false);
-    }  */
+    } 
   }, []);
 
   const handlePageChange = (page: number) => {
@@ -236,7 +245,7 @@ function ReviewVideos() {
         page: activePage,
         limit: 10,
         orderBy: "vp.id",
-        order: "DESC",
+        order: "ASC",
       };
 
       const response = await getVideosProcessed(pagination, user?.id);
@@ -252,31 +261,31 @@ function ReviewVideos() {
     }
   };
 
+  const fetchDataConcurrently = async () => {
+    setLoading(true);
+
+    const [paramsData, fetchDataResponse] = await Promise.all([fetchParams(), fetchData()]);
+
+    if (paramsData) {
+      setCreditos(paramsData.data.credits);
+      const camposFormatados = paramsData.data.campos.map((campo: any) => ({
+        id: campo.id,
+        label: campo.name,
+        value: campo.value,
+      }));
+      setCampos(camposFormatados);
+    }
+
+    if (fetchDataResponse) {
+      setElementos(fetchDataResponse.data);
+      setTotalElements(fetchDataResponse.pagination.total || 0);
+      setActivePage(fetchDataResponse.pagination.page || 1);
+    }
+
+    setLoading(false);
+  };
+
   useEffect(() => {
-    const fetchDataConcurrently = async () => {
-      setLoading(true);
-
-      const [paramsData, fetchDataResponse] = await Promise.all([fetchParams(), fetchData()]);
-
-      if (paramsData) {
-        setCreditos(paramsData.data.credits);
-        const camposFormatados = paramsData.data.campos.map((campo: any) => ({
-          id: campo.id,
-          label: campo.name,
-          value: campo.value,
-        }));
-        setCampos(camposFormatados);
-      }
-
-      if (fetchDataResponse) {
-        setElementos(fetchDataResponse.data);
-        setTotalElements(fetchDataResponse.pagination.total || 0);
-        setActivePage(fetchDataResponse.pagination.page || 1);
-      }
-
-      setLoading(false);
-    };
-
     fetchDataConcurrently();
 
     // Configura um intervalo de 30 segundos
@@ -311,7 +320,8 @@ function ReviewVideos() {
   const rows = elementos?.map((element, index) => (
     <Table.Tr key={element.id}>
       <Table.Td>{index + 1}</Table.Td>
-      <Table.Td>{element.location}</Table.Td>
+      <Table.Td>{campos.find(c => c.value === element.campo)?.label}</Table.Td>
+      <Table.Td>{dayjs(element.date).format("YYYY-MM-DD")}</Table.Td>
       <Table.Td>{element.start_time.slice(0, -3)}</Table.Td>
       <Table.Td>{element.end_time.slice(0, -3)}</Table.Td>
       <Table.Td>{new Date(element.created_at).toLocaleString()}</Table.Td>
@@ -456,6 +466,7 @@ function ReviewVideos() {
                   <Table.Tr>
                     <Table.Th>#</Table.Th>
                     <Table.Th>Campo</Table.Th>
+                    <Table.Th>Data</Table.Th>
                     <Table.Th>Ínicio</Table.Th>
                     <Table.Th>Fim</Table.Th>
                     <Table.Th>Data de Requisição</Table.Th>
