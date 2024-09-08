@@ -299,13 +299,13 @@ function ReviewVideos() {
   /* const initialIndex = (activePage - 1) * elementsPerPage;
   const finalIndex = initialIndex + elementsPerPage; */
   const pickerControl1 = (
-    <ActionIcon variant="subtle" color="gray" onClick={() => refInicio.current?.showPicker()}>
+    <ActionIcon disabled={!creditos} variant="subtle" color="gray" onClick={() => refInicio.current?.showPicker()}>
       <IconClock style={{ width: rem(16), height: rem(16) }} stroke={1.5} />
     </ActionIcon>
   );
 
   const pickerControl2 = (
-    <ActionIcon variant="subtle" color="gray" onClick={() => refFim.current?.showPicker()}>
+    <ActionIcon disabled={!creditos} variant="subtle" color="gray" onClick={() => refFim.current?.showPicker()}>
       <IconClock style={{ width: rem(16), height: rem(16) }} stroke={1.5} />
     </ActionIcon>
   );
@@ -408,6 +408,7 @@ function ReviewVideos() {
               <DateInput
                 minDate={getMinDate()}
                 maxDate={getMaxDate()}
+                disabled={!creditos}
                 valueFormat="DD-MM-YYYY"
                 label="Selecione uma data"
                 placeholder="DD-MM-YYYY"
