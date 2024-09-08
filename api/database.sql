@@ -226,12 +226,21 @@ CREATE TABLE IF NOT EXISTS users_credits_history (
     FOREIGN KEY (given_by) REFERENCES users(user_id) ON DELETE SET NULL
 );
 
-/* tabela dos  */
+/* tabela dos campos */
 CREATE TABLE IF NOT EXISTS campos (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
+    value VARCHAR(255) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+INSERT INTO campos (name, value) VALUES
+('Mozelos - GrupoP4', 'GrupoP4'),
+('Mozelos - RStar', 'RStar'),
+('Mozelos - Padbol', 'Padbol'),
+('Mozelos - AYSA', 'AYSA'),
+('Mozelos - WorkForce', 'WorkeForce');
+
 
 -- Testes:
 
