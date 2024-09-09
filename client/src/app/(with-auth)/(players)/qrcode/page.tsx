@@ -41,7 +41,7 @@ function Home() {
         <Card.Section>
           <div ref={qrRef} className={classes.qrcode}>
             <QRCodeSVG
-              value={user?.email}
+              value={user?.phone ?? user?.email}
               size={220}
               bgColor={"#ffffff"}
               fgColor={"#000000"}
