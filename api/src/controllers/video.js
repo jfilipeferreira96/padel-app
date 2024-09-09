@@ -279,14 +279,13 @@ class VideoController {
   static async getFullVideoStream(req, res, next) {
     try {
       const { videoId, user } = req.query;
-      console.log(videoId, user);
 
       if (!videoId) {
         return res.json({ status: false, message: "Parâmetros em falta" });
       }
 
       const videoPath = path.join(__dirname, "..", "..", "videos", `${videoId}.mp4`);
-      console.log(videoPath);
+      
       if (!fs.existsSync(videoPath)) {
         return res.json({ status: false, message: "Vídeo não encontrado." });
       }
@@ -396,7 +395,7 @@ class VideoController {
       }
 
       // Define o caminho do arquivo temporário
-      const tempFilePath = path.join(__dirname, "videos", `temp_${Date.now()}.mp4`);
+      const tempFilePath = path.join(__dirname, "..", "..", "videos", `temp_${Date.now()}.mp4`);
 
       res.setHeader("Content-Type", "video/mp4");
 
