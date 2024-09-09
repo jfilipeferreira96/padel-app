@@ -1,35 +1,18 @@
 "use client";
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import classes from "./classes.module.css";
 import { useSession } from "@/providers/SessionProvider";
 import { IconGitBranch, IconGitPullRequest, IconGitCommit, IconMessageDots, IconEye, IconNumber1, IconNumber2, IconNumber3, IconNumber4, IconClock } from "@tabler/icons-react";
-import {
-  Timeline,
-  Table,
-  Checkbox,
-  Pagination as MantinePagination,
-  Center,
-  Text,
-  Select,
-  Flex,
-  Tooltip,
-  ActionIcon,
-  rem,
-  Group,
-  Button,
-  Modal,
-  Title,
-  Badge,
-  Mark,
-  Loader,
-  Paper,
-} from "@mantine/core";
-import { getCreditsVideoPage, getVideosProcessed } from "@/services/video.service";
+import { Timeline, Table, Checkbox, Pagination as MantinePagination, Center, Text, Select, Flex, Tooltip, ActionIcon, rem, Group, Button, Modal, Title, Badge, Mark, Loader, Paper } from "@mantine/core";
+import { addVideoProcessed, getCreditsVideoPage, getVideosProcessed } from "@/services/video.service";
 import { DateInput, TimeInput } from "@mantine/dates";
 import "@mantine/dates/styles.css";
-import dayjs from "dayjs"; 
+import dayjs from "dayjs";
 import { routes } from "@/config/routes";
 import { useRouter } from "next/navigation";
+import { z } from "zod";
+import { notifications } from "@mantine/notifications";
+import { useForm, zodResolver } from "@mantine/form";
 
 function getBadge(status: string | null) {
   if (status === "processing") {
@@ -50,10 +33,10 @@ function getBadge(status: string | null) {
 }
 
 // Função para obter a data mínima permitida (14 dias atrás)
-const getMinDate = () => dayjs().subtract(14, 'day').toDate();
+const getMinDate = () => dayjs().subtract(14, "day").toDate();
 
 // Função para obter a data máxima permitida (hoje)
-const getMaxDate = () => dayjs().endOf('day').toDate();
+const getMaxDate = () => dayjs().endOf("day").toDate();
 
 interface Elemento {
   created_at: string;
@@ -62,14 +45,112 @@ interface Elemento {
   first_name: string;
   id: number;
   last_name: string;
-  location: string;
+  campo: string;
   phone: string;
   status: string;
   updated_at: string;
   user_id: number;
   start_time: string;
   end_time: string;
+  date: string;
 }
+
+const schema = z
+  .object({
+    date: z
+      .date({
+        required_error: "A data é obrigatória",
+      })
+      .refine((date) => date <= new Date(), "A data deve ser no passado ou presente"),
+    timeInicio: z.string().nonempty({ message: "Hora de Início é obrigatória" }),
+    timeFim: z.string().nonempty({ message: "Hora de Fim é obrigatória" }),
+    campo: z.string().nonempty({ message: "Campo é obrigatório" }),
+  })
+  // Verifica se a data e hora de fim não são maiores que o momento atual
+  .refine(
+    (data) => {
+      const currentTime = new Date();
+      const [hoursFim, minutesFim] = data.timeFim.split(":").map(Number);
+      const combinedDate = new Date(data.date);
+      combinedDate.setHours(hoursFim, minutesFim);
+
+      return combinedDate <= currentTime;
+    },
+    {
+      message: "A data e hora final devem ser menores ou iguais ao momento atual",
+      path: ["manual"],
+    }
+  )
+  // Verifica se o timeFim é maior que o timeInicio
+  .refine(
+    (data) => {
+      const [hoursInicio, minutesInicio] = data.timeInicio.split(":").map(Number);
+      const [hoursFim, minutesFim] = data.timeFim.split(":").map(Number);
+
+      const inicioDate = new Date(data.date);
+      inicioDate.setHours(hoursInicio, minutesInicio);
+
+      const fimDate = new Date(data.date);
+      fimDate.setHours(hoursFim, minutesFim);
+
+      // Verificar se Hora de Fim é maior que Hora de Início
+      return fimDate > inicioDate;
+    },
+    {
+      message: "A Hora de Fim deve ser maior que a Hora de Início",
+      path: ["timeFim"], 
+    }
+  )
+  // Verifica se a diferença entre timeInicio e timeFim é de pelo menos 30 minutos
+  .refine(
+    (data) => {
+      const [hoursInicio, minutesInicio] = data.timeInicio.split(":").map(Number);
+      const [hoursFim, minutesFim] = data.timeFim.split(":").map(Number);
+
+      const inicioDate = new Date(data.date);
+      inicioDate.setHours(hoursInicio, minutesInicio);
+
+      const fimDate = new Date(data.date);
+      fimDate.setHours(hoursFim, minutesFim);
+
+      // Diferença de tempo em milissegundos
+      const diffInMs: number = Number(fimDate) - Number(inicioDate);
+
+      // 30 minutos em milissegundos
+      const minDiffInMs = 30 * 60 * 1000;
+
+      return diffInMs >= minDiffInMs;
+    },
+    {
+      message: "A diferença entre Hora de Início e Hora de Fim deve ser positiva e de pelo menos 30 minutos",
+      path: ["manual"],
+    }
+  )
+  // Verifica se a diferença entre timeInicio e timeFim não é superior a 2 horas
+  .refine(
+    (data) => {
+      const [hoursInicio, minutesInicio] = data.timeInicio.split(":").map(Number);
+      const [hoursFim, minutesFim] = data.timeFim.split(":").map(Number);
+
+      const inicioDate = new Date(data.date);
+      inicioDate.setHours(hoursInicio, minutesInicio);
+
+      const fimDate = new Date(data.date);
+      fimDate.setHours(hoursFim, minutesFim);
+
+      // Diferença de tempo em milissegundos
+      const diffInMs: number = Number(fimDate) - Number(inicioDate);
+
+      // 2 horas em milissegundos
+      const maxDiffInMs = 2 * 60 * 60 * 1000;
+
+      return diffInMs <= maxDiffInMs;
+    },
+    {
+      message: "A diferença entre Hora de Início e Hora de Fim não pode ser superior a 2 horas",
+      path: ["manual"],
+    }
+  );
 
 function ReviewVideos() {
   const { user } = useSession();
@@ -77,16 +158,61 @@ function ReviewVideos() {
   const [loading, setLoading] = useState<boolean>(true);
   const [totalElements, setTotalElements] = useState<number>(0);
   const [creditos, setCreditos] = useState<number>(0);
-  const [campos, setCampos] = useState<{ id: number; name: string }[]>();
+  const [campos, setCampos] = useState<{ id: number; label: string; value: string }[]>([]);
   const [activePage, setActivePage] = useState<number>(1);
   const [elementsPerPage, setElementsPerPage] = useState<number>(15);
   const refInicio = useRef<HTMLInputElement>(null);
   const refFim = useRef<HTMLInputElement>(null);
-  const [date, setDate] = useState<Date | null>(null);
-  const [horaInicio, setHoraInicio] = useState(null);
-  const [horaFim, setHoraFim] = useState(null);
   const [error, setError] = useState("");
-  const router  = useRouter();
+  const router = useRouter();
+  const [isSubmiting, setIsSubmiting] = useState<boolean>(false);
+
+  const form = useForm({
+    initialValues: {
+      date: undefined,
+      timeInicio: "",
+      timeFim: "",
+      campo: "",
+    },
+    validate: zodResolver(schema),
+  });
+
+  const onSubmitHandler = useCallback(async (data: any) => {
+    setIsSubmiting(true);
+    
+    const payload = {
+      ...data,
+      date: dayjs(data.date).format("YYYY-MM-DD"),
+      campo: campos.find(c => c.label === data.campo)?.value
+    };
+    
+    try {
+      const response = await addVideoProcessed(payload);
+       if (response.status) {
+        notifications.show({
+          title: "Sucesso",
+          message: "",
+          color: "green",
+        });
+         fetchDataConcurrently();
+         form.reset();
+      } else {
+        notifications.show({
+          title: "Erro",
+          message: response.message,
+          color: "red",
+        });
+      }
+    } catch (error) {
+      notifications.show({
+        title: "Erro",
+        message: "Algo correu mal",
+        color: "red",
+      });
+    } finally {
+      setIsSubmiting(false);
+    } 
+  }, []);
 
   const handlePageChange = (page: number) => {
     setActivePage(page);
@@ -113,22 +239,13 @@ function ReviewVideos() {
     }
   };
 
-  const handleHoraInicioChange = (value: React.SetStateAction<null>) => {
-      console.log(value)
-      setHoraInicio(value);
-    };
-
-    const handleHoraFimChange = (value: React.SetStateAction<null>) => {
-      setHoraFim(value);
-    };
-
   const fetchData = async () => {
     try {
       const pagination = {
         page: activePage,
         limit: 10,
         orderBy: "vp.id",
-        order: "DESC",
+        order: "ASC",
       };
 
       const response = await getVideosProcessed(pagination, user?.id);
@@ -144,26 +261,31 @@ function ReviewVideos() {
     }
   };
 
+  const fetchDataConcurrently = async () => {
+    setLoading(true);
+
+    const [paramsData, fetchDataResponse] = await Promise.all([fetchParams(), fetchData()]);
+
+    if (paramsData) {
+      setCreditos(paramsData.data.credits);
+      const camposFormatados = paramsData.data.campos.map((campo: any) => ({
+        id: campo.id,
+        label: campo.name,
+        value: campo.value,
+      }));
+      setCampos(camposFormatados);
+    }
+
+    if (fetchDataResponse) {
+      setElementos(fetchDataResponse.data);
+      setTotalElements(fetchDataResponse.pagination.total || 0);
+      setActivePage(fetchDataResponse.pagination.page || 1);
+    }
+
+    setLoading(false);
+  };
+
   useEffect(() => {
-    const fetchDataConcurrently = async () => {
-      setLoading(true);
-
-      const [paramsData, fetchDataResponse] = await Promise.all([fetchParams(), fetchData()]);
-
-      if (paramsData) {
-        setCreditos(paramsData.data.credits);
-        setCampos(paramsData.data.campos);
-      }
-
-      if (fetchDataResponse) {
-        setElementos(fetchDataResponse.data);
-        setTotalElements(fetchDataResponse.pagination.total || 0);
-        setActivePage(fetchDataResponse.pagination.page || 1);
-      }
-
-      setLoading(false);
-    };
-
     fetchDataConcurrently();
 
     // Configura um intervalo de 30 segundos
@@ -177,21 +299,29 @@ function ReviewVideos() {
   /* const initialIndex = (activePage - 1) * elementsPerPage;
   const finalIndex = initialIndex + elementsPerPage; */
   const pickerControl1 = (
-    <ActionIcon variant="subtle" color="gray" onClick={() => refInicio.current?.showPicker()}>
+    <ActionIcon disabled={!creditos} variant="subtle" color="gray" onClick={() => refInicio.current?.showPicker()}>
       <IconClock style={{ width: rem(16), height: rem(16) }} stroke={1.5} />
     </ActionIcon>
   );
 
-   const pickerControl2 = (
-     <ActionIcon variant="subtle" color="gray" onClick={() => refFim.current?.showPicker()}>
-       <IconClock style={{ width: rem(16), height: rem(16) }} stroke={1.5} />
-     </ActionIcon>
-   );
-  
+  const pickerControl2 = (
+    <ActionIcon disabled={!creditos} variant="subtle" color="gray" onClick={() => refFim.current?.showPicker()}>
+      <IconClock style={{ width: rem(16), height: rem(16) }} stroke={1.5} />
+    </ActionIcon>
+  );
+
+  const handleCampoChange = (value: string | null) => {
+    const campo = campos.find((option) => option.label === value)?.value;
+    if (campo) {
+      form.setFieldValue("campo", campo);
+    }
+  };
+
   const rows = elementos?.map((element, index) => (
     <Table.Tr key={element.id}>
       <Table.Td>{index + 1}</Table.Td>
-      <Table.Td>{element.location}</Table.Td>
+      <Table.Td>{campos.find(c => c.value === element.campo)?.label}</Table.Td>
+      <Table.Td>{dayjs(element.date).format("YYYY-MM-DD")}</Table.Td>
       <Table.Td>{element.start_time.slice(0, -3)}</Table.Td>
       <Table.Td>{element.end_time.slice(0, -3)}</Table.Td>
       <Table.Td>{new Date(element.created_at).toLocaleString()}</Table.Td>
@@ -207,7 +337,7 @@ function ReviewVideos() {
               variant="subtle"
               color="gray"
               onClick={() => {
-                router.push(`${routes.stream.url}/${element.id}`)
+                router.push(`${routes.stream.url}/${element.id}`);
               }}
             >
               <IconEye style={{ width: rem(20), height: rem(20) }} stroke={1.5} />
@@ -267,35 +397,56 @@ function ReviewVideos() {
       </>
 
       <>
-        <Paper shadow="xs" p="sm" withBorder mt="lg" mb="lg">
-          <Text fw={600}>Requisitar vídeo</Text>
-          <Text size="sm" c="dimmed">
-            Para requisitar um vídeo, é necessário ter créditos disponíveis. Por favor, obtenha-os na recepção.
-          </Text>
-          <Flex align="center" justify="center" mb="md" mt="md" direction={{ base: "column", sm: "row" }} className={classes.flex}>
-            <DateInput
-              minDate={getMinDate()}
-              maxDate={getMaxDate()}
-              valueFormat="DD-MM-YYYY"
-              value={date}
-              withAsterisk
-              onChange={setDate}
-              label="Selecione uma data"
-              placeholder="DD-MM-YYYY"
-              mr={{ sm: "lg" }}
-              mb={{ base: "sm", sm: 0 }}
-            />
-            <TimeInput onChange={(e) => console.log(e.target.value)} withAsterisk label="Hora de Ínicio" ref={refInicio} mr={{ sm: "lg" }} mb={{ base: "sm", sm: 0 }} disabled={!creditos} rightSection={pickerControl1} />
-            <TimeInput withAsterisk label="Hora de Fim" ref={refFim} mr={{ sm: "lg" }} mb={{ base: "sm", sm: 0 }} disabled={!creditos} onChange={(e) => console.log(e.target.value)} rightSection={pickerControl2} />
-            <Select withAsterisk label="Selecione o campo" placeholder="Campo" data={["Ver por validar", "Ver validados"]} value="Ver por validar" onChange={(value) => console.log(value)} disabled={!creditos} />
-          </Flex>
+        <form onSubmit={form.onSubmit((values) => onSubmitHandler(values))}>
+          <Paper shadow="xs" p="sm" withBorder mt="lg" mb="lg">
+            <Text fw={600}>Requisitar vídeo</Text>
+            <Text size="sm" c="dimmed">
+              Para requisitar um vídeo, é necessário ter créditos disponíveis. Por favor, obtenha-os na recepção.
+            </Text>
 
-          <Center>
-            <Button variant="light" size="sm" disabled={!creditos}>
-              Requisitar
-            </Button>
-          </Center>
-        </Paper>
+            <Flex align="center" justify="center" mb="md" mt="md" direction={{ base: "column", sm: "row" }}>
+              <DateInput
+                minDate={getMinDate()}
+                maxDate={getMaxDate()}
+                disabled={!creditos}
+                valueFormat="DD-MM-YYYY"
+                label="Selecione uma data"
+                placeholder="DD-MM-YYYY"
+                mr={{ sm: "lg" }}
+                mb={{ base: "sm", sm: 0 }}
+                withAsterisk
+                {...form.getInputProps("date")}
+              />
+
+              <TimeInput label="Hora de Ínicio" mr={{ sm: "lg" }} mb={{ base: "sm", sm: 0 }} disabled={!creditos} withAsterisk ref={refInicio} rightSection={pickerControl1} {...form.getInputProps("timeInicio")} />
+
+              <TimeInput label="Hora de Fim" mr={{ sm: "lg" }} mb={{ base: "sm", sm: 0 }} disabled={!creditos} withAsterisk ref={refFim} rightSection={pickerControl2} {...form.getInputProps("timeFim")} />
+
+              <Select
+                label="Selecione o campo"
+                placeholder="Campo"
+                data={campos?.length > 0 ? campos.map((option) => option.label) : undefined}
+                //onChange={handleCampoChange}
+                disabled={!creditos}
+                withAsterisk
+                {...form.getInputProps("campo")}
+              />
+            </Flex>
+            {/* Exibir erros globais abaixo dos inputs */}
+            {form.errors && (
+              <Center>
+                <Text color="red" mt="sm" size="sm" style={{ position: "relative", top: "-10px" }}>
+                  {form.errors.manual}
+                </Text>
+              </Center>
+            )}
+            <Center>
+              <Button variant="light" size="sm" disabled={!creditos} type="submit">
+                Requisitar
+              </Button>
+            </Center>
+          </Paper>
+        </form>
       </>
 
       {elementos.length > 0 && (
@@ -316,6 +467,7 @@ function ReviewVideos() {
                   <Table.Tr>
                     <Table.Th>#</Table.Th>
                     <Table.Th>Campo</Table.Th>
+                    <Table.Th>Data</Table.Th>
                     <Table.Th>Ínicio</Table.Th>
                     <Table.Th>Fim</Table.Th>
                     <Table.Th>Data de Requisição</Table.Th>

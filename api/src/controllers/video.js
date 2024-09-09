@@ -5,6 +5,9 @@ const Logger = require("../utils/logger");
 const fs = require("fs");
 const path = require("path");
 const ffmpeg = require("fluent-ffmpeg");
+const { exec } = require("child_process");
+const util = require("util");
+const execPromise = util.promisify(exec);
 
 class VideoController {
   static async getCreditsHistory(req, res, next) {
@@ -75,7 +78,7 @@ class VideoController {
     try {
       const { name, email, phone, below_48h = true } = req.body.filters || {};
       const userId = req.body.userId;
-      const { page = 1, limit = 15, orderBy = "vp.created_at", order = "DESC" } = req.body.pagination || {};
+      const { page = 1, limit = 15, orderBy = "vp.id", order = "ASC" } = req.body.pagination || {};
 
       let query = `
         SELECT vp.*, u.email, u.first_name, u.last_name, u.phone
@@ -178,42 +181,68 @@ class VideoController {
 
   static async addVideoProcessed(req, res, next) {
     try {
-      const { location, start_time, end_time } = req.body;
+      const { campo, timeInicio: start_time, timeInicio: end_time, date } = req.body;
       const userId = req.user?.id;
-
-      if (!location || !start_time || !end_time) {
-        return res.status(StatusCodes.BAD_REQUEST).json({ status: false, message: "Campos em falta" });
+      console.log(req.body);
+      if (!campo || !start_time || !end_time || !date) {
+        return res.json({ status: false, message: "Campos em falta" });
       }
 
       const userQuery = `SELECT video_credits FROM users WHERE user_id = ?`;
       const { rows: userRows } = await db.query(userQuery, [userId]);
 
       if (userRows.length === 0) {
-        return res.status(StatusCodes.NOT_FOUND).json({ status: false, message: "Utilizador não encontrado." });
+        return res.json({ status: false, message: "Utilizador não encontrado." });
       }
 
       const userCredits = userRows[0].video_credits || 0;
 
       if (userCredits <= 0) {
-        return res.status(StatusCodes.FORBIDDEN).json({ status: false, message: "Créditos insuficientes para processar o vídeo." });
+        return res.json({ status: false, message: "Créditos insuficientes para processar o vídeo." });
       }
 
       const insertVideoQuery = `
-        INSERT INTO videos_processed (user_id, location, start_time, end_time)
-        VALUES (?, ?)
+        INSERT INTO videos_processed (user_id, campo, start_time, end_time, date)
+        VALUES (?, ?, ?, ?, ?)
       `;
-      await db.query(insertVideoQuery, [userId, location, start_time, end_time]);
+      const { rows: entrada } = await db.query(insertVideoQuery, [userId, campo, start_time, end_time, date]);
+      const videoId = entrada.insertId;
 
-      const updateCreditsQuery = `UPDATE users SET video_credits = video_credits - 1 WHERE user_id = ?`;
-      await db.query(updateCreditsQuery, [userId]);
+      // Formatar os valores para o comando Python
+      const formattedStartDateTime = `${date} ${start_time}`;
+      const formattedEndDateTime = `${date} ${end_time}`;
+      const fileName = videoId;
 
-      const historyQuery = `
+      // Montar o comando Python
+      const pythonScriptPath = "/www/padel/padel.py";
+      const command = `python ${pythonScriptPath} '${formattedStartDateTime}' '${formattedEndDateTime}' ${campo} ${fileName}`;
+      try {
+        // Executar o comando Python
+        const { stdout, stderr } = await execPromise(command);
+        Logger.info(`Saída do script Python: ${stdout}`);
+
+        const updateCreditsQuery = `UPDATE users SET video_credits = video_credits - 1 WHERE user_id = ?`;
+        await db.query(updateCreditsQuery, [userId]);
+
+        const historyQuery = `
         INSERT INTO users_credits_history (user_id, credits_before, credits_after, given_by)
         VALUES (?, ?, ?, ?)
       `;
-      await db.query(historyQuery, [userId, userCredits, userCredits - 1, req.user?.id || null]);
+        await db.query(historyQuery, [userId, userCredits, userCredits - 1, req.user?.id || null]);
 
-      return res.status(201).json({ status: true, message: "Vídeo processado e créditos atualizados com sucesso." });
+        return res.json({ status: true, message: "Vídeo processado e créditos atualizados com sucesso." });
+      } catch (err) {
+        // Se o comando Python falhar, atualizar o status do vídeo para "failed"
+        const updateVideoStatusQuery = `
+          UPDATE videos_processed
+          SET status = 'failed', error_message = ?
+          WHERE id = ?
+        `;
+        await db.query(updateVideoStatusQuery, [err.message, videoId]);
+
+        Logger.error(`Erro ao executar o script Python: ${err.message}`);
+        return res.json({ status: false, message: "Erro ao processar o vídeo com o script Python", error: err.message });
+      }
     } catch (ex) {
       Logger.error("Ocorreu um erro ao processar o vídeo.", ex);
       res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: "Erro Interno do Servidor", message: ex.message });

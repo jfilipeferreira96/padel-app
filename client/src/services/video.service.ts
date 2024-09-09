@@ -70,7 +70,7 @@ export const updateUserCredits = async (userId: number, credits: number) => {
 };
 
 // Serviço para adicionar um vídeo processado
-export const addVideoProcessed = async (data: { location: string }) => {
+export const addVideoProcessed = async (data: any) => {
   try {
     const response = await api.post(endpoints.addVideoProcessed, data);
     return response.data;
