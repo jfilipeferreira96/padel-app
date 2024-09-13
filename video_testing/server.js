@@ -4,10 +4,13 @@ const ffmpeg = require("fluent-ffmpeg");
 const fs = require("fs");
 const app = express();
 const port = 3010;
+const { exec } = require("child_process");
+const util = require("util");
+const execPromise = util.promisify(exec);
 
 // ENVIA POR STREAM O VIDEO
 // http://localhost:3010/stream?videoName=aaa.mp4
-app.get("/stream", (req, res) => {
+app.get("/stream", async (req, res) => {
   const { videoName } = req.query;
 
   if (!videoName) {
@@ -60,7 +63,7 @@ app.get("/stream", (req, res) => {
 
 // Endpoint para stream cortado de vídeo
 // http://localhost:3010/stream-parsed?start=0&end=10&videoName=aaa.mp4
-app.get("/stream-parsed", (req, res) => {
+app.get("/stream-parsed", async (req, res) => {
   const { start, end, videoName } = req.query;
 
   if (!start || !end || !videoName) {
@@ -122,10 +125,10 @@ app.get("/stream-parsed", (req, res) => {
 
 // Endpoint para verificar se o arquivo existe
 //http://localhost:3010/check-file?filepath=videos/aaa.mp4
-app.get("/check-file", (req, res) => {
+app.get("/check-file", async (req, res) => {
   const { filepath } = req.query;
   if (!filepath) {
-    return res.status(400).send("Parâmetro filepath é necessário.");
+    return res.status(400).json({ status: false, message: "Parâmetros em falta" })
   }
 
   const fullPath = path.join(__dirname, filepath);
@@ -141,7 +144,7 @@ app.get("/check-file", (req, res) => {
 });
 
 //http://localhost:3010/download-file?filepath=videos/aaa.mp4
-app.get("/download-file", (req, res) => {
+app.get("/download-file", async (req, res) => {
   const { filepath } = req.query;
   if (!filepath) {
     return res.status(400).send("Parâmetro filepath é necessário.");
@@ -162,6 +165,36 @@ app.get("/download-file", (req, res) => {
     return res.status(404).send("Arquivo não encontrado.");
   }
 });
+
+// Endpoint para chamar o script
+//http://localhost:3010/check-file?filepath=videos/aaa.mp4
+app.post("/script", async (req, res) => {
+  const { campo, timeInicio: start_time, timeInicio: end_time, date, videoId } = req.body;
+
+  if (!campo || !start_time || !end_time || !date || !videoId) {
+    return res.json({ status: false, message: "Campos em falta" });
+  }
+
+    // Formatar os valores para o comando Python
+    const formattedStartDateTime = `${date} ${start_time}`;
+    const formattedEndDateTime = `${date} ${end_time}`;
+    const fileName = videoId;
+
+    // Montar o comando Python
+    const pythonScriptPath = "/www/padel/padel.py";
+    const command = `python ${pythonScriptPath} '${formattedStartDateTime}' '${formattedEndDateTime}' ${campo} ${fileName}`;
+
+  try {
+    const { stdout, stderr } = await execPromise(command);
+    return res.json({ status: true, message: "Vídeo processado com sucesso." });
+
+  } catch (error) {
+    Logger.error(`Erro ao executar o script Python: ${err.message}`);
+    return res.json({ status: false, message: "Erro ao processar o vídeo com o script Python", error: err.message });
+  }
+
+});
+
 
 app.listen(port, () => {
   console.log(`Servidor escutando na porta ${port}`);

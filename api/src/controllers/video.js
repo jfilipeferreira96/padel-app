@@ -183,7 +183,7 @@ class VideoController {
     try {
       const { campo, timeInicio: start_time, timeInicio: end_time, date } = req.body;
       const userId = req.user?.id;
-      console.log(req.body);
+      
       if (!campo || !start_time || !end_time || !date) {
         return res.json({ status: false, message: "Campos em falta" });
       }
