@@ -1,60 +1,115 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { useSession } from "@/providers/SessionProvider";
-import { Center, Title, Loader, Flex, TextInput, Button } from "@mantine/core";
+import { Center, Title, Loader, Flex, TextInput, Button, Text } from "@mantine/core";
 import { useRouter } from "next/navigation";
 import { TimeInput } from "@mantine/dates";
+import { getSingleVideoProcessed } from "@/services/video.service";
+import { notifications } from "@mantine/notifications";
 
 interface Props {
   params: { videoId: string };
 }
+
+const secondsToHms = (seconds: number) => {
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const secs = Math.floor(seconds % 60);
+
+  return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
+};
+
+const hmsToSeconds = (hms: string) => {
+  const [hours, minutes, seconds] = hms.split(":").map(Number);
+  return hours * 3600 + minutes * 60 + seconds;
+};
+
 function VideoStream({ params }: Props) {
   const { user } = useSession();
   const [loading, setLoading] = useState<boolean>(true);
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
-  const router = useRouter();
-  const videoId = params.videoId;
-  const [startTime, setStartTime] = useState("");
-  const [endTime, setEndTime] = useState("");
+  const [videoDuration, setVideoDuration] = useState<number | null>(null);
+  const [startTime, setStartTime] = useState("00:00:00");
+  const [endTime, setEndTime] = useState("00:00:00");
   const [cuttedVideoUrl, setCuttedVideoUrl] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
+  const [isCutting, setIsCutting] = useState<boolean>(false);
 
   const fetchCompleteVideo = async () => {
     try {
-      if (videoId) {
-        // isto nao funciona pois
-        const streamUrl = `http://localhost:3010/stream?videoName=${videoId}.mp4`;
-        setVideoUrl(streamUrl);
+      if (params.videoId) {
+        const check = await getSingleVideoProcessed(parseInt(params.videoId));
+        if (check.status) {
+          const streamUrl = `http://localhost:3010/stream?videoName=${params.videoId}.mp4`;
+          setVideoUrl(streamUrl);
+          setLoading(false);
+        }
+        else {
+          notifications.show({
+            message: check.message,
+            color: "red",
+          });
+          router.back();
+        }
+        
       }
-      setLoading(false);
     } catch (error) {
       setLoading(false);
       console.error("Erro ao carregar vídeo completo:", error);
     }
   };
 
-  const handleCutVideo = async () => {
-    setLoading(true);
+  const handleMetadataLoaded = (event: React.ChangeEvent<HTMLVideoElement>) => {
+    const video = event.currentTarget;
+    const durationInSeconds = video.duration;
+    setVideoDuration(durationInSeconds);
 
+    setEndTime(secondsToHms(durationInSeconds));
+  };
+
+  const validateTimes = () => {
+    if (!videoDuration) return false;
+    const startSeconds = hmsToSeconds(startTime);
+    const endSeconds = hmsToSeconds(endTime);
+    const durationSeconds = videoDuration;
+
+    if (startSeconds > endSeconds) {
+      setError("A hora de início não pode ser maior que a hora de fim.");
+      return false;
+    }
+
+    if (startSeconds < 0 || endSeconds > durationSeconds) {
+      setError("As horas de início e fim devem estar dentro dos parâmetros do vídeo.");
+      return false;
+    }
+
+    setError(null);
+    return true;
+  };
+
+  const handleCutVideo = async () => {
+    if (!validateTimes()) return;
+
+    setIsCutting(true);
     try {
-      const response = await fetch(`http://localhost:3010/cut-video?filename=${videoId}.mp4&start=${startTime}&end=${endTime}`);
+      const response = await fetch(`http://localhost:3010/cut-video?filename=${params.videoId}.mp4&start=${startTime}&end=${endTime}`);
       const res = await response.json();
       if (res.status) {
-        // Guarda o nome do arquivo de saída no estado
         setCuttedVideoUrl(`http://localhost:3010/stream?videoName=${res.filename}.mp4`);
       }
-     
     } catch (error) {
       console.error("Erro ao cortar vídeo", error);
     } finally {
-      setLoading(false);
+      setIsCutting(false);
     }
   };
 
   useEffect(() => {
-    if (videoId) {
+    if (params.videoId) {
       fetchCompleteVideo();
     }
-  }, [videoId]);
+  }, [params.videoId]);
 
   if (!user || loading) {
     return (
@@ -72,7 +127,7 @@ function VideoStream({ params }: Props) {
 
       <Center mt={"lg"}>
         {videoUrl && (
-          <video controls src={videoUrl} width="80%">
+          <video controls src={videoUrl} width="80%" onLoadedMetadata={handleMetadataLoaded}>
             O seu navegador não suporta a reprodução de vídeo.
           </video>
         )}
@@ -89,11 +144,19 @@ function VideoStream({ params }: Props) {
         <TimeInput withSeconds label="Hora de fim (HH:MM:SS)" value={endTime} onChange={(event) => setEndTime(event.currentTarget.value)} placeholder="00:01:00" ml="md" />
       </Flex>
 
-      {/* Botão de cortar com estado de loading */}
+      {error && (
+        <Center>
+          <Text color="red" size="sm" style={{ position: "relative", top: "5px" }}>
+            {error}
+          </Text>
+        </Center>
+      )}
+
       <Center mt="md">
-        <Button onClick={handleCutVideo} disabled={loading}>
+        <Button onClick={handleCutVideo} disabled={loading} loading={isCutting}>
           {loading ? <Loader size="sm" /> : "Cortar"}
         </Button>
+        {isCutting && <Text>Este procedimento pode ser demorado. Por favor, aguarde.</Text>}
       </Center>
     </div>
   );

@@ -7,6 +7,13 @@ const port = 3010;
 const { exec } = require("child_process");
 const util = require("util");
 const execPromise = util.promisify(exec);
+const cors = require("cors");
+
+// Configuração do CORS para permitir todos os tipos de pedidos
+app.use(cors());
+
+// Middleware para lidar com JSON no corpo das requisições
+app.use(express.json());
 
 // ENVIA POR STREAM O VIDEO
 // http://localhost:3010/stream?videoName=aaa.mp4

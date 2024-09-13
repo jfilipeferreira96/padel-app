@@ -310,7 +310,7 @@ class VideoController {
       const { rows } = await db.query(query, [videoId]);
 
       if (rows.length === 0) {
-        return res.status(StatusCodes.NOT_FOUND).json({ status: false, message: "Vídeo não encontrado." });
+        return res.json({ status: false, message: "Vídeo não encontrado." });
       }
 
       return res.status(StatusCodes.OK).json({ status: true, data: rows[0] });
