@@ -80,19 +80,66 @@ class VideoController {
       const userId = req.body.userId;
       const { page = 1, limit = 15, orderBy = "vp.id", order = "ASC" } = req.body.pagination || {};
 
+      // Passo 1: Buscar todos os vídeos que estão sendo processados para este Utilizador
+      let queryVerifyIfIsProcessing = `
+            SELECT vp.*, u.email, u.first_name, u.last_name, u.phone
+            FROM videos_processed vp
+            LEFT JOIN users u ON vp.user_id = u.user_id
+            WHERE vp.user_id = ? AND vp.status = 'processing'
+        `;
+      const processingVideos = await db.query(queryVerifyIfIsProcessing, [userId]);
+
+      // Para cada vídeo em processamento, verificar se o arquivo existe
+      for (let video of processingVideos.rows) {
+        const videoPath = `videos/${video.id}.mp4`;
+        const checkFileUrl = `http://localhost:3010/check-file?filepath=${videoPath}`;
+
+        try {
+          // Fazer requisição HTTP para verificar se o arquivo existe
+          const response = await axios.get(checkFileUrl);
+          const { exists } = response.data;
+          console.log(exists);
+          // Verificar quanto tempo o vídeo está sendo processado
+          const processingTimeInHours = (new Date() - new Date(video.created_at)) / (1000 * 60 * 60);
+
+          let newStatus = "processing"; // Manter o status por padrão
+
+          if (exists) {
+            // Se o arquivo existir, atualizar o status para 'success'
+            newStatus = "success";
+          } else if (!exists && processingTimeInHours > 4) {
+            // Se o arquivo não existir e o tempo for maior que 4 horas, marcar como 'failed'
+            newStatus = "failed";
+          }
+
+          // Atualizar o status no banco de dados, se necessário
+          if (newStatus !== "processing") {
+            let updateStatusQuery = `
+                        UPDATE videos_processed
+                        SET status = ?, updated_at = NOW()
+                        WHERE id = ?
+                    `;
+            await db.query(updateStatusQuery, [newStatus, video.id]);
+          }
+        } catch (err) {
+          Logger.error(`Erro ao verificar arquivo do vídeo ID ${video.id}`, err);
+        }
+      }
+
+      // Passo 2: Continuar a lógica de listagem com paginação e filtros
       let query = `
-        SELECT vp.*, u.email, u.first_name, u.last_name, u.phone
-        FROM videos_processed vp
-        LEFT JOIN users u ON vp.user_id = u.user_id
-        WHERE 1 = 1
-      `;
+            SELECT vp.*, u.email, u.first_name, u.last_name, u.phone
+            FROM videos_processed vp
+            LEFT JOIN users u ON vp.user_id = u.user_id
+            WHERE 1 = 1
+        `;
 
       let totalCountQuery = `
-        SELECT COUNT(*) as count
-        FROM videos_processed vp
-        LEFT JOIN users u ON vp.user_id = u.user_id
-        WHERE 1 = 1
-      `;
+            SELECT COUNT(*) as count
+            FROM videos_processed vp
+            LEFT JOIN users u ON vp.user_id = u.user_id
+            WHERE 1 = 1
+        `;
 
       const params = [];
 
@@ -150,14 +197,14 @@ class VideoController {
       const { userId, credits } = req.body;
 
       if (!userId || credits === undefined) {
-        return res.status(StatusCodes.BAD_REQUEST).json({ status: false, message: "O ID do usuário e os créditos são obrigatórios." });
+        return res.status(StatusCodes.BAD_REQUEST).json({ status: false, message: "O ID do Utilizador e os créditos são obrigatórios." });
       }
 
       const userQuery = `SELECT video_credits FROM users WHERE user_id = ?`;
       const { rows: userRows } = await db.query(userQuery, [userId]);
 
       if (userRows.length === 0) {
-        return res.status(StatusCodes.NOT_FOUND).json({ status: false, message: "Usuário não encontrado." });
+        return res.status(StatusCodes.NOT_FOUND).json({ status: false, message: "Utilizador não encontrado." });
       }
 
       const creditsBefore = userRows[0].video_credits || 0;
@@ -174,7 +221,7 @@ class VideoController {
 
       return res.status(200).json({ status: true, message: "Créditos atualizados com sucesso." });
     } catch (ex) {
-      Logger.error("Ocorreu um erro ao atualizar os créditos do usuário.", ex);
+      Logger.error("Ocorreu um erro ao atualizar os créditos do Utilizador.", ex);
       res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: "Erro Interno do Servidor", message: ex.message });
     }
   }
@@ -183,7 +230,7 @@ class VideoController {
     try {
       const { campo, timeInicio: start_time, timeInicio: end_time, date } = req.body;
       const userId = req.user?.id;
-      
+
       if (!campo || !start_time || !end_time || !date) {
         return res.json({ status: false, message: "Campos em falta" });
       }
@@ -314,7 +361,7 @@ class VideoController {
       }
 
       const videoPath = path.join(__dirname, "..", "..", "videos", `${videoId}.mp4`);
-      
+
       if (!fs.existsSync(videoPath)) {
         return res.json({ status: false, message: "Vídeo não encontrado." });
       }

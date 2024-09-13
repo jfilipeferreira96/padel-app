@@ -67,11 +67,11 @@ app.get("/stream", async (req, res) => {
 });
 
 // http://localhost:3010/cut-video?filename=aaa.mp4&start=00:00:10&end=00:00:60
-app.get('/cut-video', (req, res) => {
+app.get("/cut-video", (req, res) => {
   const { start, end, filename } = req.query;
 
   if (!start || !end || !filename) {
-    return res.status(400).json({ error: 'Start, end, and filename are required' });
+    return res.status(400).json({ error: "Start, end, and filename are required" });
   }
 
   const inputPath = path.join(__dirname, "videos", filename);
@@ -80,28 +80,27 @@ app.get('/cut-video', (req, res) => {
 
   // Verifica se o arquivo de entrada existe
   if (!fs.existsSync(inputPath)) {
-    return res.status(404).json({ error: 'File not found' });
+    return res.status(404).json({ error: "File not found" });
   }
 
   ffmpeg(inputPath)
     .setStartTime(start)
     .setDuration(parseTime(end) - parseTime(start))
     .output(outputPath)
-    .on('end', () => {
-      res.json({ filename: outputFilename });
+    .on("end", () => {
+      res.json({ status: true, filename: outputFilename });
     })
-    .on('error', (err) => {
-      res.status(500).json({ error: err.message });
+    .on("error", (err) => {
+      res.status(500).json({ status: false, error: err.message });
     })
     .run();
 });
 
 // Função auxiliar para converter o tempo no formato HH:MM:SS para segundos
 function parseTime(time) {
-  const [hours, minutes, seconds] = time.split(':').map(Number);
-  return (hours * 3600) + (minutes * 60) + seconds;
+  const [hours, minutes, seconds] = time.split(":").map(Number);
+  return hours * 3600 + minutes * 60 + seconds;
 }
-
 
 // Endpoint para stream cortado de vídeo
 // http://localhost:3010/stream-parsed?start=0&end=10&videoName=aaa.mp4
@@ -245,7 +244,6 @@ app.post("/script", async (req, res) => {
     try {
       const { stdout, stderr } = await execPromise(command);
       return res.json({ status: true, message: "Vídeo processado com sucesso." });
-
     } catch (error) {
       console.error(`Erro ao executar o script Python: ${error.message}`);
       return res.json({ status: false, message: "Erro ao processar o vídeo com o script Python", error: error.message });
@@ -273,7 +271,6 @@ app.get("/teste", async (req, res) => {
 
     // Retorna o resultado para o cliente
     res.json({ status: true, message: "Comando 'ls' executado com sucesso", output: stdout });
-
   } catch (err) {
     console.error("Erro ao executar o comando 'ls':", err);
     res.json({ status: false, message: "Erro ao executar o comando 'ls'" });
