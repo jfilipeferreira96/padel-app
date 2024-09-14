@@ -260,24 +260,45 @@ class VideoController {
       const formattedEndDateTime = `${date} ${end_time}`;
       const fileName = videoId;
 
-      // Montar o comando Python
-      const pythonScriptPath = "/www/padel/padel.py";
-      const command = `python ${pythonScriptPath} '${formattedStartDateTime}' '${formattedEndDateTime}' ${campo} ${fileName}`;
+      /* const pythonScriptPath = "/www/padel/padel.py";
+      const command = `python ${pythonScriptPath} '${formattedStartDateTime}' '${formattedEndDateTime}' ${campo} ${fileName}`; */
       try {
-        // Executar o comando Python
-        const { stdout, stderr } = await execPromise(command);
+        /*  const { stdout, stderr } = await execPromise(command);
         Logger.info(`Saída do script Python: ${stdout}`);
+        */
+        const url = `http://localhost:3010/script`;
+        const body = {
+          campo,
+          start_time,
+          end_time,
+          date,
+          videoId,
+          secret: "a@akas34324_!",
+        };
 
-        const updateCreditsQuery = `UPDATE users SET video_credits = video_credits - 1 WHERE user_id = ?`;
-        await db.query(updateCreditsQuery, [userId]);
+        const response = await axios.post(url, body);
+        if (response.data.status) {
+          const updateCreditsQuery = `UPDATE users SET video_credits = video_credits - 1 WHERE user_id = ?`;
+          await db.query(updateCreditsQuery, [userId]);
 
-        const historyQuery = `
-        INSERT INTO users_credits_history (user_id, credits_before, credits_after, given_by)
-        VALUES (?, ?, ?, ?)
-      `;
-        await db.query(historyQuery, [userId, userCredits, userCredits - 1, req.user?.id || null]);
+          const historyQuery = `
+          INSERT INTO users_credits_history (user_id, credits_before, credits_after, given_by)
+          VALUES (?, ?, ?, ?)
+        `;
+          await db.query(historyQuery, [userId, userCredits, userCredits - 1, req.user?.id || null]);
 
-        return res.json({ status: true, message: "Vídeo processado e créditos atualizados com sucesso." });
+          return res.json({ status: true, message: "Vídeo processado e créditos atualizados com sucesso." });
+        } else {
+          const updateVideoStatusQuery = `
+            UPDATE videos_processed
+            SET status = 'failed', error_message = ?
+            WHERE id = ?
+          `;
+          await db.query(updateVideoStatusQuery, [err.message, videoId]);
+
+          Logger.error(`Erro ao executar o script Python: ${err.message}`);
+          return res.json({ status: false, message: "Erro ao processar o vídeo com o script", error: err.message });
+        }
       } catch (err) {
         // Se o comando Python falhar, atualizar o status do vídeo para "failed"
         const updateVideoStatusQuery = `
@@ -288,7 +309,7 @@ class VideoController {
         await db.query(updateVideoStatusQuery, [err.message, videoId]);
 
         Logger.error(`Erro ao executar o script Python: ${err.message}`);
-        return res.json({ status: false, message: "Erro ao processar o vídeo com o script Python", error: err.message });
+        return res.json({ status: false, message: "Erro ao processar o vídeo com o script", error: err.message });
       }
     } catch (ex) {
       Logger.error("Ocorreu um erro ao processar o vídeo.", ex);

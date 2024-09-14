@@ -386,10 +386,10 @@ function ReviewVideos() {
             </Text>
           </Timeline.Item>
 
-          <Timeline.Item title="Edite e guarde o vídeo" bullet={<IconNumber4 size={16} />}>
+          <Timeline.Item title="Corte e guarde o vídeo" bullet={<IconNumber4 size={16} />}>
             <Text c="dimmed" size="sm">
               <Text variant="link" component="span" inherit>
-                Edite o vídeo final e guarde os seus melhores momentos!
+                Corte o vídeo final e guarde os seus melhores momentos!
               </Text>
             </Text>
           </Timeline.Item>

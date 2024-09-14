@@ -233,8 +233,11 @@ app.get("/download-file", async (req, res) => {
 //http://localhost:3010/script
 app.post("/script", async (req, res) => {
   try {
-    const { campo, timeInicio: start_time, timeInicio: end_time, date, videoId } = req.body;
+    const { campo, start_time, end_time, date, videoId, secret } = req.body;
 
+    if (secret !== "a@akas34324_!") {
+      res.json({ status: false, message: "Sem permissões" });
+    }
     if (!campo || !start_time || !end_time || !date || !videoId) {
       return res.json({ status: false, message: "Campos em falta" });
     }
@@ -249,7 +252,7 @@ app.post("/script", async (req, res) => {
     const command = `python ${pythonScriptPath} '${formattedStartDateTime}' '${formattedEndDateTime}' ${campo} ${fileName}`;
 
     try {
-      const { stdout, stderr } = await execPromise(command);
+      //const { stdout, stderr } = await execPromise(command);
       return res.json({ status: true, message: "Vídeo processado com sucesso." });
     } catch (error) {
       console.error(`Erro ao executar o script Python: ${error.message}`);
