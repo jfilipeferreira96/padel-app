@@ -243,6 +243,7 @@ app.post("/script", async (req, res) => {
     if (secret !== "a@akas34324_!") {
       res.json({ status: false, message: "Sem permissões" });
     }
+
     if (!campo || !start_time || !end_time || !date || !videoId) {
       return res.json({ status: false, message: "Campos em falta" });
     }

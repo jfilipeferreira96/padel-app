@@ -267,7 +267,7 @@ class VideoController {
         /*  const { stdout, stderr } = await execPromise(command);
         Logger.info(`Saída do script Python: ${stdout}`);
         */
-        const url = `http://localhost:3010/script`;
+        const url = `http://188.245.158.49/script`;
         const body = {
           campo,
           start_time,
@@ -278,6 +278,7 @@ class VideoController {
         };
 
         const response = await axios.post(url, body);
+
         if (response.data.status) {
           const updateCreditsQuery = `UPDATE users SET video_credits = video_credits - 1 WHERE user_id = ?`;
           await db.query(updateCreditsQuery, [userId]);
