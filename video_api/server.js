@@ -34,6 +34,11 @@ app.get("/stream", async (req, res) => {
     const fileSize = stat.size;
     const range = req.headers.range;
 
+    const timestamp = Date.now();
+    const fileNameWithTimestamp = `${timestamp}.mp4`;
+
+    res.setHeader("Content-Disposition", `attachment; filename="${fileNameWithTimestamp}"`);
+
     if (!range) {
       // Se o cliente não solicitou um intervalo, retorna o vídeo completo
       res.writeHead(200, {
@@ -82,7 +87,7 @@ app.get("/cut-video", (req, res) => {
   }
 
   const inputPath = path.join(__dirname, "videos", filename);
-  const outputFilename = `filename_${Date.now()}.mp4`;
+  const outputFilename = `temp_${Date.now()}.mp4`;
   const outputPath = path.join(__dirname, "videos", outputFilename);
 
   // Verifica se o arquivo de entrada existe
@@ -287,6 +292,9 @@ app.get("/teste", async (req, res) => {
   }
 });
 
-app.listen(port, () => {
+const server = app.listen(port, () => {
   console.log(`Servidor à escuta na porta ${port}`);
 });
+
+// Aumentar o timeout do servidor Express para 5 minutos (1200000 milissegundos)
+server.setTimeout(1200000);

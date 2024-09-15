@@ -8,6 +8,7 @@ const ffmpeg = require("fluent-ffmpeg");
 const { exec } = require("child_process");
 const util = require("util");
 const execPromise = util.promisify(exec);
+const axios = require("axios");
 
 class VideoController {
   static async getCreditsHistory(req, res, next) {
@@ -92,21 +93,21 @@ class VideoController {
       // Para cada vídeo em processamento, verificar se o arquivo existe
       for (let video of processingVideos.rows) {
         const videoPath = `videos/${video.id}.mp4`;
-        const checkFileUrl = `http://localhost:3010/check-file?filepath=${videoPath}`;
-
+        const checkFileUrl = `http://188.245.158.49:3010/check-file?filepath=${videoPath}`;
+        console.log(videoPath);
         try {
           // Fazer requisição HTTP para verificar se o arquivo existe
           const response = await axios.get(checkFileUrl);
           const { exists } = response.data;
-          console.log(exists);
+          console.log(video.id, exists);
           // Verificar quanto tempo o vídeo está sendo processado
           const processingTimeInHours = (new Date() - new Date(video.created_at)) / (1000 * 60 * 60);
 
           let newStatus = "processing"; // Manter o status por padrão
 
           if (exists) {
-            // Se o arquivo existir, atualizar o status para 'success'
-            newStatus = "success";
+            // Se o arquivo existir, atualizar o status para 'completed'
+            newStatus = "completed";
           } else if (!exists && processingTimeInHours > 4) {
             // Se o arquivo não existir e o tempo for maior que 4 horas, marcar como 'failed'
             newStatus = "failed";

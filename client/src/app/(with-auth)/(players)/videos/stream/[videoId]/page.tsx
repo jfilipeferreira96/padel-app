@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { useSession } from "@/providers/SessionProvider";
-import { Center, Title, Loader, Flex, TextInput, Button, Text } from "@mantine/core";
+import { Center, Title, Loader, Flex, TextInput, Button, Text, Stack } from "@mantine/core";
 import { useRouter } from "next/navigation";
 import { TimeInput } from "@mantine/dates";
 import { getSingleVideoProcessed } from "@/services/video.service";
@@ -41,7 +41,7 @@ function VideoStream({ params }: Props) {
       if (params.videoId) {
         const check = await getSingleVideoProcessed(parseInt(params.videoId));
         if (check.status) {
-          const streamUrl = `http://localhost:3010/stream?videoName=${params.videoId}.mp4`;
+          const streamUrl = `http://188.245.158.49/stream?videoName=${params.videoId}.mp4`;
           setVideoUrl(streamUrl);
           setLoading(false);
         }
@@ -93,10 +93,10 @@ function VideoStream({ params }: Props) {
 
     setIsCutting(true);
     try {
-      const response = await fetch(`http://localhost:3010/cut-video?filename=${params.videoId}.mp4&start=${startTime}&end=${endTime}`);
+      const response = await fetch(`http://188.245.158.49/cut-video?filename=${params.videoId}.mp4&start=${startTime}&end=${endTime}`);
       const res = await response.json();
       if (res.status) {
-        setCuttedVideoUrl(`http://localhost:3010/stream?videoName=${res.filename}.mp4`);
+        setCuttedVideoUrl(`http://188.245.158.49/stream?videoName=${res.filename}`);
       }
     } catch (error) {
       console.error("Erro ao cortar vídeo", error);
@@ -122,7 +122,7 @@ function VideoStream({ params }: Props) {
   return (
     <div>
       <Title mt={15} className="productheader">
-        Blablablabla
+        Vídeo
       </Title>
 
       <Center mt={"lg"}>
@@ -131,7 +131,8 @@ function VideoStream({ params }: Props) {
             O seu navegador não suporta a reprodução de vídeo.
           </video>
         )}
-
+      </Center>
+      <Center mt={"lg"}>
         {cuttedVideoUrl && (
           <video controls src={cuttedVideoUrl} width="80%">
             O seu navegador não suporta a reprodução de vídeo.
@@ -153,10 +154,16 @@ function VideoStream({ params }: Props) {
       )}
 
       <Center mt="md">
-        <Button onClick={handleCutVideo} disabled={loading} loading={isCutting}>
-          {loading ? <Loader size="sm" /> : "Cortar"}
-        </Button>
-        {isCutting && <Text>Este procedimento pode ser demorado. Por favor, aguarde.</Text>}
+        <div style={{ textAlign: "center"}}>
+          <Button onClick={handleCutVideo} disabled={loading} loading={isCutting}>
+            {loading ? <Loader size="sm" /> : "Cortar"}
+          </Button>
+          {isCutting && (
+            <Text size="sm" color="dimmed" mt="xs">
+              Este procedimento pode ser demorado. Por favor, aguarde.
+            </Text>
+          )}
+        </div>
       </Center>
     </div>
   );

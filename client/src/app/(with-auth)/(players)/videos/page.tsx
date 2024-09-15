@@ -166,7 +166,8 @@ function ReviewVideos() {
   const [error, setError] = useState("");
   const router = useRouter();
   const [isSubmiting, setIsSubmiting] = useState<boolean>(false);
-
+  const [firstLoad, setFirstLoad] = useState<boolean>(true);
+  
   const form = useForm({
     initialValues: {
       date: undefined,
@@ -262,8 +263,6 @@ function ReviewVideos() {
   };
 
   const fetchDataConcurrently = async () => {
-    setLoading(true);
-
     const [paramsData, fetchDataResponse] = await Promise.all([fetchParams(), fetchData()]);
 
     if (paramsData) {
@@ -283,6 +282,7 @@ function ReviewVideos() {
     }
 
     setLoading(false);
+    setFirstLoad(false);
   };
 
   useEffect(() => {
@@ -320,7 +320,7 @@ function ReviewVideos() {
   const rows = elementos?.map((element, index) => (
     <Table.Tr key={element.id}>
       <Table.Td>{index + 1}</Table.Td>
-      <Table.Td>{campos.find(c => c.value === element.campo)?.label}</Table.Td>
+      <Table.Td>{campos.find((c) => c.value === element.campo)?.label}</Table.Td>
       <Table.Td>{dayjs(element.date).format("YYYY-MM-DD")}</Table.Td>
       <Table.Td>{element.start_time.slice(0, -3)}</Table.Td>
       <Table.Td>{element.end_time.slice(0, -3)}</Table.Td>
@@ -332,17 +332,19 @@ function ReviewVideos() {
       </Table.Td>
       <Table.Td>
         <Group gap={0} justify="center">
-          <Tooltip label={"Consultar vídeo"} withArrow position="top">
-            <ActionIcon
-              variant="subtle"
-              color="gray"
-              onClick={() => {
-                router.push(`${routes.stream.url}/${element.id}`);
-              }}
-            >
-              <IconEye style={{ width: rem(20), height: rem(20) }} stroke={1.5} />
-            </ActionIcon>
-          </Tooltip>
+          {element.status === 'completed' ? (
+            <Tooltip label={"Consultar vídeo"} withArrow position="top">
+              <ActionIcon
+                variant="subtle"
+                color="gray"
+                onClick={() => {
+                  router.push(`${routes.stream.url}/${element.id}`);
+                }}
+              >
+                <IconEye style={{ width: rem(20), height: rem(20) }} stroke={1.5} />
+              </ActionIcon>
+            </Tooltip>
+          ) : "-"}
         </Group>
       </Table.Td>
     </Table.Tr>
