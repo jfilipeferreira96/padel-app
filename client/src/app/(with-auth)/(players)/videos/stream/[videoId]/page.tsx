@@ -41,7 +41,7 @@ function VideoStream({ params }: Props) {
       if (params.videoId) {
         const check = await getSingleVideoProcessed(parseInt(params.videoId));
         if (check.status) {
-          const streamUrl = `http://188.245.158.49/stream?videoName=${params.videoId}.mp4`;
+          const streamUrl = `${process.env.NEXT_URL_API_VIDEOS || "https://www.videos-pro-padel.top"}/stream?videoName=${params.videoId}.mp4`;
           setVideoUrl(streamUrl);
           setLoading(false);
         }
@@ -93,10 +93,10 @@ function VideoStream({ params }: Props) {
 
     setIsCutting(true);
     try {
-      const response = await fetch(`http://188.245.158.49/cut-video?filename=${params.videoId}.mp4&start=${startTime}&end=${endTime}`);
+      const response = await fetch(`${process.env.NEXT_URL_API_VIDEOS || "https://www.videos-pro-padel.top"}/cut-video?filename=${params.videoId}.mp4&start=${startTime}&end=${endTime}`);
       const res = await response.json();
       if (res.status) {
-        setCuttedVideoUrl(`http://188.245.158.49/stream?videoName=${res.filename}`);
+        setCuttedVideoUrl(`${process.env.NEXT_URL_API_VIDEOS || "https://www.videos-pro-padel.top"}/stream?videoName=${res.filename}`);
       }
     } catch (error) {
       console.error("Erro ao cortar vídeo", error);

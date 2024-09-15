@@ -186,7 +186,8 @@ function ReviewVideos() {
       date: dayjs(data.date).format("YYYY-MM-DD"),
       campo: campos.find(c => c.label === data.campo)?.value
     };
-    
+    console.log(payload)
+
     try {
       const response = await addVideoProcessed(payload);
        if (response.status) {

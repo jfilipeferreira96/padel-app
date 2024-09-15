@@ -93,13 +93,13 @@ class VideoController {
       // Para cada vídeo em processamento, verificar se o arquivo existe
       for (let video of processingVideos.rows) {
         const videoPath = `videos/${video.id}.mp4`;
-        const checkFileUrl = `http://188.245.158.49:3010/check-file?filepath=${videoPath}`;
-        console.log(videoPath);
+        const checkFileUrl = `${process.env.URL_API_VIDEOS}/check-file?filepath=${videoPath}`;
+
         try {
           // Fazer requisição HTTP para verificar se o arquivo existe
           const response = await axios.get(checkFileUrl);
           const { exists } = response.data;
-          console.log(video.id, exists);
+
           // Verificar quanto tempo o vídeo está sendo processado
           const processingTimeInHours = (new Date() - new Date(video.created_at)) / (1000 * 60 * 60);
 
@@ -267,7 +267,7 @@ class VideoController {
         /*  const { stdout, stderr } = await execPromise(command);
         Logger.info(`Saída do script Python: ${stdout}`);
         */
-        const url = `http://188.245.158.49/script`;
+        const url = `${process.env.URL_API_VIDEOS}/script`;
         const body = {
           campo,
           start_time,
