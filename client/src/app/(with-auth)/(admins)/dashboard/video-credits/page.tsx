@@ -169,7 +169,7 @@ function VideoCredits() {
               <Table.Tr>
                 <Table.Th>Nome</Table.Th>
                 <Table.Th>Email</Table.Th>
-                <Table.Th>Telefone</Table.Th>
+                <Table.Th>Telemóvel</Table.Th>
                 <Table.Th>Créditos Antes</Table.Th>
                 <Table.Th>Créditos Depois</Table.Th>
                 <Table.Th>Atribuido Por</Table.Th>

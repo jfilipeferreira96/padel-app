@@ -280,7 +280,7 @@ function VoucherHistory() {
                 <Table.Th>Voucher</Table.Th>
                 <Table.Th>Nome</Table.Th>
                 <Table.Th>Email</Table.Th>
-                <Table.Th>Telefone</Table.Th>
+                <Table.Th>Telemóvel</Table.Th>
                 <Table.Th>Atribuido Por</Table.Th>
                 <Table.Th>Data de Atribuição</Table.Th>
                 <Table.Th>Razão</Table.Th>

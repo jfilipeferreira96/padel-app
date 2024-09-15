@@ -181,12 +181,14 @@ function ReviewVideos() {
   const onSubmitHandler = useCallback(async (data: any) => {
     setIsSubmiting(true);
     
+
     const payload = {
       ...data,
       date: dayjs(data.date).format("YYYY-MM-DD"),
       campo: campos.find(c => c.label === data.campo)?.value
     };
 
+ 
     try {
       const response = await addVideoProcessed(payload);
        if (response.status) {
@@ -213,7 +215,7 @@ function ReviewVideos() {
     } finally {
       setIsSubmiting(false);
     } 
-  }, []);
+  }, [campos]);
 
   const handlePageChange = (page: number) => {
     setActivePage(page);
