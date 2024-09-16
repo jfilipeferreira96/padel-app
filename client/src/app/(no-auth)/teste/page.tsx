@@ -1,156 +1,183 @@
 "use client";
 import
-{
-    TextInput,
-    PasswordInput,
-    Checkbox,
-    Anchor,
-    Paper,
-    Title,
-    Text,
-    Container,
-    Group,
-    Button,
-    Center,
-    Flex,
-    useComputedColorScheme,
-    UnstyledButton,
-} from "@mantine/core";
-import { useForm, zodResolver } from "@mantine/form";
-import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
-import { notifications } from "@mantine/notifications";
-import { routes } from "@/config/routes";
-import styled from "styled-components";
-import { z } from "zod";
+    {
+        Title,
+        Text,
+        Center,
+        Flex,
+        Button,
+    } from "@mantine/core";
+import { useEffect, useState } from "react";
 import { createFFmpeg, fetchFile } from "@ffmpeg/ffmpeg";
 import { TimeInput } from "@mantine/dates";
 
-// Tipagem para o retorno da função readFileAsBase64
+// Função para ler arquivo como Base64
 const readFileAsBase64 = async (file: File): Promise<string | ArrayBuffer | null> =>
 {
     return new Promise((resolve, reject) =>
     {
         const reader = new FileReader();
-        reader.onload = () =>
-        {
-            resolve(reader.result);
-        };
+        reader.onload = () => resolve(reader.result);
         reader.onerror = reject;
         reader.readAsDataURL(file);
     });
 };
 
+// Inicializando FFmpeg
 const FF = createFFmpeg({
     corePath: "https://unpkg.com/@ffmpeg/core@0.10.0/dist/ffmpeg-core.js",
 });
 
 export default function Teste()
 {
-    const [inputVideoFile, setInputVideoFile] = useState<File | null>(null); // Tipagem correta para File
-    const [trimmedVideoFile, setTrimmedVideoFile] = useState<File | null>(null);
-    const [videoMeta, setVideoMeta] = useState<{
-        name: string;
-        duration: number;
-        videoWidth: number;
-        videoHeight: number;
-    } | null>(null);
-    const [url, setUrl] = useState<string>(""); // Renomeado para evitar conflito com URL do browser
-    const [trimIsProcessing, setTrimIsProcessing] = useState(false);
-    const [videoUrl, setVideoUrl] = useState<string | null>(null);
-    const [videoDuration, setVideoDuration] = useState<number | null>(null);
+    const [inputVideoFile, setInputVideoFile] = useState<File | null>(null);
+    const [streamUrl] = useState<string>("http://localhost:3010/stream?videoName=1.mp4"); // URL do streaming
+    const [trimmedVideoUrl, setTrimmedVideoUrl] = useState<string | null>(null); // URL do vídeo cortado
+    const [ready, setReady] = useState(false); // Para indicar quando o FFmpeg estiver pronto
+    const [compatible, setCompatible] = useState(false); // Para verificar compatibilidade do FFmpeg
     const [startTime, setStartTime] = useState<string>("00:00:00");
     const [endTime, setEndTime] = useState<string>("00:00:00");
-    const [rStart, setRstart] = useState<number>(0);
-    const [rEnd, setRend] = useState<number>(10);
-    const [thumbNails, setThumbNails] = useState<string[]>([]);
-    const [thumbnailIsProcessing, setThumbnailIsProcessing] = useState(false);
+    const [isTrimming, setIsTrimming] = useState(false); // Indicador de processamento
+    const [downloadComplete, setDownloadComplete] = useState(false); // Indicar que o vídeo foi baixado
 
-    const [ready, setReady] = useState(false);
-    const [compatible, setCompatible] = useState(false);
-
-    const loadVideo = async () =>
+    // Função para baixar o vídeo para manipulação
+    const downloadVideo = async () =>
     {
-        //const videoStreaming = "http://localhost:3010/stream?fileName=1.mp4"; // Stream
-
         const videoUrl = "http://localhost:3010/download-file?filepath=videos/1.mp4"; // URL de download
-        console.log('entrei')
         try
         {
             const response = await fetch(videoUrl);
-
             const blob = await response.blob();
             const file = new File([blob], "video.mp4", { type: "video/mp4" });
 
-            setInputVideoFile(file);
-            setUrl((await readFileAsBase64(file)) as string); // Garantindo que a URL seja uma string
+            setInputVideoFile(file); // Armazena o arquivo para manipulação com FFmpeg
+            setDownloadComplete(true); // Indica que o download está completo
         } catch (error)
         {
-            console.log("Erro ao carregar o vídeo: ", error);
+            console.log("Erro ao baixar o vídeo: ", error);
         }
     };
-    const load = async () =>
+
+    // Função para carregar e verificar FFmpeg
+    const loadFFmpeg = async () =>
     {
         try
         {
-            await FF.load();
+            await FF.load(); // Carregando FFmpeg
             setReady(true);
-            setCompatible(true);
-            loadVideo();
+            setCompatible(true); // FFmpeg carregado e pronto para uso
         } catch (error)
         {
-            console.log(error);
+            console.log("Erro ao carregar FFmpeg: ", error);
             setReady(true);
-            setCompatible(false);
+            setCompatible(false); // Caso o FFmpeg falhe, definimos o navegador como não compatível
         }
     };
+
     useEffect(() =>
     {
-        load();
+        loadFFmpeg(); // Verificar FFmpeg quando o componente for montado
+        downloadVideo(); // Baixar o vídeo em segundo plano
     }, []);
 
-    const handleLoadedData = async (e: React.SyntheticEvent<HTMLVideoElement>) =>
+    // Função para cortar o vídeo usando FFmpeg
+    const trimVideo = async () =>
     {
-        const el = e.currentTarget;
-        if (!inputVideoFile) return;
+        if (!compatible || !inputVideoFile) return;
 
-        const meta = {
-            name: inputVideoFile.name,
-            duration: el.duration,
-            videoWidth: el.videoWidth,
-            videoHeight: el.videoHeight,
-        };
-        setVideoMeta(meta);
+        setIsTrimming(true); // Indicador de que o corte está em andamento
+        setReady(false); // Desativa interações enquanto processa
+
+        try
+        {
+            // Adicionando o vídeo no sistema de arquivos do FFmpeg
+            FF.FS("writeFile", "input.mp4", await fetchFile(inputVideoFile));
+
+            // Executando o comando de corte no FFmpeg
+            await FF.run(
+                "-i", "input.mp4", // Arquivo de entrada
+                "-ss", startTime, // Hora de início
+                "-to", endTime, // Hora de fim
+                "-c", "copy", // Copiar codecs sem recodificar
+                "output.mp4" // Arquivo de saída
+            );
+
+            // Lendo o arquivo cortado do sistema de arquivos virtual do FFmpeg
+            const data = FF.FS("readFile", "output.mp4");
+
+            // Criando um Blob para o arquivo de saída
+            const trimmedBlob = new Blob([data.buffer], { type: "video/mp4" });
+
+            // Gerando URL para download ou exibição
+            const trimmedUrl = URL.createObjectURL(trimmedBlob);
+            setTrimmedVideoUrl(trimmedUrl); // Atualizando a URL do vídeo cortado
+        } catch (error)
+        {
+            console.log("Erro ao cortar o vídeo: ", error);
+        } finally
+        {
+            setIsTrimming(false); // Fim do processo de corte
+            setReady(true); // Reativar interações
+        }
     };
 
     return (
         <div>
-            <Title mt={15} className="productheader">
-                Vídeo
-            </Title>
+            <Title mt={15}>Vídeo via Stream</Title>
             <Center mt={"lg"}>
                 {!ready ? (
-                    <Text>A carregar</Text>
+                    <Text>A carregar...</Text>
                 ) : !compatible ? (
-                    <Text>O seu browser não é compativel para fazer cortes.</Text>
+                    <Text>O seu browser não é compatível para manipular vídeos com FFmpeg.</Text>
                 ) : (
                     <div>
+                        {/* Exibição do vídeo via stream */}
                         <video
-                            src={inputVideoFile ? url : undefined} // Evitar null, undefined é o mais adequado
-                            autoPlay
+                            src={streamUrl} // Exibe o vídeo via stream
                             controls
-                            onLoadedMetadata={handleLoadedData}
                             width="450"
                         />
 
+                        {/* Exibir controles de corte após o download */}
+                        {downloadComplete && (
+                            <div>
                                 <Flex justify="center" align="center" mt="md">
-                                    <TimeInput withSeconds label="Hora de início (HH:MM:SS)" value={startTime} onChange={(event) => setStartTime(event.currentTarget.value)} placeholder="00:00:10" />
-                                    <TimeInput withSeconds label="Hora de fim (HH:MM:SS)" value={endTime} onChange={(event) => setEndTime(event.currentTarget.value)} placeholder="00:01:00" ml="md" />
+                                    <TimeInput
+                                        withSeconds
+                                        label="Hora de início (HH:MM:SS)"
+                                        value={startTime}
+                                        onChange={(event) => setStartTime(event.currentTarget.value)}
+                                        placeholder="00:00:10"
+                                    />
+                                    <TimeInput
+                                        withSeconds
+                                        label="Hora de fim (HH:MM:SS)"
+                                        value={endTime}
+                                        onChange={(event) => setEndTime(event.currentTarget.value)}
+                                        placeholder="00:01:00"
+                                        ml="md"
+                                    />
                                 </Flex>
+
+                                {/* Botão para cortar o vídeo */}
+                                <Button mt="md" onClick={trimVideo} disabled={isTrimming}>
+                                    {isTrimming ? "Cortando..." : "Cortar Vídeo"}
+                                </Button>
                             </div>
+                        )}
 
-
-
+                        {/* Exibição do vídeo cortado */}
+                        {trimmedVideoUrl && (
+                            <div>
+                                <Title mt={15}>Vídeo Cortado</Title>
+                                <video
+                                    src={trimmedVideoUrl}
+                                    controls
+                                    width="450"
+                                />
+                            </div>
+                        )}
+                    </div>
                 )}
             </Center>
         </div>
