@@ -1,21 +1,21 @@
 "use client";
 import
-    {
-        TextInput,
-        PasswordInput,
-        Checkbox,
-        Anchor,
-        Paper,
-        Title,
-        Text,
-        Container,
-        Group,
-        Button,
-        Center,
-        Flex,
-        useComputedColorScheme,
-        UnstyledButton,
-    } from "@mantine/core";
+{
+    TextInput,
+    PasswordInput,
+    Checkbox,
+    Anchor,
+    Paper,
+    Title,
+    Text,
+    Container,
+    Group,
+    Button,
+    Center,
+    Flex,
+    useComputedColorScheme,
+    UnstyledButton,
+} from "@mantine/core";
 import { useForm, zodResolver } from "@mantine/form";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
@@ -24,6 +24,7 @@ import { routes } from "@/config/routes";
 import styled from "styled-components";
 import { z } from "zod";
 import { createFFmpeg, fetchFile } from "@ffmpeg/ffmpeg";
+import { TimeInput } from "@mantine/dates";
 
 // Tipagem para o retorno da função readFileAsBase64
 const readFileAsBase64 = async (file: File): Promise<string | ArrayBuffer | null> =>
@@ -77,10 +78,10 @@ export default function Teste()
         try
         {
             const response = await fetch(videoUrl);
-           
+
             const blob = await response.blob();
             const file = new File([blob], "video.mp4", { type: "video/mp4" });
-            
+
             setInputVideoFile(file);
             setUrl((await readFileAsBase64(file)) as string); // Garantindo que a URL seja uma string
         } catch (error)
@@ -121,26 +122,36 @@ export default function Teste()
         };
         setVideoMeta(meta);
     };
-    
+
     return (
         <div>
             <Title mt={15} className="productheader">
                 Vídeo
             </Title>
-        <Center mt={"lg"}>
-            {!ready ? (
-                <Text>A carregar</Text>
-            ) : !compatible ? (
-                <Text>O seu browser não é compativel para fazer cortes.</Text>
-            ) : (
-                <video
-                    src={inputVideoFile ? url : undefined} // Evitar null, undefined é o mais adequado
-                    autoPlay
-                    controls
-                    onLoadedMetadata={handleLoadedData}
-                    width="450"
-                />
-            )} 
+            <Center mt={"lg"}>
+                {!ready ? (
+                    <Text>A carregar</Text>
+                ) : !compatible ? (
+                    <Text>O seu browser não é compativel para fazer cortes.</Text>
+                ) : (
+                    <div>
+                        <video
+                            src={inputVideoFile ? url : undefined} // Evitar null, undefined é o mais adequado
+                            autoPlay
+                            controls
+                            onLoadedMetadata={handleLoadedData}
+                            width="450"
+                        />
+
+                                <Flex justify="center" align="center" mt="md">
+                                    <TimeInput withSeconds label="Hora de início (HH:MM:SS)" value={startTime} onChange={(event) => setStartTime(event.currentTarget.value)} placeholder="00:00:10" />
+                                    <TimeInput withSeconds label="Hora de fim (HH:MM:SS)" value={endTime} onChange={(event) => setEndTime(event.currentTarget.value)} placeholder="00:01:00" ml="md" />
+                                </Flex>
+                            </div>
+
+
+
+                )}
             </Center>
         </div>
     );
