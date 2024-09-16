@@ -15,6 +15,11 @@ app.use(cors());
 // Middleware para lidar com JSON no corpo das requisições
 app.use(express.json());
 
+app.use((req, res, next) => {
+  res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+  next();
+});
+
 // ENVIA POR STREAM O VIDEO
 // http://localhost:3010/stream?videoName=aaa.mp4
 app.get("/stream", async (req, res) => {
