@@ -6,6 +6,23 @@ const nextConfig = {
     NEXT_PUBLIC_API: process.env.NEXT_PUBLIC_API,
     NEXT_URL_API_VIDEOS: process.env.NEXT_URL_API_VIDEOS,
   },
+  async headers() {
+    return [
+      {
+        source: "/(.*)",
+        headers: [
+          {
+            key: 'Cross-Origin-Embedder-Policy',
+            value: 'require-corp',
+          },
+          {
+            key: 'Cross-Origin-Opener-Policy',
+            value: 'same-origin',
+          },
+        ],
+      },
+    ];
+  },
 };
 
 module.exports = nextConfig;
