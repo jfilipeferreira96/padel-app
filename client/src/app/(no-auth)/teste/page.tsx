@@ -23,7 +23,6 @@ import { notifications } from "@mantine/notifications";
 import { routes } from "@/config/routes";
 import styled from "styled-components";
 import { z } from "zod";
-import Image from "next/image";
 import { createFFmpeg, fetchFile } from "@ffmpeg/ffmpeg";
 
 // Tipagem para o retorno da função readFileAsBase64
@@ -71,6 +70,8 @@ export default function Teste()
 
     const loadVideo = async () =>
     {
+        //const videoStreaming = "http://localhost:3010/stream?fileName=1.mp4"; // Stream
+
         const videoUrl = "http://localhost:3010/download-file?filepath=videos/1.mp4"; // URL de download
         console.log('entrei')
         try
@@ -122,14 +123,25 @@ export default function Teste()
     };
     
     return (
-        <Center>
-             <video
-                src={inputVideoFile ? url : undefined} // Evitar null, undefined é o mais adequado
-                autoPlay
-                controls
-                onLoadedMetadata={handleLoadedData}
-                width="450"
-            /> 
-        </Center>
+        <div>
+            <Title mt={15} className="productheader">
+                Vídeo
+            </Title>
+        <Center mt={"lg"}>
+            {!ready ? (
+                <Text>A carregar</Text>
+            ) : !compatible ? (
+                <Text>O seu browser não é compativel para fazer cortes.</Text>
+            ) : (
+                <video
+                    src={inputVideoFile ? url : undefined} // Evitar null, undefined é o mais adequado
+                    autoPlay
+                    controls
+                    onLoadedMetadata={handleLoadedData}
+                    width="450"
+                />
+            )} 
+            </Center>
+        </div>
     );
 }
