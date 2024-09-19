@@ -64,8 +64,7 @@ export default function TesteE({ params }: Props){
     const isMobile = useMediaQuery("(max-width: 657px)");
 
     const downloadVideo = async () => {
-        //const videoUrl = `${process.env.NEXT_URL_API_VIDEOS || "https://www.videos-pro-padel.top"}/download-file?filepath=videos/${params.videoId}.mp4`;
-        const videoUrl = "http://localhost:3010/download-file?filepath=videos/1.mp4";
+        const videoUrl = `${process.env.NEXT_URL_API_VIDEOS}/download-file?filepath=videos/${params.videoId}.mp4`;
 
         try
         {
@@ -75,6 +74,7 @@ export default function TesteE({ params }: Props){
 
             setInputVideoFile(file); // Armazena o arquivo para manipulação com FFmpeg
             setDownloadComplete(true); 
+            setLoading(false);
         }
         catch (error)
         {
@@ -83,8 +83,7 @@ export default function TesteE({ params }: Props){
     };
 
     // Função para carregar e verificar FFmpeg
-    const loadFFmpeg = async () =>
-    {
+    const loadFFmpeg = async () => {
         try
         {
             await FF.load(); // Carregando FFmpeg
@@ -132,8 +131,7 @@ export default function TesteE({ params }: Props){
                 const check ={ status:true, message: "REMOVER ISTO"};
                 if (check.status)
                 {
-                    //const streamUrl = `${process.env.NEXT_URL_API_VIDEOS || "https://www.videos-pro-padel.top"}/stream?videoName=${params.videoId}.mp4`;
-                    const streamUrl = "http://localhost:3010/stream?videoName=1.mp4";
+                    const streamUrl = `${process.env.NEXT_URL_API_VIDEOS}/stream?videoName=${params.videoId}.mp4`;
 
                     setStreamUrl(streamUrl);
                     setLoading(false);
@@ -156,6 +154,7 @@ export default function TesteE({ params }: Props){
     };
 
     useEffect(() => {
+        //downloadVideo()
         fetchStreamVideo().finally(() => downloadVideo());
         loadFFmpeg(); 
     }, []);
@@ -241,14 +240,20 @@ export default function TesteE({ params }: Props){
                 ) : (
                     <div>
                         {/* Exibir controles de corte após o download */}
-                        {downloadComplete && (
+                        {!downloadComplete &&
+                            <div>
+                                Aguarde um pouco, para efetuar cortes enquanto carregamos o vídeo inteiro.
+                            </div>
+                        }
+                        {(
                             <div>
                                 <Flex justify="center" align="center">
-                                    <TimeInput withSeconds label="Hora de início (HH:MM:SS)" value={startTime} onChange={(event) => setStartTime(event.currentTarget.value)} placeholder="00:00:10" />
-                                    <TimeInput withSeconds label="Hora de fim (HH:MM:SS)" value={endTime} onChange={(event) => setEndTime(event.currentTarget.value)} placeholder="00:01:00" ml="md" />
+                                    <TimeInput disabled={!downloadComplete} withSeconds label="Hora de início (HH:MM:SS)" value={startTime} onChange={(event) => setStartTime(event.currentTarget.value)} placeholder="00:00:10" />
+                                            
+                                    <TimeInput disabled={!downloadComplete} withSeconds label="Hora de fim (HH:MM:SS)" value={endTime} onChange={(event) => setEndTime(event.currentTarget.value)} placeholder="00:01:00" ml="md" />
                                 </Flex>
                                     <Center mt="sm">
-                                        <Button onClick={trimVideo} disabled={isTrimming} loading={isTrimming}>
+                                        <Button onClick={trimVideo} disabled={isTrimming || !downloadComplete} loading={isTrimming}>
                                             {loading ? <Loader size="sm" /> : "Cortar"}
                                         </Button>
                                     </Center>
@@ -263,7 +268,6 @@ export default function TesteE({ params }: Props){
                             </Center>
                         )}
 
-                        {/* Exibição do vídeo cortado */}
                         {trimmedVideoUrl && (
                             <div style={{ marginTop: "1rem", marginBottom:"1rem" }}>
                                 <video

@@ -43,14 +43,13 @@ app.get("/stream", async (req, res) => {
     const fileNameWithTimestamp = `${timestamp}.mp4`;
 
     res.setHeader("Content-Disposition", `attachment; filename="${fileNameWithTimestamp}"`);
-
-    if (!range) {
+    
+    if (!range){
       // Se o cliente não solicitou um intervalo, retorna o vídeo completo
       res.writeHead(200, {
         "Content-Length": fileSize,
         "Content-Type": "video/mp4",
       });
-
       // Enviar o arquivo completo
       const videoStream = fs.createReadStream(videoPath);
       videoStream.pipe(res);
@@ -84,7 +83,7 @@ app.get("/stream", async (req, res) => {
 });
 
 // http://localhost:3010/cut-video?filename=aaa.mp4&start=00:00:10&end=00:00:60
-app.get("/cut-video", (req, res) => {
+/* app.get("/cut-video", (req, res) => {
   const { start, end, filename } = req.query;
 
   if (!start || !end || !filename) {
@@ -111,7 +110,7 @@ app.get("/cut-video", (req, res) => {
       res.status(500).json({ status: false, error: err.message });
     })
     .run();
-});
+}); */
 
 // Função auxiliar para converter o tempo no formato HH:MM:SS para segundos
 function parseTime(time) {
@@ -121,7 +120,7 @@ function parseTime(time) {
 
 // Endpoint para stream cortado de vídeo
 // http://localhost:3010/stream-parsed?start=0&end=10&videoName=aaa.mp4
-app.get("/stream-parsed", async (req, res) => {
+/* app.get("/stream-parsed", async (req, res) => {
   try {
     const { start, end, videoName } = req.query;
 
@@ -185,7 +184,7 @@ app.get("/stream-parsed", async (req, res) => {
     res.json({ status: false, message: "Erro no stream cortado" });
   }
 });
-
+ */
 // Endpoint para verificar se o arquivo existe
 //http://localhost:3010/check-file?filepath=videos/aaa.mp4
 app.get("/check-file", async (req, res) => {
@@ -259,11 +258,11 @@ app.post("/script", async (req, res) => {
     const fileName = videoId;
 
     // Montar o comando Python
-    const pythonScriptPath = "/www/padel/padel.py";
+    const pythonScriptPath = "root/scripts/padel.py";
     const command = `python ${pythonScriptPath} '${formattedStartDateTime}' '${formattedEndDateTime}' ${campo} ${fileName}`;
 
     try {
-      //const { stdout, stderr } = await execPromise(command);
+      const { stdout, stderr } = await execPromise(command);
       return res.json({ status: true, message: "Vídeo processado com sucesso." });
     } catch (error) {
       console.error(`Erro ao executar o script Python: ${error.message}`);
