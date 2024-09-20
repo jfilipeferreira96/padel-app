@@ -1,17 +1,39 @@
 "use client";
-import React, { useState, useEffect } from "react";
-import { useSession } from "@/providers/SessionProvider";
-import { Center, Title, Loader, Flex, TextInput, Button, Text, Stack } from "@mantine/core";
-import { useRouter } from "next/navigation";
+import
+  {
+    Title,
+    Text,
+    Center,
+    Flex,
+    Button,
+    Loader,
+  } from "@mantine/core";
+import { useEffect, useState } from "react";
+import { createFFmpeg, fetchFile } from "@ffmpeg/ffmpeg";
 import { TimeInput } from "@mantine/dates";
+import { useSession } from "@/providers/SessionProvider";
+import { useRouter } from "next/navigation";
 import { getSingleVideoProcessed } from "@/services/video.service";
 import { notifications } from "@mantine/notifications";
+import { useMediaQuery } from "@mantine/hooks";
 
-interface Props {
-  params: { videoId: string };
-}
+const readFileAsBase64 = async (file: File): Promise<string | ArrayBuffer | null> =>
+{
+  return new Promise((resolve, reject) =>
+  {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+};
 
-const secondsToHms = (seconds: number) => {
+const FF = createFFmpeg({
+  corePath: "https://unpkg.com/@ffmpeg/core@0.10.0/dist/ffmpeg-core.js",
+});
+
+const secondsToHms = (seconds: number) =>
+{
   const hours = Math.floor(seconds / 3600);
   const minutes = Math.floor((seconds % 3600) / 60);
   const secs = Math.floor(seconds % 60);
@@ -19,67 +41,86 @@ const secondsToHms = (seconds: number) => {
   return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
 };
 
-const hmsToSeconds = (hms: string) => {
+const hmsToSeconds = (hms: string) =>
+{
   const [hours, minutes, seconds] = hms.split(":").map(Number);
   return hours * 3600 + minutes * 60 + seconds;
 };
 
-function VideoStream({ params }: Props) {
-  const { user } = useSession();
-  const [loading, setLoading] = useState<boolean>(true);
-  const [videoUrl, setVideoUrl] = useState<string | null>(null);
-  const [videoDuration, setVideoDuration] = useState<number | null>(null);
-  const [startTime, setStartTime] = useState("00:00:00");
-  const [endTime, setEndTime] = useState("00:00:00");
-  const [cuttedVideoUrl, setCuttedVideoUrl] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const router = useRouter();
-  const [isCutting, setIsCutting] = useState<boolean>(false);
+interface Props
+{
+  params: { videoId: string };
+}
 
-  const fetchCompleteVideo = async () => {
-    try {
-      if (params.videoId) {
-        const check = await getSingleVideoProcessed(parseInt(params.videoId));
-        if (check.status) {
-          const streamUrl = `${process.env.NEXT_URL_API_VIDEOS || "https://www.videos-pro-padel.top"}/stream?videoName=${params.videoId}.mp4`;
-          setVideoUrl(streamUrl);
-          setLoading(false);
-        }
-        else {
-          notifications.show({
-            message: check.message,
-            color: "red",
-          });
-          router.back();
-        }
-        
-      }
-    } catch (error) {
+export default function TesteE({ params }: Props)
+{
+  //const { user } = useSession();
+  const [inputVideoFile, setInputVideoFile] = useState<File | null>(null);
+  const [streamUrl, setStreamUrl] = useState<string | null>(null); // URL do streaming
+  const [trimmedVideoUrl, setTrimmedVideoUrl] = useState<string | null>(null); // URL do vídeo cortado
+  const [ready, setReady] = useState(false); // Para indicar quando o FFmpeg estiver pronto
+  const [compatible, setCompatible] = useState(false); // Para verificar compatibilidade do FFmpeg
+  const [startTime, setStartTime] = useState<string>("00:00:00");
+  const [endTime, setEndTime] = useState<string>("00:00:00");
+  const [isTrimming, setIsTrimming] = useState(false); // Indicador de processamento
+  const [downloadComplete, setDownloadComplete] = useState(false); // Indicar que o vídeo foi baixado
+  const router = useRouter();
+  const [loading, setLoading] = useState<boolean>(true);
+  const [videoDuration, setVideoDuration] = useState<number | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const isMobile = useMediaQuery("(max-width: 657px)");
+
+  const downloadVideo = async () =>
+  {
+    const videoUrl = `${process.env.NEXT_URL_API_VIDEOS}/download-file?filepath=videos/${params.videoId}.mp4`;
+
+    try
+    {
+      const response = await fetch(videoUrl);
+      const blob = await response.blob();
+      const file = new File([blob], "video.mp4", { type: "video/mp4" });
+
+      setInputVideoFile(file); // Armazena o arquivo para manipulação com FFmpeg
+      setDownloadComplete(true);
       setLoading(false);
-      console.error("Erro ao carregar vídeo completo:", error);
+    }
+    catch (error)
+    {
+      console.log("Erro ao baixar o vídeo: ", error);
     }
   };
 
-  const handleMetadataLoaded = (event: React.ChangeEvent<HTMLVideoElement>) => {
-    const video = event.currentTarget;
-    const durationInSeconds = video.duration;
-    setVideoDuration(durationInSeconds);
-
-    setEndTime(secondsToHms(durationInSeconds));
+  // Função para carregar e verificar FFmpeg
+  const loadFFmpeg = async () =>
+  {
+    try
+    {
+      await FF.load(); // Carregando FFmpeg
+      setReady(true);
+      setCompatible(true); // FFmpeg carregado e pronto para uso
+    } catch (error)
+    {
+      console.log("Erro ao carregar FFmpeg: ", error);
+      setReady(true);
+      setCompatible(false); // Caso o FFmpeg falhe, definimos o navegador como não compatível
+    }
   };
 
-  const validateTimes = () => {
+  const validateTimes = () =>
+  {
     if (!videoDuration) return false;
     const startSeconds = hmsToSeconds(startTime);
     const endSeconds = hmsToSeconds(endTime);
     const durationSeconds = videoDuration;
 
-    if (startSeconds > endSeconds) {
+    if (startSeconds > endSeconds)
+    {
       setError("A hora de início não pode ser maior que a hora de fim.");
       return false;
     }
 
-    if (startSeconds < 0 || endSeconds > durationSeconds) {
+    if (startSeconds < 0 || endSeconds > durationSeconds)
+    {
       setError("As horas de início e fim devem estar dentro dos parâmetros do vídeo.");
       return false;
     }
@@ -88,30 +129,102 @@ function VideoStream({ params }: Props) {
     return true;
   };
 
-  const handleCutVideo = async () => {
-    if (!validateTimes()) return;
+  const fetchStreamVideo = async () =>
+  {
+    try
+    {
+      if (params.videoId)
+      {
+        //const check = await getSingleVideoProcessed(parseInt(params.videoId));
+        //console.log(check)
+        const check = { status: true, message: "REMOVER ISTO" };
+        if (check.status)
+        {
+          const streamUrl = `${process.env.NEXT_URL_API_VIDEOS}/stream?videoName=${params.videoId}.mp4`;
 
-    setIsCutting(true);
-    try {
-      const response = await fetch(`${process.env.NEXT_URL_API_VIDEOS || "https://www.videos-pro-padel.top"}/cut-video?filename=${params.videoId}.mp4&start=${startTime}&end=${endTime}`);
-      const res = await response.json();
-      if (res.status) {
-        setCuttedVideoUrl(`${process.env.NEXT_URL_API_VIDEOS || "https://www.videos-pro-padel.top"}/stream?videoName=${res.filename}`);
+          setStreamUrl(streamUrl);
+          setLoading(false);
+        }
+        else
+        {
+          notifications.show({
+            message: check.message,
+            color: "red",
+          });
+          router.back();
+        }
+
       }
-    } catch (error) {
-      console.error("Erro ao cortar vídeo", error);
-    } finally {
-      setIsCutting(false);
+    } catch (error)
+    {
+      setLoading(false);
+      console.error("Erro ao carregar vídeo completo:", error);
     }
   };
 
-  useEffect(() => {
-    if (params.videoId) {
-      fetchCompleteVideo();
-    }
-  }, [params.videoId]);
+  useEffect(() =>
+  {
+    //downloadVideo()
+    fetchStreamVideo().finally(() => downloadVideo());
+    loadFFmpeg();
+  }, []);
 
-  if (!user || loading) {
+  const trimVideo = async () =>
+  {
+    if (!compatible || !inputVideoFile) return;
+    if (!validateTimes()) return;
+
+    setIsTrimming(true);
+    setReady(false);
+
+    try
+    {
+      FF.FS("writeFile", "input.mp4", await fetchFile(inputVideoFile));
+
+      await FF.run(
+        "-i", "input.mp4", // Arquivo de entrada
+        "-ss", startTime, // Hora de início
+        "-to", endTime, // Hora de fim
+        "-c", "copy", // Copiar codecs sem recodificar
+        "output.mp4" // Arquivo de saída
+      );
+
+      const data = FF.FS("readFile", "output.mp4");
+
+      const trimmedBlob = new Blob([data.buffer], { type: "video/mp4" });
+
+      const trimmedUrl = URL.createObjectURL(trimmedBlob);
+      setTrimmedVideoUrl(trimmedUrl);
+    } catch (error)
+    {
+      console.log("Erro ao cortar o vídeo: ", error);
+    } finally
+    {
+      setIsTrimming(false);
+      setReady(true);
+    }
+  };
+
+  const handleMetadataLoaded = (event: React.ChangeEvent<HTMLVideoElement>) =>
+  {
+    const video = event.currentTarget;
+    const durationInSeconds = video.duration;
+    setVideoDuration(durationInSeconds);
+
+    setEndTime(secondsToHms(durationInSeconds));
+  };
+
+  /* if (!user || loading)
+  {
+      return (
+          <Center mt={100} mih={"50vh"}>
+              <Loader color="blue" />
+          </Center>
+      );
+  }
+*/
+  if (loading)
+  {
     return (
       <Center mt={100} mih={"50vh"}>
         <Loader color="blue" />
@@ -121,52 +234,64 @@ function VideoStream({ params }: Props) {
 
   return (
     <div>
-      <Title mt={15} className="productheader">
-        Vídeo
-      </Title>
+      <Title mt={15}>Vídeo</Title>
 
       <Center mt={"lg"}>
-        {videoUrl && (
-          <video controls src={videoUrl} width="80%" onLoadedMetadata={handleMetadataLoaded}>
-            O seu navegador não suporta a reprodução de vídeo.
-          </video>
-        )}
-      </Center>
-      <Center mt={"lg"}>
-        {cuttedVideoUrl && (
-          <video controls src={cuttedVideoUrl} width="80%">
+        {streamUrl && (
+          <video controls src={streamUrl} autoPlay width={isMobile ? "320px" : "600px"} onLoadedMetadata={handleMetadataLoaded}>
             O seu navegador não suporta a reprodução de vídeo.
           </video>
         )}
       </Center>
 
-      <Flex justify="center" align="center" mt="md">
-        <TimeInput withSeconds label="Hora de início (HH:MM:SS)" value={startTime} onChange={(event) => setStartTime(event.currentTarget.value)} placeholder="00:00:10" />
-        <TimeInput withSeconds label="Hora de fim (HH:MM:SS)" value={endTime} onChange={(event) => setEndTime(event.currentTarget.value)} placeholder="00:01:00" ml="md" />
-      </Flex>
+      <Center mt={"lg"}>
+        {!ready ? (
+          <Text>A carregar...</Text>
+        ) : !compatible ? (
+          <Text>O seu browser não é compatível para manipular vídeos.</Text>
+        ) : (
+          <div>
+            {/* Exibir controles de corte após o download */}
+            {!downloadComplete && compatible &&
+              <div>
+                Aguarde um pouco, para efetuar cortes enquanto carregamos o vídeo inteiro.
+              </div>
+            }
+            {(
+              <div>
+                <Flex justify="center" align="center">
+                  <TimeInput disabled={!downloadComplete} withSeconds label="Hora de início (HH:MM:SS)" value={startTime} onChange={(event) => setStartTime(event.currentTarget.value)} placeholder="00:00:10" />
 
-      {error && (
-        <Center>
-          <Text color="red" size="sm" style={{ position: "relative", top: "5px" }}>
-            {error}
-          </Text>
-        </Center>
-      )}
+                  <TimeInput disabled={!downloadComplete} withSeconds label="Hora de fim (HH:MM:SS)" value={endTime} onChange={(event) => setEndTime(event.currentTarget.value)} placeholder="00:01:00" ml="md" />
+                </Flex>
+                <Center mt="sm">
+                  <Button onClick={trimVideo} disabled={isTrimming || !downloadComplete} loading={isTrimming}>
+                    {loading ? <Loader size="sm" /> : "Cortar"}
+                  </Button>
+                </Center>
+              </div>
+            )}
 
-      <Center mt="md">
-        <div style={{ textAlign: "center"}}>
-          <Button onClick={handleCutVideo} disabled={loading} loading={isCutting}>
-            {loading ? <Loader size="sm" /> : "Cortar"}
-          </Button>
-          {isCutting && (
-            <Text size="sm" color="dimmed" mt="xs">
-              Este procedimento pode ser demorado. Por favor, aguarde.
-            </Text>
-          )}
-        </div>
+            {error && (
+              <Center>
+                <Text color="red" size="sm" style={{ position: "relative", top: "5px" }}>
+                  {error}
+                </Text>
+              </Center>
+            )}
+
+            {trimmedVideoUrl && (
+              <div style={{ marginTop: "1rem", marginBottom: "1rem" }}>
+                <video
+                  src={trimmedVideoUrl}
+                  controls
+                  width={isMobile ? "320px" : "600px"}
+                />
+              </div>
+            )}
+          </div>
+        )}
       </Center>
     </div>
   );
 }
-
-export default VideoStream;
