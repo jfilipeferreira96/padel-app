@@ -274,29 +274,6 @@ app.post("/script", async (req, res) => {
   }
 });
 
-app.get("/teste", async (req, res) => {
-  try {
-    const command = "ls";
-
-    // Executa o comando 'ls'
-    const { stdout, stderr } = await execPromise(command);
-
-    // Imprime o resultado no console
-    console.log("Resultado do comando 'ls':\n", stdout);
-
-    if (stderr) {
-      console.error("Erro ao executar 'ls':", stderr);
-      return res.json({ status: false, message: "Erro ao executar o comando 'ls'" });
-    }
-
-    // Retorna o resultado para o cliente
-    res.json({ status: true, message: "Comando 'ls' executado com sucesso", output: stdout });
-  } catch (err) {
-    console.error("Erro ao executar o comando 'ls':", err);
-    res.json({ status: false, message: "Erro ao executar o comando 'ls'" });
-  }
-});
-
 const server = app.listen(port, () => {
   console.log(`Servidor à escuta na porta ${port}`);
 });
