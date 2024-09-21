@@ -17,17 +17,6 @@ import { getSingleVideoProcessed } from "@/services/video.service";
 import { notifications } from "@mantine/notifications";
 import { useMediaQuery } from "@mantine/hooks";
 
-const readFileAsBase64 = async (file: File): Promise<string | ArrayBuffer | null> =>
-{
-  return new Promise((resolve, reject) =>
-  {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result);
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
-};
-
 const FF = createFFmpeg({
   corePath: "https://unpkg.com/@ffmpeg/core@0.10.0/dist/ffmpeg-core.js",
 });
@@ -52,9 +41,8 @@ interface Props
   params: { videoId: string };
 }
 
-export default function TesteE({ params }: Props)
-{
-  //const { user } = useSession();
+export default function TesteE({ params }: Props) {
+  const { user } = useSession();
   const [inputVideoFile, setInputVideoFile] = useState<File | null>(null);
   const [streamUrl, setStreamUrl] = useState<string | null>(null); // URL do streaming
   const [trimmedVideoUrl, setTrimmedVideoUrl] = useState<string | null>(null); // URL do vídeo cortado
@@ -91,8 +79,7 @@ export default function TesteE({ params }: Props)
   };
 
   // Função para carregar e verificar FFmpeg
-  const loadFFmpeg = async () =>
-  {
+  const loadFFmpeg = async () => {
     try
     {
       await FF.load(); // Carregando FFmpeg
@@ -129,15 +116,13 @@ export default function TesteE({ params }: Props)
     return true;
   };
 
-  const fetchStreamVideo = async () =>
-  {
+  const fetchStreamVideo = async () => {
     try
     {
       if (params.videoId)
       {
-        //const check = await getSingleVideoProcessed(parseInt(params.videoId));
-        //console.log(check)
-        const check = { status: true, message: "REMOVER ISTO" };
+        const check = await getSingleVideoProcessed(parseInt(params.videoId));
+       
         if (check.status)
         {
           const streamUrl = `${process.env.NEXT_URL_API_VIDEOS}/stream?videoName=${params.videoId}.mp4`;
@@ -162,12 +147,16 @@ export default function TesteE({ params }: Props)
     }
   };
 
-  useEffect(() =>
-  {
-    //downloadVideo()
-    fetchStreamVideo().finally(() => downloadVideo());
+  useEffect(() =>{
+    fetchStreamVideo();
     loadFFmpeg();
   }, []);
+
+  useEffect(() => {
+    if (compatible) {
+      downloadVideo();
+    }
+  }, [compatible]);
 
   const trimVideo = async () =>
   {
@@ -214,7 +203,7 @@ export default function TesteE({ params }: Props)
     setEndTime(secondsToHms(durationInSeconds));
   };
 
-  /* if (!user || loading)
+  if (!user || loading)
   {
       return (
           <Center mt={100} mih={"50vh"}>
@@ -222,7 +211,7 @@ export default function TesteE({ params }: Props)
           </Center>
       );
   }
-*/
+
   if (loading)
   {
     return (
