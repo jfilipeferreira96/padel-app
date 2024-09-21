@@ -241,12 +241,8 @@ export default function TesteE({ params }: Props) {
         ) : (
           <div>
             {/* Exibir controles de corte após o download */}
-            {!downloadComplete && compatible &&
-              <div>
-                Aguarde um pouco, para efetuar cortes enquanto carregamos o vídeo inteiro.
-              </div>
-            }
-            {(
+            {!downloadComplete && compatible && <div>Por favor, aguarde um momento enquanto carregamos o vídeo completo para realizar os cortes.</div>}
+            {
               <div>
                 <Flex justify="center" align="center">
                   <TimeInput disabled={!downloadComplete} withSeconds label="Hora de início (HH:MM:SS)" value={startTime} onChange={(event) => setStartTime(event.currentTarget.value)} placeholder="00:00:10" />
@@ -259,7 +255,7 @@ export default function TesteE({ params }: Props) {
                   </Button>
                 </Center>
               </div>
-            )}
+            }
 
             {error && (
               <Center>
@@ -271,11 +267,7 @@ export default function TesteE({ params }: Props) {
 
             {trimmedVideoUrl && (
               <div style={{ marginTop: "1rem", marginBottom: "1rem" }}>
-                <video
-                  src={trimmedVideoUrl}
-                  controls
-                  width={isMobile ? "320px" : "600px"}
-                />
+                <video src={trimmedVideoUrl} controls width={isMobile ? "320px" : "600px"} />
               </div>
             )}
           </div>
