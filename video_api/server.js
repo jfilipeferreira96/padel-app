@@ -16,7 +16,7 @@ app.use(cors());
 app.use(express.json());
 
 app.use((req, res, next) => {
-  res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+  res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
   next();
 });
 
@@ -43,8 +43,8 @@ app.get("/stream", async (req, res) => {
     const fileNameWithTimestamp = `${timestamp}.mp4`;
 
     res.setHeader("Content-Disposition", `attachment; filename="${fileNameWithTimestamp}"`);
-    
-    if (!range){
+
+    if (!range) {
       // Se o cliente não solicitou um intervalo, retorna o vídeo completo
       res.writeHead(200, {
         "Content-Length": fileSize,
@@ -240,34 +240,48 @@ app.get("/download-file", async (req, res) => {
 
 // Endpoint para chamar o script
 //http://localhost:3010/script
-app.post("/script", async (req, res) => {
+app.post("/script", (req, res) => {
   try {
     const { campo, start_time, end_time, date, videoId, secret } = req.body;
 
     if (secret !== "a@akas34324_!") {
-      res.json({ status: false, message: "Sem permissões" });
+      return res.json({ status: false, message: "Sem permissões" });
     }
 
     if (!campo || !start_time || !end_time || !date || !videoId) {
       return res.json({ status: false, message: "Campos em falta" });
     }
 
+    // Adicionar ':00' ao start_time e end_time se não tiverem os segundos
+    const formattedStartTime = start_time.includes(":00") ? start_time : `${start_time}:00`;
+    const formattedEndTime = end_time.includes(":00") ? end_time : `${end_time}:00`;
+
     // Formatar os valores para o comando Python
-    const formattedStartDateTime = `${date} ${start_time}`;
-    const formattedEndDateTime = `${date} ${end_time}`;
+    const formattedStartDateTime = `${date} ${formattedStartTime}`.trim();
+    const formattedEndDateTime = `${date} ${formattedEndTime}`.trim();
     const fileName = videoId;
 
-    // Montar o comando Python
-    const pythonScriptPath = "root/scripts/padel.py";
+    // Montar o comando Python, garantindo que as aspas simples estão bem formatadas
+    const pythonScriptPath = "/root/scripts/padel.py";
     const command = `python ${pythonScriptPath} '${formattedStartDateTime}' '${formattedEndDateTime}' ${campo} ${fileName}`;
 
-    try {
-      const { stdout, stderr } = await execPromise(command);
-      return res.json({ status: true, message: "Vídeo processado com sucesso." });
-    } catch (error) {
-      console.error(`Erro ao executar o script Python: ${error.message}`);
-      return res.json({ status: false, message: "Erro ao processar o vídeo com o script Python", error: error.message });
-    }
+    console.log("Comando a ser executado:", command);
+
+    // Executar o comando sem await
+    exec(command, (error, stdout, stderr) => {
+      if (error) {
+        console.error(`Erro ao executar o script Python: ${error.message}`);
+        return;
+      }
+      if (stderr) {
+        console.error(`Erro no script Python: ${stderr}`);
+        return;
+      }
+      console.log(`Saída do script Python: ${stdout}`);
+    });
+
+    // Enviar a resposta imediatamente, sem esperar o fim do exec
+    return res.json({ status: true, message: "Comando Python executado. Processamento será feito em segundo plano." });
   } catch (err) {
     console.error("Erro no endpoint de script:", err);
     res.json({ status: false, message: "Erro ao chamar o script" });

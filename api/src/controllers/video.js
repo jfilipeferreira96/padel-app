@@ -229,7 +229,7 @@ class VideoController {
 
   static async addVideoProcessed(req, res, next) {
     try {
-      const { campo, timeInicio: start_time, timeInicio: end_time, date } = req.body;
+      const { campo, timeInicio: start_time, timeFim: end_time, date } = req.body;
       const userId = req.user?.id;
 
       if (!campo || !start_time || !end_time || !date) {
@@ -296,10 +296,10 @@ class VideoController {
             SET status = 'failed', error_message = ?
             WHERE id = ?
           `;
-          await db.query(updateVideoStatusQuery, [err.message, videoId]);
+          await db.query(updateVideoStatusQuery, ["Falha ao correr o script no videos_api.", videoId]);
 
-          Logger.error(`Erro ao executar o script Python: ${err.message}`);
-          return res.json({ status: false, message: "Erro ao processar o vídeo com o script", error: err.message });
+          Logger.error(`Erro ao executar o script Python`);
+          return res.json({ status: false, message: "Erro ao processar o vídeo." });
         }
       } catch (err) {
         // Se o comando Python falhar, atualizar o status do vídeo para "failed"
