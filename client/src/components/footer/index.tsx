@@ -8,7 +8,7 @@ export function FooterSocial() {
 
   return (
     <div className={classes.footer}>
-      <Container className={classes.inner} size="md">
+      <Container className={classes.inner} size="lg">
         <Flex align={"center"}>
           <Image src={computedColorScheme === "light" ? "/logos/logo-propadel-1.svg" : "/logos/logo-propadel-2.svg"} alt="Logo" width={100} height={80} />
         </Flex>

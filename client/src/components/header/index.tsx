@@ -48,6 +48,7 @@ import {
   IconSticker,
   IconX,
   IconGift,
+  IconBrandZoom,
 } from "@tabler/icons-react";
 import classes from "./HeaderMegaMenu.module.css";
 import cx from "clsx";
@@ -111,7 +112,7 @@ export function HeaderMegaMenu() {
   return (
     <Box pb={4} pt={10}>
       <header className={classes.header}>
-        <Container className={classes.inner} size="md">
+        <Container className={classes.inner} size="lg">
           <Group justify="space-between" h="100%" className={classes.groupfix}>
             <Flex align={"center"}>
               <Image
@@ -123,7 +124,7 @@ export function HeaderMegaMenu() {
                 onClick={() => router.push(routes.home.url)}
               />
             </Flex>
-            <Group h="100%" gap={0} visibleFrom="sm">
+            <Group h="100%" gap={0} visibleFrom="md">
               <HoverCard width={600} position="bottom" radius="md" shadow="md" withinPortal>
                 <HoverCard.Target>
                   <a href="#" className={classes.link}>
@@ -148,7 +149,6 @@ export function HeaderMegaMenu() {
                   </SimpleGrid>
                 </HoverCard.Dropdown>
               </HoverCard>
-
               <div className={classes.link} onClick={() => router.push(routes.qrcode.url)}>
                 QR Code
               </div>
@@ -157,6 +157,9 @@ export function HeaderMegaMenu() {
               </div>
               <div className={classes.link} onClick={() => router.push(routes.vouchers.url)}>
                 Vouchers
+              </div>
+              <div className={classes.link} onClick={() => router.push(routes.videos.url)}>
+                Vídeos
               </div>
               {config.torneios && config.torneios !== "" && (
                 <a href={config.torneios} target="_blank" className={classes.link}>
@@ -173,7 +176,7 @@ export function HeaderMegaMenu() {
               </div>
             </Group>
 
-            <Group visibleFrom="sm" gap={2}>
+            <Group visibleFrom="md" gap={2}>
               <Menu width={260} position="bottom-end" transitionProps={{ transition: "pop-top-right" }} onClose={() => setUserMenuOpened(false)} onOpen={() => setUserMenuOpened(true)} withinPortal>
                 <Menu.Target>
                   <UnstyledButton className={cx(classes.user, { [classes.userActive]: userMenuOpened })}>
@@ -212,7 +215,7 @@ export function HeaderMegaMenu() {
               </Menu>
             </Group>
 
-            <Burger opened={drawerOpened} onClick={toggleDrawer} hiddenFrom="sm" />
+            <Burger opened={drawerOpened} onClick={toggleDrawer} hiddenFrom="md" />
           </Group>
         </Container>
       </header>
@@ -223,7 +226,7 @@ export function HeaderMegaMenu() {
         onClose={closeDrawer}
         size="100%"
         padding="md"
-        hiddenFrom="sm"
+        hiddenFrom="md"
         zIndex={1000000}
         closeButtonProps={{
           icon: <IconX size={30} stroke={1.5} color="light-dark(var(--mantine-color-black), var(--mantine-color-white))" />,
@@ -273,6 +276,14 @@ export function HeaderMegaMenu() {
             }}
           >
             <IconGift style={{ width: rem(30), height: rem(25), marginRight: "8px" }} stroke={1.5} /> Vouchers
+          </div>
+          <div
+            className={classes.link}
+            onClick={() => {
+              router.push(routes.videos.url), closeDrawer();
+            }}
+          >
+            <IconBrandZoom style={{ width: rem(30), height: rem(25), marginRight: "8px" }} stroke={1.5} /> Vídeos
           </div>
 
           {config.torneios && config.torneios !== "" && (
