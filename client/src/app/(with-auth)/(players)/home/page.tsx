@@ -53,7 +53,7 @@ const ArticleCard = ({ article }: { article: { title: string; image_path: string
               <Title className={classes.title} ta="center" mb={"lg"}>
                 {article.title}
               </Title>
-              <Image src={article.image_path ?? "./Placeholder.svg"} alt={article.title} />
+              <Image src={article.image_path ?? "./Placeholder.svg"} crossOrigin="anonymous" alt={article.title} />
             </div>
           </Center>
         }
@@ -61,7 +61,7 @@ const ArticleCard = ({ article }: { article: { title: string; image_path: string
         {({ ref, open }) => (
           <Card p="md" radius="md" component="a" href="#" className={classes.card} ref={ref} onClick={open}>
             <AspectRatio ratio={1920 / 1080}>
-              <Image src={article.image_path ?? "./Placeholder.svg"} alt={article.title} />
+              <Image src={article.image_path ?? "./Placeholder.svg"} crossOrigin="anonymous" alt={article.title} />
             </AspectRatio>
             <Text c="dimmed" size="xs" tt="uppercase" fw={700} mt="md">
               {article.date}
