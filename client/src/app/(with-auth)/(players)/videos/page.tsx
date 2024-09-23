@@ -126,7 +126,7 @@ const schema = z
       path: ["manual"],
     }
   )
-  // Verifica se a diferença entre timeInicio e timeFim não é superior a 2 horas
+  // Verifica se a diferença entre timeInicio e timeFim não é superior a 90m
   .refine(
     (data) => {
       const [hoursInicio, minutesInicio] = data.timeInicio.split(":").map(Number);
@@ -141,13 +141,13 @@ const schema = z
       // Diferença de tempo em milissegundos
       const diffInMs: number = Number(fimDate) - Number(inicioDate);
 
-      // 2 horas em milissegundos
-      const maxDiffInMs = 2 * 60 * 60 * 1000;
+      // 90m em milissegundos
+      const maxDiffInMs = 1 * 90 * 60 * 1000;
 
       return diffInMs <= maxDiffInMs;
     },
     {
-      message: "A diferença entre Hora de Início e Hora de Fim não pode ser superior a 2 horas",
+      message: "A diferença entre Hora de Início e Hora de Fim não pode ser superior a 90 minutos",
       path: ["manual"],
     }
   );
@@ -404,7 +404,7 @@ function ReviewVideos() {
         <form onSubmit={form.onSubmit((values) => onSubmitHandler(values))}>
           <Paper shadow="xs" p="sm" withBorder mt="lg" mb="lg">
             <Text fw={600}>Requisitar vídeo</Text>
-            <Text size="sm" c="dimmed">
+            <Text size="sm" c={creditos ? "dimmed" : "red"} fw={creditos ? 500 : 600}>
               Para requisitar um vídeo, é necessário ter créditos disponíveis. Por favor, obtenha-os na recepção.
             </Text>
 
@@ -419,12 +419,13 @@ function ReviewVideos() {
                 mr={{ sm: "lg" }}
                 mb={{ base: "sm", sm: 0 }}
                 withAsterisk
+                w={{ base: "100%", sm: "auto" }}
                 {...form.getInputProps("date")}
               />
 
-              <TimeInput label="Hora de Ínicio" mr={{ sm: "lg" }} mb={{ base: "sm", sm: 0 }} disabled={!creditos} withAsterisk ref={refInicio} rightSection={pickerControl1} {...form.getInputProps("timeInicio")} />
+              <TimeInput label="Hora de Ínicio" mr={{ sm: "lg" }} mb={{ base: "sm", sm: 0 }} disabled={!creditos} withAsterisk w={{ base: "100%", sm: "auto" }} ref={refInicio} rightSection={pickerControl1} {...form.getInputProps("timeInicio")} />
 
-              <TimeInput label="Hora de Fim" mr={{ sm: "lg" }} mb={{ base: "sm", sm: 0 }} disabled={!creditos} withAsterisk ref={refFim} rightSection={pickerControl2} {...form.getInputProps("timeFim")} />
+              <TimeInput label="Hora de Fim" mr={{ sm: "lg" }} mb={{ base: "sm", sm: 0 }} disabled={!creditos} withAsterisk w={{ base: "100%", sm: "auto" }} ref={refFim} rightSection={pickerControl2} {...form.getInputProps("timeFim")} />
 
               <Select
                 label="Selecione o campo"
@@ -433,6 +434,7 @@ function ReviewVideos() {
                 //onChange={handleCampoChange}
                 disabled={!creditos}
                 withAsterisk
+                w={{ base: "100%", sm: "auto" }}
                 {...form.getInputProps("campo")}
               />
             </Flex>
