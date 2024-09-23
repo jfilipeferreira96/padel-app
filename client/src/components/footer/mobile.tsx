@@ -196,7 +196,7 @@ export function MobileFooter() {
 
   return (
     <div className={classes.footer}>
-      <Flex gap="10px" justify="space-around" align="space-around" direction="row">
+      <Flex gap="5px" justify="space-around" align="space-around" direction="row">
         {links}
       </Flex>
     </div>
