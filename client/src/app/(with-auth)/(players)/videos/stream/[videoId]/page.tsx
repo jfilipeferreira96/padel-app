@@ -212,15 +212,6 @@ export default function TesteE({ params }: Props) {
       );
   }
 
-  if (loading)
-  {
-    return (
-      <Center mt={100} mih={"50vh"}>
-        <Loader color="blue" />
-      </Center>
-    );
-  }
-
   return (
     <div>
       <Title mt={15}>Vídeo</Title>
@@ -244,7 +235,7 @@ export default function TesteE({ params }: Props) {
             {!downloadComplete && compatible && <div>Por favor, aguarde um momento enquanto carregamos o vídeo completo para realizar os cortes.</div>}
             {
               <div>
-                <Flex justify="center" align="center">
+                <Flex justify="center" align="center" mt={"lg"}>
                   <TimeInput disabled={!downloadComplete} withSeconds label="Hora de início (HH:MM:SS)" value={startTime} onChange={(event) => setStartTime(event.currentTarget.value)} placeholder="00:00:10" />
 
                   <TimeInput disabled={!downloadComplete} withSeconds label="Hora de fim (HH:MM:SS)" value={endTime} onChange={(event) => setEndTime(event.currentTarget.value)} placeholder="00:01:00" ml="md" />
