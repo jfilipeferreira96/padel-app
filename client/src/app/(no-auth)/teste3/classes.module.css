@@ -1,0 +1,5 @@
+.center label{
+    text-align: center !important;
+    align-items: center;
+    display: block;
+}

@@ -1,25 +1,47 @@
 "use client";
 import
-  {
-    Title,
-    Text,
-    Center,
-    Flex,
-    Button,
-    Loader,
-  } from "@mantine/core";
-import { useEffect, useState } from "react";
-import { createFFmpeg, fetchFile } from "@ffmpeg/ffmpeg";
-import { TimeInput } from "@mantine/dates";
+{
+  Title,
+  Text,
+  Center,
+  Flex,
+  Button,
+  Loader,
+  Box,
+  InputBase,
+} from "@mantine/core";
+import { SetStateAction, useEffect, useRef, useState } from "react";
+import { IMaskInput } from 'react-imask';
 import { useSession } from "@/providers/SessionProvider";
 import { useRouter } from "next/navigation";
 import { getSingleVideoProcessed } from "@/services/video.service";
 import { notifications } from "@mantine/notifications";
 import { useMediaQuery } from "@mantine/hooks";
+import classes from "./classes.module.css";
 
-const FF = createFFmpeg({
-  corePath: "https://unpkg.com/@ffmpeg/core@0.10.0/dist/ffmpeg-core.js",
-});
+import { get, set } from "idb-keyval";
+import { FFmpeg } from "@ffmpeg/ffmpeg";
+import { toBlobURL, fetchFile } from "@ffmpeg/util";
+
+async function getCachedUrl(url: string, type: string, key: string)
+{
+  try
+  {
+    let buffer = await get(key);
+    if (!buffer)
+    {
+      const response = await fetch(url);
+      buffer = await response.arrayBuffer();
+      await set(key, buffer);
+    }
+    const blob = new Blob([buffer], { type });
+    return URL.createObjectURL(blob);
+  } catch (error)
+  {
+    console.error("Error fetching or caching the URL:", error);
+    throw new Error("Failed to load resources for ffmpeg.");
+  }
+}
 
 const secondsToHms = (seconds: number) =>
 {
@@ -41,17 +63,20 @@ interface Props
   params: { videoId: string };
 }
 
-export default function TesteE({ params }: Props) {
-  const { user } = useSession();
+const ffmpeg = new FFmpeg();
+const baseURL = "https://unpkg.com/@ffmpeg/core@latest/dist/umd";
+
+export default function TesteE({ params }: Props)
+{
   const [inputVideoFile, setInputVideoFile] = useState<File | null>(null);
-  const [streamUrl, setStreamUrl] = useState<string | null>(null); // URL do streaming
-  const [trimmedVideoUrl, setTrimmedVideoUrl] = useState<string | null>(null); // URL do vídeo cortado
-  const [ready, setReady] = useState(false); // Para indicar quando o FFmpeg estiver pronto
-  const [compatible, setCompatible] = useState(false); // Para verificar compatibilidade do FFmpeg
+  const [streamUrl, setStreamUrl] = useState<string | null>(null);
+  const [trimmedVideoUrl, setTrimmedVideoUrl] = useState<string | null>(null);
+  const [ready, setReady] = useState(false);
+  const [compatible, setCompatible] = useState(false);
   const [startTime, setStartTime] = useState<string>("00:00:00");
   const [endTime, setEndTime] = useState<string>("00:00:00");
-  const [isTrimming, setIsTrimming] = useState(false); // Indicador de processamento
-  const [downloadComplete, setDownloadComplete] = useState(false); // Indicar que o vídeo foi baixado
+  const [isTrimming, setIsTrimming] = useState(false);
+  const [downloadComplete, setDownloadComplete] = useState(false);
   const router = useRouter();
   const [loading, setLoading] = useState<boolean>(true);
   const [videoDuration, setVideoDuration] = useState<number | null>(null);
@@ -78,34 +103,64 @@ export default function TesteE({ params }: Props) {
     }
   };
 
-  // Função para carregar e verificar FFmpeg
-  const loadFFmpeg = async () => {
+  const loadFFmpeg = async () =>
+  {
     try
     {
-      await FF.load(); // Carregando FFmpeg
+      setLoading(true);
+      const coreUrl = await getCachedUrl(`${baseURL}/ffmpeg-core.js`, "text/javascript", "ffmpeg-core");
+      const wasmUrl = await getCachedUrl(`${baseURL}/ffmpeg-core.wasm`, "application/wasm", "ffmpeg-wasm");
+
+      await ffmpeg.load({
+        coreURL: coreUrl,
+        wasmURL: wasmUrl,
+      });
+
       setReady(true);
-      setCompatible(true); // FFmpeg carregado e pronto para uso
-    } catch (error)
+      setCompatible(true);
+    } catch (err)
     {
-      console.log("Erro ao carregar FFmpeg: ", error);
-      setReady(true);
-      setCompatible(false); // Caso o FFmpeg falhe, definimos o navegador como não compatível
+      console.log(err);
+      setCompatible(false);
     }
   };
 
   const validateTimes = () =>
   {
-    if (!videoDuration) return false;
+    if (!videoDuration)
+    {
+      setError("A duração do vídeo não está disponível.");
+      return false;
+    }
+
+    // Verifica se os tempos estão no formato correto (hh:mm:ss)
+    const timeRegex = /^([01]\d|2[0-3]):([0-5]\d):([0-5]\d)$/;
+
+    if (!timeRegex.test(startTime) || !timeRegex.test(endTime))
+    {
+      setError("Por favor, insira um horário válido no formato HH:MM:SS.");
+      return false;
+    }
+
     const startSeconds = hmsToSeconds(startTime);
     const endSeconds = hmsToSeconds(endTime);
     const durationSeconds = videoDuration;
 
+    // Verifica se a hora de início é igual à hora de fim
+    if (startTime === endTime)
+    {
+      setError("A hora de início deve ser diferente da hora de fim.");
+      return false;
+    }
+
+    // Verifica se a hora de início é maior que a de fim
     if (startSeconds > endSeconds)
     {
       setError("A hora de início não pode ser maior que a hora de fim.");
       return false;
     }
 
+    // Verifica se as horas estão dentro da duração do vídeo
     if (startSeconds < 0 || endSeconds > durationSeconds)
     {
       setError("As horas de início e fim devem estar dentro dos parâmetros do vídeo.");
@@ -116,13 +171,14 @@ export default function TesteE({ params }: Props) {
     return true;
   };
 
-  const fetchStreamVideo = async () => {
+  const fetchStreamVideo = async () =>
+  {
     try
     {
       if (params.videoId)
       {
         const check = await getSingleVideoProcessed(parseInt(params.videoId));
-       
+
         if (check.status)
         {
           const streamUrl = `${process.env.NEXT_URL_API_VIDEOS}/stream?videoName=${params.videoId}.mp4`;
@@ -147,20 +203,25 @@ export default function TesteE({ params }: Props) {
     }
   };
 
-  useEffect(() =>{
+  useEffect(() =>
+  {
     fetchStreamVideo();
     loadFFmpeg();
   }, []);
 
-  useEffect(() => {
-    if (compatible) {
+  useEffect(() =>
+  {
+    if (compatible)
+    {
       downloadVideo();
     }
   }, [compatible]);
 
   const trimVideo = async () =>
   {
+    if (!ffmpeg || !inputVideoFile) return;
     if (!compatible || !inputVideoFile) return;
+
     if (!validateTimes()) return;
 
     setIsTrimming(true);
@@ -168,20 +229,18 @@ export default function TesteE({ params }: Props) {
 
     try
     {
-      FF.FS("writeFile", "input.mp4", await fetchFile(inputVideoFile));
+      await ffmpeg.writeFile("input.mp4", await fetchFile(inputVideoFile));
+      await ffmpeg.exec([
+        "-i", "input.mp4",
+        "-ss", startTime,
+        "-to", endTime,
+        "-c", "copy",
+        "output.mp4"
+      ]);
 
-      await FF.run(
-        "-i", "input.mp4", // Arquivo de entrada
-        "-ss", startTime, // Hora de início
-        "-to", endTime, // Hora de fim
-        "-c", "copy", // Copiar codecs sem recodificar
-        "output.mp4" // Arquivo de saída
-      );
-
-      const data = FF.FS("readFile", "output.mp4");
-
+      const fileData = await ffmpeg.readFile("output.mp4");
+      const data = new Uint8Array(fileData as ArrayBuffer);
       const trimmedBlob = new Blob([data.buffer], { type: "video/mp4" });
-
       const trimmedUrl = URL.createObjectURL(trimmedBlob);
       setTrimmedVideoUrl(trimmedUrl);
     } catch (error)
@@ -199,17 +258,16 @@ export default function TesteE({ params }: Props) {
     const video = event.currentTarget;
     const durationInSeconds = video.duration;
     setVideoDuration(durationInSeconds);
-
     setEndTime(secondsToHms(durationInSeconds));
   };
 
-  if (!user || loading)
+  if (loading)
   {
-      return (
-          <Center mt={100} mih={"50vh"}>
-              <Loader color="blue" />
-          </Center>
-      );
+    return (
+      <Center mt={100} mih={"50vh"}>
+        <Loader color="blue" />
+      </Center>
+    );
   }
 
   return (
@@ -218,7 +276,7 @@ export default function TesteE({ params }: Props) {
 
       <Center mt={"lg"}>
         {streamUrl && (
-          <video controls src={streamUrl} autoPlay width={isMobile ? "320px" : "600px"} onLoadedMetadata={handleMetadataLoaded}>
+          <video crossOrigin="anonymous" controls src={streamUrl} autoPlay width={isMobile ? "320px" : "600px"} onLoadedMetadata={handleMetadataLoaded}>
             O seu navegador não suporta a reprodução de vídeo.
           </video>
         )}
@@ -231,14 +289,31 @@ export default function TesteE({ params }: Props) {
           <Text>O seu browser não é compatível para manipular vídeos.</Text>
         ) : (
           <div>
-            {/* Exibir controles de corte após o download */}
-            {!downloadComplete && compatible && <div>Por favor, aguarde um momento enquanto carregamos o vídeo completo para realizar os cortes.</div>}
+            {!downloadComplete && compatible && <Box mb={"md"}>Por favor, aguarde um momento enquanto carregamos o vídeo completo para realizar os cortes.</Box>}
             {
               <div>
-                <Flex justify="center" align="center" mt={"lg"}>
-                  <TimeInput disabled={!downloadComplete} withSeconds label="Hora de início (HH:MM:SS)" value={startTime} onChange={(event) => setStartTime(event.currentTarget.value)} placeholder="00:00:10" />
-
-                  <TimeInput disabled={!downloadComplete} withSeconds label="Hora de fim (HH:MM:SS)" value={endTime} onChange={(event) => setEndTime(event.currentTarget.value)} placeholder="00:01:00" ml="md" />
+                <Flex justify="center" align="center">
+                  <InputBase
+                    component={IMaskInput}
+                    disabled={!downloadComplete}
+                    mask="00:00:00"
+                    label="Início (HH:MM:SS)"
+                    value={startTime}
+                    onChange={(event) => setStartTime(event.currentTarget.value)}
+                    placeholder="00:00:10"
+                    className={classes.center}
+                  />
+                  <InputBase
+                    disabled={!downloadComplete}
+                    mask="00:00:00"
+                    component={IMaskInput}
+                    label="Fim (HH:MM:SS)"
+                    value={endTime}
+                    onChange={(event) => setEndTime(event.currentTarget.value)}
+                    placeholder="00:01:00"
+                    ml="md"
+                    className={classes.center}
+                  />
                 </Flex>
                 <Center mt="sm">
                   <Button onClick={trimVideo} disabled={isTrimming || !downloadComplete} loading={isTrimming}>
@@ -257,9 +332,11 @@ export default function TesteE({ params }: Props) {
             )}
 
             {trimmedVideoUrl && (
-              <div style={{ marginTop: "1rem", marginBottom: "1rem" }}>
-                <video src={trimmedVideoUrl} controls width={isMobile ? "320px" : "600px"} />
-              </div>
+              <Center>
+                <div style={{ marginTop: "1rem", marginBottom: "1rem" }}>
+                  <video crossOrigin="anonymous" src={trimmedVideoUrl} controls width={isMobile ? "320px" : "600px"} />
+                </div>
+              </Center>
             )}
           </div>
         )}
