@@ -103,25 +103,58 @@ export default function TesteE({ params }: Props)
     }
   };
 
-  const loadFFmpeg = async () =>
+  const loadFFmpeg = async (attempts = 3) =>
   {
     try
     {
       setLoading(true);
-      const coreUrl = await getCachedUrl(`${baseURL}/ffmpeg-core.js`, "text/javascript", "ffmpeg-core");
-      const wasmUrl = await getCachedUrl(`${baseURL}/ffmpeg-core.wasm`, "application/wasm", "ffmpeg-wasm");
+      const baseURL = "https://unpkg.com/@ffmpeg/core@latest/dist/umd";
 
-      await ffmpeg.load({
-        coreURL: coreUrl,
-        wasmURL: wasmUrl,
-      });
+      let attempt = 0;
 
-      setReady(true);
-      setCompatible(true);
+      while (attempt < attempts)
+      {
+        try
+        {
+          const coreUrl = await getCachedUrl(
+            `${baseURL}/ffmpeg-core.js`,
+            "text/javascript",
+            "ffmpeg-core"
+          );
+          const wasmUrl = await getCachedUrl(
+            `${baseURL}/ffmpeg-core.wasm`,
+            "application/wasm",
+            "ffmpeg-wasm"
+          );
+
+          await ffmpeg.load({
+            coreURL: coreUrl,
+            wasmURL: wasmUrl,
+          });
+
+          setReady(true);
+          setCompatible(true);
+          return;
+        }
+        catch (err)
+        {
+          attempt += 1;
+          console.warn(`Tentativa ${attempt} de carregar o FFmpeg falhou:`, err);
+
+          if (attempt === attempts)
+          {
+            console.log("Falha ao carregar o FFmpeg após 3 tentativas.");
+            setCompatible(false);
+          }
+        }
+      }
     } catch (err)
     {
       console.log(err);
-      setCompatible(false);
+      setCompatible(false); 
+    } finally
+    {
+      setLoading(false); 
     }
   };
 
