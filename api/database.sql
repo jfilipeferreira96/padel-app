@@ -239,7 +239,6 @@ CREATE TABLE IF NOT EXISTS campos (
 INSERT INTO campos (name, value) VALUES
 ('Mozelos - GrupoP4', 'GrupoP4'),
 ('Mozelos - RStar', 'RStar'),
-('Mozelos - Padbol', 'Padbol'),
 ('Mozelos - AYSA', 'AYSA'),
 ('Mozelos - WorkForce', 'WorkeForce');
 
