@@ -166,9 +166,9 @@ export default function TesteEComponent() {
 
   const trimVideo = async () => {
 
-    let ini = ref1.current && startTime !== ref1.current.props.value ? ref1.current.props.value : startTime;
-    let fim = ref2.current && endTime !== ref2.current.props.value ? ref2.current.props.value : endTime;
-  
+    let ini = startTime;
+    let fim = endTime;
+
     if (!ffmpeg || !inputVideoFile) return;
     if (!compatible || !inputVideoFile) return;
 
@@ -219,7 +219,7 @@ export default function TesteEComponent() {
 
   const ref1 = useRef<any>(null);
   const ref2 = useRef<any>(null);
-
+  
   if (loading) {
     return (
       <Center mt={100} mih={"50vh"}>
@@ -255,6 +255,7 @@ export default function TesteEComponent() {
                     <Input
                       ref={ref1}
                       component={IMaskInput}
+                      
                       disabled={!downloadComplete}
                       label="Início (HH:MM:SS)"
                       value={startTime}
@@ -268,7 +269,7 @@ export default function TesteEComponent() {
                     <Input
                       ref={ref2}
                       disabled={!downloadComplete}
-                      mask="00:00:00"
+                      
                       component={IMaskInput}
                       label="Fim (HH:MM:SS)"
                       value={endTime}

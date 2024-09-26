@@ -198,8 +198,8 @@ export default function Stream({ params }: Props) {
   }, [compatible]);
 
   const trimVideo = async () => {
-      let ini = ref1.current && startTime !== ref1.current.props.value ? ref1.current.props.value : startTime;
-      let fim = ref2.current && endTime !== ref2.current.props.value ? ref2.current.props.value : endTime;
+      let ini = startTime;
+      let fim = endTime;
 
       if (!ffmpeg || !inputVideoFile) return;
       if (!compatible || !inputVideoFile) return;
@@ -308,7 +308,6 @@ export default function Stream({ params }: Props) {
                     <Input
                       ref={ref2}
                       disabled={!downloadComplete}
-                      mask="00:00:00"
                       component={IMaskInput}
                       label="Fim (HH:MM:SS)"
                       value={endTime}
