@@ -227,7 +227,150 @@ class VideoController {
     }
   }
 
-  static async addVideoProcessed(req, res, next) {
+  static async addVideoProcessed(req, res) {
+    try {
+      const { userId, campo, date, start_time, end_time } = req.body;
+
+      // Buscar os créditos do utilizador
+      const [userResult] = await db.query(`SELECT video_credits FROM users WHERE user_id = ?`, [userId]);
+      const userCredits = userResult[0].video_credits;
+
+      if (userCredits <= 0) {
+        return res.json({ status: false, message: "Créditos insuficientes." });
+      }
+
+      // Inserir o vídeo na tabela videos_processed com status 'waiting'
+      const insertVideoQuery = `
+      INSERT INTO videos_processed (user_id, campo, date, start_time, end_time, status)
+      VALUES (?, ?, ?, ?, ?, 'waiting')
+    `;
+      const [result] = await db.query(insertVideoQuery, [userId, campo, date, start_time, end_time]);
+
+      // Subtrair um crédito do utilizador
+      const updateCreditsQuery = `UPDATE users SET video_credits = video_credits - 1 WHERE user_id = ?`;
+      await db.query(updateCreditsQuery, [userId]);
+
+      // Registrar a alteração de créditos
+      const historyQuery = `
+      INSERT INTO users_credits_history (user_id, credits_before, credits_after, given_by)
+      VALUES (?, ?, ?, ?)
+    `;
+      await db.query(historyQuery, [userId, userCredits, userCredits - 1, req.user?.id || null]);
+
+      return res.json({
+        status: true,
+        message: "Vídeo adicionado com sucesso na lista de processamento.",
+        videoProcessedId: result.insertId,
+      });
+    } catch (err) {
+      Logger.error(`Erro ao adicionar vídeo para processamento: ${err.message}`);
+      return res.json({ status: false, message: "Erro ao adicionar vídeo para processamento.", error: err.message });
+    }
+  }
+
+  static async processVideo(req, res) {
+    const { videoProcessedId, validatedByUserId, accepted } = req.body;
+
+    try {
+      // Buscar os detalhes do vídeo que está sendo processado
+      const [videoDetails] = await db.query(`SELECT * FROM videos_processed WHERE id = ?`, [videoProcessedId]);
+
+      if (!videoDetails.length) {
+        return res.json({ status: false, message: "Vídeo não encontrado." });
+      }
+
+      const { user_id, campo, date, start_time, end_time, status } = videoDetails[0];
+
+      // Se o vídeo não for aceito, devolver crédito ao utilizador
+      if (accepted === false) {
+        // Atualizar o status do vídeo para "rejected"
+        const updateVideoQuery = `
+        UPDATE videos_processed
+        SET status = 'rejected', validated_by = ?, validated_at = NOW()
+        WHERE id = ?
+      `;
+        await db.query(updateVideoQuery, [validatedByUserId, videoProcessedId]);
+
+        // Devolver um crédito ao utilizador
+        const updateCreditsQuery = `UPDATE users SET video_credits = video_credits + 1 WHERE user_id = ?`;
+        await db.query(updateCreditsQuery, [user_id]);
+
+        // Registrar a devolução de crédito
+        const [userCreditsResult] = await db.query(`SELECT video_credits FROM users WHERE user_id = ?`, [user_id]);
+        const userCredits = userCreditsResult[0].video_credits;
+
+        const historyQuery = `
+        INSERT INTO users_credits_history (user_id, credits_before, credits_after, given_by)
+        VALUES (?, ?, ?, ?)
+      `;
+        await db.query(historyQuery, [user_id, userCredits - 1, userCredits, validatedByUserId]);
+
+        return res.json({ status: true, message: "Vídeo rejeitado e crédito devolvido ao utilizador." });
+      }
+
+      // Caso contrário, continuar com o processamento do vídeo (accepted = true)
+      // Atualizar o status do vídeo para "processing" e definir o validador
+      const updateVideoQuery = `
+      UPDATE videos_processed
+      SET status = 'processing', validated_by = ?, validated_at = NOW()
+      WHERE id = ?
+    `;
+      await db.query(updateVideoQuery, [validatedByUserId, videoProcessedId]);
+
+      // Formatar os valores para o comando Python
+      const formattedStartDateTime = `${date} ${start_time}`;
+      const formattedEndDateTime = `${date} ${end_time}`;
+      const fileName = videoProcessedId; // Considerando que videoId é o mesmo que videoProcessedId
+
+      const url = `${process.env.URL_API_VIDEOS}/script`;
+      const body = {
+        campo,
+        start_time,
+        end_time,
+        date,
+        videoId: videoProcessedId,
+        secret: "a@akas34324_!",
+      };
+
+      try {
+        // Chamada à API para processar o vídeo
+        const response = await axios.post(url, body);
+
+        if (response.data.status) {
+          // Tudo certo, não precisamos alterar os créditos aqui
+
+          return res.json({ status: true, message: "Vídeo processado com sucesso." });
+        } else {
+          // Atualizar o status do vídeo para "failed" se a API falhar
+          const updateVideoStatusQuery = `
+          UPDATE videos_processed
+          SET status = 'failed', error_message = ?
+          WHERE id = ?
+        `;
+          await db.query(updateVideoStatusQuery, ["Falha ao correr o script no videos_api.", videoProcessedId]);
+
+          Logger.error(`Erro ao executar o script Python`);
+          return res.json({ status: false, message: "Erro ao processar o vídeo." });
+        }
+      } catch (err) {
+        // Se o comando Python falhar, atualizar o status do vídeo para "failed"
+        const updateVideoStatusQuery = `
+        UPDATE videos_processed
+        SET status = 'failed', error_message = ?
+        WHERE id = ?
+      `;
+        await db.query(updateVideoStatusQuery, [err.message, videoProcessedId]);
+
+        Logger.error(`Erro ao executar o script Python: ${err.message}`);
+        return res.json({ status: false, message: "Erro ao processar o vídeo com o script", error: err.message });
+      }
+    } catch (err) {
+      Logger.error(`Erro ao processar vídeo: ${err.message}`);
+      return res.json({ status: false, message: "Erro ao processar vídeo.", error: err.message });
+    }
+  }
+
+  /* static async addVideoProcessed(req, res, next) {
     try {
       const { campo, timeInicio: start_time, timeFim: end_time, date } = req.body;
       const userId = req.user?.id;
@@ -261,12 +404,12 @@ class VideoController {
       const formattedEndDateTime = `${date} ${end_time}`;
       const fileName = videoId;
 
-      /* const pythonScriptPath = "/www/padel/padel.py";
-      const command = `python ${pythonScriptPath} '${formattedStartDateTime}' '${formattedEndDateTime}' ${campo} ${fileName}`; */
+      //const pythonScriptPath = "/www/padel/padel.py";
+      //const command = `python ${pythonScriptPath} '${formattedStartDateTime}' '${formattedEndDateTime}' ${campo} ${fileName}`;
       try {
-        /*  const { stdout, stderr } = await execPromise(command);
-        Logger.info(`Saída do script Python: ${stdout}`);
-        */
+        //const { stdout, stderr } = await execPromise(command);
+        //Logger.info(`Saída do script Python: ${stdout}`);
+        
         const url = `${process.env.URL_API_VIDEOS}/script`;
         const body = {
           campo,
@@ -317,7 +460,7 @@ class VideoController {
       Logger.error("Ocorreu um erro ao processar o vídeo.", ex);
       res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: "Erro Interno do Servidor", message: ex.message });
     }
-  }
+  } */
 
   static async getSingleVideoProcessed(req, res, next) {
     try {

@@ -1,18 +1,18 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { Card, Table, Badge, Select, Flex, Tooltip, ActionIcon, TextInput, Box, Text, Group, Pagination, rem, Modal, Center, Button } from "@mantine/core";
-import { IconCheck, IconRefresh, IconSearch, IconTrash } from "@tabler/icons-react";
+import { IconCheck, IconRefresh, IconSearch, IconTrash, IconX } from "@tabler/icons-react";
 import { useLocation } from "@/providers/LocationProvider";
 import { usePathname } from "next/navigation";
 import { useDisclosure } from "@mantine/hooks";
 import { notifications } from "@mantine/notifications";
-import { getCreditsHistory } from "@/services/video.service";
+import { getCreditsHistory, getVideosWaiting, processVideo } from "@/services/video.service";
 
 // Interface para os vouchers
 interface Voucher {
   user_id: number;
-  credits_before: number,
-  credits_after :number,
+  credits_before: number;
+  credits_after: number;
   given_by: string | null;
   created_at: Date;
   phone: string;
@@ -24,6 +24,23 @@ interface Voucher {
   user_last_name: string;
 }
 
+// Interface para os vídeos waiting
+interface VideoWaiting {
+  id: number;
+  user_first_name: string;
+  user_last_name: string;
+  user_email: string;
+  campo: string;
+  date: string;
+  start_time: string;
+  end_time: string;
+}
+
+interface VideoActionProps {
+  videoId: number;
+  status: boolean; // true para validar, false para rejeitar
+}
+
 function VideoCredits() {
   const pathname = usePathname();
   const [activePage, setActivePage] = useState<number>(1);
@@ -32,6 +49,7 @@ function VideoCredits() {
     return storedValue ? parseInt(storedValue) : 10;
   });
   const [vouchers, setVouchers] = useState<Voucher[]>([]);
+  const [videosWaiting, setVideosWaiting] = useState<VideoWaiting[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [totalVouchers, setTotalVouchers] = useState<number>(0);
   const { location } = useLocation();
@@ -43,6 +61,22 @@ function VideoCredits() {
     return storedValue ? storedValue : null;
   });
 
+  // Função para buscar vídeos com status "waiting"
+  const fetchVideosWaiting = async () => {
+    setLoading(true);
+    try {
+      const response = await getVideosWaiting();
+      if (response.status) {
+        setVideosWaiting(response.data);
+      }
+      setLoading(false);
+    } catch (error) {
+      console.error("Erro ao buscar vídeos por aceitar:", error);
+      setLoading(false);
+    }
+  };
+
+  // Função para buscar dados dos históricos de crédito
   const fetchData = async () => {
     setLoading(true);
     try {
@@ -75,18 +109,19 @@ function VideoCredits() {
 
       setLoading(false);
     } catch (error) {
-      console.error("Error fetching data:", error);
+      console.error("Erro ao buscar histórico de créditos:", error);
       setLoading(false);
     }
   };
 
   const handleFilterChange = (value: string | null) => {
-      setFilterOption(value);
-      localStorage.setItem("filterVoucher", value || "");
+    setFilterOption(value);
+    localStorage.setItem("filterVoucher", value || "");
   };
-  
+
   useEffect(() => {
     fetchData();
+    fetchVideosWaiting(); // Buscar vídeos por aceitar ao carregar o componente
   }, [activePage, elementsPerPage, searchTerm, filterOption]);
 
   const handlePageChange = (page: number) => {
@@ -108,7 +143,54 @@ function VideoCredits() {
   const initialIndex = (activePage - 1) * elementsPerPage;
   const finalIndex = initialIndex + elementsPerPage;
 
-  const rows = vouchers.map((voucher, index) => (
+   const onProcessVideo = async ({ videoId, status }: VideoActionProps) => {
+     try {
+       const response = await processVideo(videoId, status);
+       if (response.status) {
+         notifications.show({
+           title: "Sucesso",
+           message: status ? "Vídeo validado com sucesso!" : "Vídeo rejeitado com sucesso!",
+           color: "green",
+         });
+         fetchData();
+       }
+     } catch (error) {
+       notifications.show({
+         title: "Erro",
+         message: status ? "Falha ao validar o vídeo." : "Falha ao rejeitar o vídeo.",
+         color: "red",
+       });
+     }
+  };
+  
+  // Mapeamento dos vídeos por aceitar para a tabela
+  const videoRows = videosWaiting.map((video, index) => (
+    <Table.Tr key={index}>
+      <Table.Td>{`${video.user_first_name} ${video.user_last_name}`}</Table.Td>
+      <Table.Td>{video.user_email}</Table.Td>
+      <Table.Td>{video.campo}</Table.Td>
+      <Table.Td>{video.date}</Table.Td>
+      <Table.Td>{video.start_time}</Table.Td>
+      <Table.Td>{video.end_time}</Table.Td>
+      <Table.Td>
+        <Group>
+          <Tooltip label="Validar Vídeo" withArrow position="top">
+            <ActionIcon variant="subtle" color="green" onClick={() => onProcessVideo({ videoId: video.id, status: true })}>
+              <IconCheck size={18} />
+            </ActionIcon>
+          </Tooltip>
+          <Tooltip label="Recusar Vídeo" withArrow position="top">
+            <ActionIcon variant="subtle" color="red" onClick={() => onProcessVideo({ videoId: video.id, status: false })}>
+              <IconX size={18} />
+            </ActionIcon>
+          </Tooltip>
+        </Group>
+      </Table.Td>
+    </Table.Tr>
+  ));
+
+  // Mapeamento dos vouchers para a tabela
+  const voucherRows = vouchers.map((voucher, index) => (
     <Table.Tr key={index}>
       <Table.Td>
         {voucher.user_first_name} {voucher.user_last_name}
@@ -124,6 +206,33 @@ function VideoCredits() {
 
   return (
     <>
+      <h1>Vídeos por Aceitar</h1>
+
+      <Card withBorder shadow="md" p={30} mt={10} radius="md" style={{ flex: 1 }}>
+        <Table.ScrollContainer minWidth={500}>
+          <Table highlightOnHover>
+            <Table.Thead>
+              <Table.Tr>
+                <Table.Th>Nome</Table.Th>
+                <Table.Th>Email</Table.Th>
+                <Table.Th>Campo</Table.Th>
+                <Table.Th>Data</Table.Th>
+                <Table.Th>Hora de Início</Table.Th>
+                <Table.Th>Hora de Fim</Table.Th>
+                <Table.Th>Ações</Table.Th>
+              </Table.Tr>
+            </Table.Thead>
+            <Table.Tbody>{videoRows}</Table.Tbody>
+          </Table>
+        </Table.ScrollContainer>
+
+        {videosWaiting.length === 0 && (
+          <Center>
+            <Text>Nenhum vídeo por aceitar no momento.</Text>
+          </Center>
+        )}
+      </Card>
+
       <h1>Histórico de Atribuição de Créditos</h1>
 
       <Card withBorder shadow="md" p={30} mt={10} radius="md" style={{ flex: 1 }}>
@@ -176,7 +285,7 @@ function VideoCredits() {
                 <Table.Th>Data de Atribuição</Table.Th>
               </Table.Tr>
             </Table.Thead>
-            <Table.Tbody>{rows}</Table.Tbody>
+            <Table.Tbody>{voucherRows}</Table.Tbody>
           </Table>
         </Table.ScrollContainer>
 

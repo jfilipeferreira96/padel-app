@@ -242,6 +242,11 @@ INSERT INTO campos (name, value) VALUES
 ('Mozelos - AYSA', 'AYSA'),
 ('Mozelos - WorkForce', 'WorkeForce');
 
+ALTER TABLE videos_processed
+    ADD COLUMN validated_by INT NULL,
+    ADD COLUMN validated_at TIMESTAMP NULL,
+    ADD CONSTRAINT fk_validated_by FOREIGN KEY (validated_by) REFERENCES users(user_id) ON DELETE SET NULL;
+
 
 -- Testes:
 
