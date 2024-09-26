@@ -1,5 +1,5 @@
 "use client";
-import { Title, Text, Center, Flex, Button, Loader, Box, InputBase } from "@mantine/core";
+import { Title, Text, Center, Flex, Button, Loader, Box, InputBase, Input, ActionIcon, rem } from "@mantine/core";
 import { SetStateAction, useEffect, useRef, useState } from "react";
 import { IMaskInput } from "react-imask";
 import { useSession } from "@/providers/SessionProvider";
@@ -8,10 +8,12 @@ import { getSingleVideoProcessed } from "@/services/video.service";
 import { notifications } from "@mantine/notifications";
 import { useMediaQuery } from "@mantine/hooks";
 import classes from "./classes.module.css";
-
+import { IconClock } from "@tabler/icons-react";
+import "@mantine/dates/styles.css";
 import { get, set } from "idb-keyval";
 import { FFmpeg } from "@ffmpeg/ffmpeg";
 import { toBlobURL, fetchFile } from "@ffmpeg/util";
+import { TimeInput } from "@mantine/dates";
 
 async function getCachedUrl(url: string, type: string, key: string) {
   try {
@@ -64,9 +66,9 @@ export default function TesteEComponent() {
   const [videoDuration, setVideoDuration] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const isMobile = useMediaQuery("(max-width: 657px)");
-
+  
   const downloadVideo = async () => {
-    const videoUrl = `http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4`;
+    const videoUrl = `https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4`;
 
     try {
       const response = await fetch(videoUrl);
@@ -100,7 +102,7 @@ export default function TesteEComponent() {
     }
   };
 
-  const validateTimes = () => {
+  const validateTimes = (startTime: string, endTime: string) => {
     if (!videoDuration) {
       setError("A duração do vídeo não está disponível.");
       return false;
@@ -140,16 +142,16 @@ export default function TesteEComponent() {
     return true;
   };
 
-    const fetchStreamVideo = async () => {
-      try {
-        const streamUrl = `http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4`;
-        setStreamUrl(streamUrl);
-        await getVideoDuration(streamUrl); // Obtém a duração do vídeo quando o URL é setado
-      } catch (error) {
-        console.error("Erro ao carregar vídeo completo:", error);
-        setLoading(false);
-      }
-    };
+  const fetchStreamVideo = async () => {
+    try {
+      const streamUrl = `https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4`;
+      setStreamUrl(streamUrl);
+      await getVideoDuration(streamUrl); // Obtém a duração do vídeo quando o URL é setado
+    } catch (error) {
+      console.error("Erro ao carregar vídeo completo:", error);
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     fetchStreamVideo();
@@ -162,19 +164,22 @@ export default function TesteEComponent() {
     }
   }, [compatible]);
 
-
   const trimVideo = async () => {
+
+    let ini = ref1.current && startTime !== ref1.current.props.value ? ref1.current.props.value : startTime;
+    let fim = ref2.current && endTime !== ref2.current.props.value ? ref2.current.props.value : endTime;
+  
     if (!ffmpeg || !inputVideoFile) return;
     if (!compatible || !inputVideoFile) return;
 
-    if (!validateTimes()) return;
+    if (!validateTimes(ini, fim)) return;
 
     setIsTrimming(true);
     setReady(false);
-
+    
     try {
       await ffmpeg.writeFile("input.mp4", await fetchFile(inputVideoFile));
-      await ffmpeg.exec(["-i", "input.mp4", "-ss", startTime, "-to", endTime, "-c", "copy", "output.mp4"]);
+      await ffmpeg.exec(["-i", "input.mp4", "-ss", ini, "-to", fim, "-c", "copy", "output.mp4"]);
 
       const fileData = await ffmpeg.readFile("output.mp4");
       const data = new Uint8Array(fileData as ArrayBuffer);
@@ -189,28 +194,31 @@ export default function TesteEComponent() {
     }
   };
 
-   const getVideoDuration = async (url: string) => {
-     return new Promise<void>((resolve, reject) => {
+  const getVideoDuration = async (url: string) => {
+    return new Promise<void>((resolve, reject) => {
       const videoElement = document.createElement("video");
       videoElement.preload = "metadata"; // Pré-carrega apenas os metadados
       videoElement.crossOrigin = "anonymous";
-       videoElement.addEventListener("loadedmetadata", () => {
-         const durationInSeconds = videoElement.duration;
-         setVideoDuration(durationInSeconds);
-         setEndTime(secondsToHms(durationInSeconds));
-         setLoading(false);
-         resolve();
-       });
+      videoElement.addEventListener("loadedmetadata", () => {
+        const durationInSeconds = videoElement.duration;
+        setVideoDuration(durationInSeconds);
+        setEndTime(secondsToHms(durationInSeconds));
+        setLoading(false);
+        resolve();
+      });
 
-       videoElement.addEventListener("error", (error) => {
-         console.error("Erro ao carregar os metadados do vídeo:", error);
-         setLoading(false);
-         reject(error);
-       });
+      videoElement.addEventListener("error", (error) => {
+        console.error("Erro ao carregar os metadados do vídeo:", error);
+        setLoading(false);
+        reject(error);
+      });
 
-       videoElement.src = url;
-     });
-   };
+      videoElement.src = url;
+    });
+  };
+
+  const ref1 = useRef<any>(null);
+  const ref2 = useRef<any>(null);
 
   if (loading) {
     return (
@@ -244,23 +252,29 @@ export default function TesteEComponent() {
               {
                 <div>
                   <Flex justify="center" align="center">
-                    <InputBase
+                    <Input
+                      ref={ref1}
                       component={IMaskInput}
                       disabled={!downloadComplete}
-                      mask="00:00:00"
                       label="Início (HH:MM:SS)"
                       value={startTime}
-                      onChange={(event) => setStartTime(event.currentTarget.value)}
+                      onChange={(event) => {
+                        setStartTime(event.currentTarget.value);
+                      }}
                       placeholder="00:00:10"
                       className={classes.center}
                     />
-                    <InputBase
+
+                    <Input
+                      ref={ref2}
                       disabled={!downloadComplete}
                       mask="00:00:00"
                       component={IMaskInput}
                       label="Fim (HH:MM:SS)"
                       value={endTime}
-                      onChange={(event) => setEndTime(event.currentTarget.value)}
+                      onChange={(event) => {
+                        setEndTime(event.currentTarget.value);
+                      }}
                       placeholder="00:01:00"
                       ml="md"
                       className={classes.center}

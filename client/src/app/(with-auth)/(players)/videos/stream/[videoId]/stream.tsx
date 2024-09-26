@@ -1,5 +1,5 @@
 "use client";
-import { Title, Text, Center, Flex, Button, Loader, Box, InputBase } from "@mantine/core";
+import { Title, Text, Center, Flex, Button, Loader, Box, InputBase, Input, ActionIcon, rem } from "@mantine/core";
 import { SetStateAction, useEffect, useRef, useState } from "react";
 import { IMaskInput } from "react-imask";
 import { useSession } from "@/providers/SessionProvider";
@@ -8,10 +8,12 @@ import { getSingleVideoProcessed } from "@/services/video.service";
 import { notifications } from "@mantine/notifications";
 import { useMediaQuery } from "@mantine/hooks";
 import classes from "./classes.module.css";
-
+import { IconClock } from "@tabler/icons-react";
+import "@mantine/dates/styles.css";
 import { get, set } from "idb-keyval";
 import { FFmpeg } from "@ffmpeg/ffmpeg";
 import { toBlobURL, fetchFile } from "@ffmpeg/util";
+import { TimeInput } from "@mantine/dates";
 
 async function getCachedUrl(url: string, type: string, key: string) {
   try {
@@ -119,7 +121,7 @@ export default function Stream({ params }: Props) {
     }
   };
 
-  const validateTimes = () => {
+  const validateTimes = (startTime: string, endTime: string) => {
     if (!videoDuration) {
       setError("A duração do vídeo não está disponível.");
       return false;
@@ -196,17 +198,20 @@ export default function Stream({ params }: Props) {
   }, [compatible]);
 
   const trimVideo = async () => {
-    if (!ffmpeg || !inputVideoFile) return;
-    if (!compatible || !inputVideoFile) return;
+      let ini = ref1.current && startTime !== ref1.current.props.value ? ref1.current.props.value : startTime;
+      let fim = ref2.current && endTime !== ref2.current.props.value ? ref2.current.props.value : endTime;
 
-    if (!validateTimes()) return;
+      if (!ffmpeg || !inputVideoFile) return;
+      if (!compatible || !inputVideoFile) return;
+
+      if (!validateTimes(ini, fim)) return;
 
     setIsTrimming(true);
     setReady(false);
 
     try {
       await ffmpeg.writeFile("input.mp4", await fetchFile(inputVideoFile));
-      await ffmpeg.exec(["-i", "input.mp4", "-ss", startTime, "-to", endTime, "-c", "copy", "output.mp4"]);
+      await ffmpeg.exec(["-i", "input.mp4", "-ss", ini, "-to", fim, "-c", "copy", "output.mp4"]);
 
       const fileData = await ffmpeg.readFile("output.mp4");
       const data = new Uint8Array(fileData as ArrayBuffer);
@@ -252,6 +257,10 @@ export default function Stream({ params }: Props) {
     });
   };
 
+  const ref1 = useRef<any>(null);
+  const ref2 = useRef<any>(null);
+
+
   if (loading) {
     return (
       <Center mt={100} mih={"50vh"}>
@@ -283,28 +292,34 @@ export default function Stream({ params }: Props) {
             {
               <div>
                 <Flex justify="center" align="center">
-                  <InputBase
-                    component={IMaskInput}
-                    disabled={!downloadComplete}
-                    mask="00:00:00"
-                    label="Início (HH:MM:SS)"
-                    value={startTime}
-                    onChange={(event) => setStartTime(event.currentTarget.value)}
-                    placeholder="00:00:10"
-                    className={classes.center}
-                  />
-                  <InputBase
-                    disabled={!downloadComplete}
-                    mask="00:00:00"
-                    component={IMaskInput}
-                    label="Fim (HH:MM:SS)"
-                    value={endTime}
-                    onChange={(event) => setEndTime(event.currentTarget.value)}
-                    placeholder="00:01:00"
-                    ml="md"
-                    className={classes.center}
-                  />
-                </Flex>
+                    <Input
+                      ref={ref1}
+                      component={IMaskInput}
+                      disabled={!downloadComplete}
+                      label="Início (HH:MM:SS)"
+                      value={startTime}
+                      onChange={(event) => {
+                        setStartTime(event.currentTarget.value);
+                      }}
+                      placeholder="00:00:10"
+                      className={classes.center}
+                    />
+
+                    <Input
+                      ref={ref2}
+                      disabled={!downloadComplete}
+                      mask="00:00:00"
+                      component={IMaskInput}
+                      label="Fim (HH:MM:SS)"
+                      value={endTime}
+                      onChange={(event) => {
+                        setEndTime(event.currentTarget.value);
+                      }}
+                      placeholder="00:01:00"
+                      ml="md"
+                      className={classes.center}
+                    />
+                  </Flex>
                 <Center mt="sm">
                   <Button onClick={trimVideo} disabled={isTrimming || !downloadComplete} loading={isTrimming}>
                     {loading ? <Loader size="sm" /> : "Cortar"}
@@ -324,7 +339,7 @@ export default function Stream({ params }: Props) {
             {trimmedVideoUrl && (
               <Center>
                 <div style={{ marginTop: "1rem", marginBottom: "1rem" }}>
-                  <video crossOrigin="anonymous" autoPlay src={trimmedVideoUrl} controls width={isMobile ? "320px" : "600px"} />
+                  <video crossOrigin="anonymous" src={trimmedVideoUrl} controls width={isMobile ? "320px" : "600px"} />
                 </div>
               </Center>
             )}
