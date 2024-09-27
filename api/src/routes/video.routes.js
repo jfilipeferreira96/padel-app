@@ -9,12 +9,13 @@ videoRoutes.post("/credits-history", authenticateToken, VideoController.getCredi
 
 // Rota responsável por retornar os vídeos processados
 videoRoutes.post("/processed", authenticateToken, VideoController.getVideosProcessed);
+videoRoutes.post("/waiting", authenticateToken, VideoController.getVideosWaiting);
 
 // Rota responsável por atualizar os créditos de um utilizador
 videoRoutes.put("/credits", authenticateToken, VideoController.updateUserCredits);
 
-// Rota responsável por adicionar um vídeo processado
 videoRoutes.post("/processed/add", authenticateToken, VideoController.addVideoProcessed);
+videoRoutes.post("/processed/edit", authenticateToken, VideoController.processVideo);
 
 // Rota responsável por retornar um vídeo processado específico
 videoRoutes.get("/processed/:id", authenticateToken, VideoController.getSingleVideoProcessed);

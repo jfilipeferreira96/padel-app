@@ -64,8 +64,22 @@ function VideoCredits() {
   // Função para buscar vídeos com status "waiting"
   const fetchVideosWaiting = async () => {
     setLoading(true);
-    try {
-      const response = await getVideosWaiting();
+    try
+    {
+      const pagination = {
+        page: activePage,
+        limit: elementsPerPage,
+        orderBy: "uch.id",
+        order: "DESC",
+      };
+
+      const filters: any = {
+        email: searchTerm ?? null,
+        name: searchTerm ?? null,
+        phone: searchTerm ?? null,
+      };
+
+      const response = await getVideosWaiting(pagination, filters);
       if (response.status) {
         setVideosWaiting(response.data);
       }
@@ -149,7 +163,7 @@ function VideoCredits() {
        if (response.status) {
          notifications.show({
            title: "Sucesso",
-           message: status ? "Vídeo validado com sucesso!" : "Vídeo rejeitado com sucesso!",
+           message: response.message,
            color: "green",
          });
          fetchData();

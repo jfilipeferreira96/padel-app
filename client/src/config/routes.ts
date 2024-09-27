@@ -57,8 +57,10 @@ export const endpoints = {
   /*################## Videos #############################*/
   getCreditsHistory: `/api/videos/credits-history`,
   getVideosProcessed: `/api/videos/processed`,
+  getVideosWaiting: `/api/videos/waiting`,
   updateUserCredits: `/api/videos/credits`,
   addVideoProcessed: `/api/videos/processed/add`,
+  processVideo: `/api/videos/processed/edit`,
   getSingleVideoProcessed: `/api/videos/processed`,
   getCreditsVideoPage: `/api/videos/page-params`,
   completeVideo: `/api/videos/stream`

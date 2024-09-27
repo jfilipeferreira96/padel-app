@@ -49,6 +49,18 @@ export const getVideosProcessed = async (pagination: Pagination, userId?: number
   }
 };
 
+export const getVideosWaiting = async (pagination: Pagination, filters: Filters) =>
+{
+  try
+  {
+    const response = await api.post(endpoints.getVideosWaiting, { pagination, filters });
+    return response.data;
+  } catch (error)
+  {
+    throw error;
+  }
+};
+
 export const getCreditsVideoPage = async () => {
   try {
     const response = await api.get(endpoints.getCreditsVideoPage);
@@ -75,6 +87,18 @@ export const addVideoProcessed = async (data: any) => {
     const response = await api.post(endpoints.addVideoProcessed, data);
     return response.data;
   } catch (error) {
+    throw error;
+  }
+};
+
+export const processVideo = async (videoId: number, status: boolean) =>
+{
+  try
+  {
+    const response = await api.post(endpoints.processVideo, { videoId, status });
+    return response.data;
+  } catch (error)
+  {
     throw error;
   }
 };

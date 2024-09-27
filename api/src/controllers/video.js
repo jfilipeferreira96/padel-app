@@ -193,6 +193,73 @@ class VideoController {
     }
   }
 
+  static async getVideosWaiting(req, res, next) {
+    try {
+      const { name, email, phone } = req.body.filters || {};
+      const userId = req.body.userId;
+      const { page = 1, limit = 15, orderBy = "vp.id", order = "ASC" } = req.body.pagination || {};
+
+      let query = `
+            SELECT vp.*, u.email, u.first_name, u.last_name, u.phone
+            FROM videos_processed vp
+            LEFT JOIN users u ON vp.user_id = u.user_id
+            WHERE status = 'waiting'
+        `;
+
+      let totalCountQuery = `
+            SELECT COUNT(*) as count
+            FROM videos_processed vp
+            LEFT JOIN users u ON vp.user_id = u.user_id
+            WHERE status = 'waiting'
+        `;
+
+      const params = [];
+
+      if (userId) {
+        query += ` AND vp.user_id = ?`;
+        totalCountQuery += ` AND vp.user_id = ?`;
+        params.push(userId);
+      }
+
+      if (name) {
+        query += ` AND (u.first_name LIKE ? OR u.last_name LIKE ?)`;
+        totalCountQuery += ` AND (u.first_name LIKE ? OR u.last_name LIKE ?)`;
+        const searchPattern = `%${name}%`;
+        params.push(searchPattern, searchPattern);
+      }
+
+      if (email) {
+        query += ` AND u.email LIKE ?`;
+        totalCountQuery += ` AND u.email LIKE ?`;
+        params.push(`%${email}%`);
+      }
+
+      if (phone) {
+        query += ` AND u.phone LIKE ?`;
+        totalCountQuery += ` AND u.phone LIKE ?`;
+        params.push(`%${phone}%`);
+      }
+
+      const offset = (page - 1) * limit;
+
+      query += ` ORDER BY ${orderBy} ${order} LIMIT ? OFFSET ?`;
+      params.push(limit, offset);
+
+      const { rows } = await db.query(query, params);
+      const { rows: totalCountRows } = await db.query(totalCountQuery, params.slice(0, params.length - 2));
+
+      return res.status(200).json({
+        status: true,
+        data: rows,
+        pagination: { page, limit, orderBy, order, total: parseInt(totalCountRows[0].count) },
+      });
+
+    } catch (ex) {
+      Logger.error("Ocorreu um erro ao buscar os vídeos processados.", ex);
+      res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: "Erro Interno do Servidor", message: ex.message });
+    }
+  }
+
   static async updateUserCredits(req, res, next) {
     try {
       const { userId, credits } = req.body;
@@ -232,7 +299,7 @@ class VideoController {
       const { userId, campo, date, start_time, end_time } = req.body;
 
       // Buscar os créditos do utilizador
-      const [userResult] = await db.query(`SELECT video_credits FROM users WHERE user_id = ?`, [userId]);
+      const { rows: userResult } = await db.query(`SELECT video_credits FROM users WHERE user_id = ?`, [userId]);
       const userCredits = userResult[0].video_credits;
 
       if (userCredits <= 0) {
@@ -244,7 +311,7 @@ class VideoController {
       INSERT INTO videos_processed (user_id, campo, date, start_time, end_time, status)
       VALUES (?, ?, ?, ?, ?, 'waiting')
     `;
-      const [result] = await db.query(insertVideoQuery, [userId, campo, date, start_time, end_time]);
+      const { rows: result }  = await db.query(insertVideoQuery, [userId, campo, date, start_time, end_time]);
 
       // Subtrair um crédito do utilizador
       const updateCreditsQuery = `UPDATE users SET video_credits = video_credits - 1 WHERE user_id = ?`;
@@ -273,7 +340,7 @@ class VideoController {
 
     try {
       // Buscar os detalhes do vídeo que está sendo processado
-      const [videoDetails] = await db.query(`SELECT * FROM videos_processed WHERE id = ?`, [videoProcessedId]);
+      const { rows: videoDetails } = await db.query(`SELECT * FROM videos_processed WHERE id = ?`, [videoProcessedId]);
 
       if (!videoDetails.length) {
         return res.json({ status: false, message: "Vídeo não encontrado." });
@@ -296,7 +363,7 @@ class VideoController {
         await db.query(updateCreditsQuery, [user_id]);
 
         // Registrar a devolução de crédito
-        const [userCreditsResult] = await db.query(`SELECT video_credits FROM users WHERE user_id = ?`, [user_id]);
+        const { rows: userCreditsResult }  = await db.query(`SELECT video_credits FROM users WHERE user_id = ?`, [user_id]);
         const userCredits = userCreditsResult[0].video_credits;
 
         const historyQuery = `
