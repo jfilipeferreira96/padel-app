@@ -1,5 +1,5 @@
 "use client";
-import { Title, Text, Center, Flex, Button, Loader, Box, InputBase, Input, ActionIcon, rem } from "@mantine/core";
+import { Title, Text, Center, Flex, Button, Loader, Box, InputBase, Input, ActionIcon, rem, Anchor } from "@mantine/core";
 import { SetStateAction, useEffect, useRef, useState } from "react";
 import { IMaskInput } from "react-imask";
 import { useSession } from "@/providers/SessionProvider";
@@ -226,6 +226,12 @@ export default function Stream({ params }: Props) {
     }
   };
 
+  const getFileNameWithTimestamp = () => {
+    const date = new Date();
+    const timestamp = date.toISOString().replace(/[:.]/g, "-"); // Formata o timestamp
+    return `download_${timestamp}.mp4`;
+  };
+
   /* const handleMetadataLoaded = (event: React.ChangeEvent<HTMLVideoElement>) =>
   {
     const video = event.currentTarget;
@@ -275,9 +281,16 @@ export default function Stream({ params }: Props) {
 
       <Center mt={"lg"}>
         {streamUrl && (
-          <video crossOrigin="anonymous" controls src={streamUrl} autoPlay width={isMobile ? "320px" : "600px"} /*  onLoadedMetadata={handleMetadataLoaded} */>
-            O seu navegador não suporta a reprodução de vídeo.
-          </video>
+          <Box display={"grid"}>
+            <video crossOrigin="anonymous" controls src={streamUrl} autoPlay width={isMobile ? "320px" : "600px"}>
+              O seu navegador não suporta a reprodução de vídeo.
+            </video>
+            <Center>
+              <Anchor mt="md" href={streamUrl} download={getFileNameWithTimestamp()} target="_blank" underline="hover">
+                Download Vídeo
+              </Anchor>
+            </Center>
+          </Box>
         )}
       </Center>
 
@@ -292,33 +305,33 @@ export default function Stream({ params }: Props) {
             {
               <div>
                 <Flex justify="center" align="center">
-                    <Input
-                      ref={ref1}
-                      component={IMaskInput}
-                      disabled={!downloadComplete}
-                      label="Início (HH:MM:SS)"
-                      value={startTime}
-                      onChange={(event) => {
-                        setStartTime(event.currentTarget.value);
-                      }}
-                      placeholder="00:00:10"
-                      className={classes.center}
-                    />
+                  <Input
+                    ref={ref1}
+                    component={IMaskInput}
+                    disabled={!downloadComplete}
+                    label="Início (HH:MM:SS)"
+                    value={startTime}
+                    onChange={(event) => {
+                      setStartTime(event.currentTarget.value);
+                    }}
+                    placeholder="00:00:10"
+                    className={classes.center}
+                  />
 
-                    <Input
-                      ref={ref2}
-                      disabled={!downloadComplete}
-                      component={IMaskInput}
-                      label="Fim (HH:MM:SS)"
-                      value={endTime}
-                      onChange={(event) => {
-                        setEndTime(event.currentTarget.value);
-                      }}
-                      placeholder="00:01:00"
-                      ml="md"
-                      className={classes.center}
-                    />
-                  </Flex>
+                  <Input
+                    ref={ref2}
+                    disabled={!downloadComplete}
+                    component={IMaskInput}
+                    label="Fim (HH:MM:SS)"
+                    value={endTime}
+                    onChange={(event) => {
+                      setEndTime(event.currentTarget.value);
+                    }}
+                    placeholder="00:01:00"
+                    ml="md"
+                    className={classes.center}
+                  />
+                </Flex>
                 <Center mt="sm">
                   <Button onClick={trimVideo} disabled={isTrimming || !downloadComplete} loading={isTrimming}>
                     {loading ? <Loader size="sm" /> : "Cortar"}
@@ -337,9 +350,14 @@ export default function Stream({ params }: Props) {
 
             {trimmedVideoUrl && (
               <Center>
-                <div style={{ marginTop: "1rem", marginBottom: "1rem" }}>
-                  <video crossOrigin="anonymous" src={trimmedVideoUrl} controls width={isMobile ? "320px" : "600px"} />
-                </div>
+                <Box display={"grid"} style={{ marginTop: "1rem", marginBottom: "1rem" }}>
+                  <video src={trimmedVideoUrl} controls width={isMobile ? "320px" : "600px"} />
+                  <Center>
+                    <Anchor mt="md" href={trimmedVideoUrl} download={getFileNameWithTimestamp()} target="_blank" underline="hover">
+                      Download do Vídeo Cortado
+                    </Anchor>
+                  </Center>
+                </Box>
               </Center>
             )}
           </div>
