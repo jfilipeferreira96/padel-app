@@ -15,6 +15,10 @@ import { notifications } from "@mantine/notifications";
 import { useForm, zodResolver } from "@mantine/form";
 
 function getBadge(status: string | null) {
+  if (status === "waiting") {
+    return { name: "Em Avaliação", color: "blue" };
+  }
+  
   if (status === "processing") {
     return { name: "Em Processamento", color: "blue" };
   }
@@ -27,6 +31,10 @@ function getBadge(status: string | null) {
     return { name: "Falha", color: "red" };
   }
 
+  if (status === "rejected") {
+    return { name: "Rejeitado", color: "red" };
+  }
+  
   if (status === "error") {
     return { name: "Erro", color: "red" };
   }
@@ -167,7 +175,8 @@ function ReviewVideos() {
   const router = useRouter();
   const [isSubmiting, setIsSubmiting] = useState<boolean>(false);
   const [firstLoad, setFirstLoad] = useState<boolean>(true);
-  
+    const [resetKey, setResetKey] = useState(0);
+
   const form = useForm({
     initialValues: {
       date: undefined,
@@ -192,14 +201,16 @@ function ReviewVideos() {
     try {
       const response = await addVideoProcessed(payload);
        if (response.status) {
-        notifications.show({
-          title: "Sucesso",
-          message: "",
-          color: "green",
-        });
+         notifications.show({
+           title: "Sucesso",
+           message: "",
+           color: "green",
+         });
          fetchDataConcurrently();
+
          form.reset();
-      } else {
+         setResetKey((prev) => prev + 1); // Força o Select a re-renderizar
+       } else {
         notifications.show({
           title: "Erro",
           message: response.message,
@@ -386,7 +397,7 @@ function ReviewVideos() {
 
           <Timeline.Item title="Processamento" bullet={<IconNumber3 size={16} />}>
             <Text c="dimmed" size="sm">
-              O vídeo será processado e estará disponível em breve.
+              O vídeo será avaliado e, caso seja aprovado, será processado.
             </Text>
           </Timeline.Item>
 
@@ -409,27 +420,51 @@ function ReviewVideos() {
             </Text>
 
             <Flex align="center" justify="center" mb="md" mt="md" direction={{ base: "column", sm: "row" }}>
-              <DateInput
-                minDate={getMinDate()}
-                maxDate={getMaxDate()}
-                disabled={!creditos}
-                valueFormat="DD-MM-YYYY"
-                label="Selecione uma data"
-                placeholder="DD-MM-YYYY"
+              
+                <DateInput
+                  key={form.values.date}
+                  minDate={getMinDate()}
+                  maxDate={getMaxDate()}
+                  disabled={!creditos}
+                  valueFormat="DD-MM-YYYY"
+                  label="Selecione uma data"
+                  placeholder="DD-MM-YYYY"
+                  mr={{ sm: "lg" }}
+                  mb={{ base: "sm", sm: 0 }}
+                  withAsterisk
+                  w={{ base: "100%", sm: "auto" }}
+                  {...form.getInputProps("date")}
+                />
+              
+
+              <TimeInput
+                label="Hora de Ínicio"
                 mr={{ sm: "lg" }}
                 mb={{ base: "sm", sm: 0 }}
+                disabled={!creditos}
                 withAsterisk
                 w={{ base: "100%", sm: "auto" }}
-                {...form.getInputProps("date")}
+                ref={refInicio}
+                rightSection={pickerControl1}
+                {...form.getInputProps("timeInicio")}
               />
 
-              <TimeInput label="Hora de Ínicio" mr={{ sm: "lg" }} mb={{ base: "sm", sm: 0 }} disabled={!creditos} withAsterisk w={{ base: "100%", sm: "auto" }} ref={refInicio} rightSection={pickerControl1} {...form.getInputProps("timeInicio")} />
-
-              <TimeInput label="Hora de Fim" mr={{ sm: "lg" }} mb={{ base: "sm", sm: 0 }} disabled={!creditos} withAsterisk w={{ base: "100%", sm: "auto" }} ref={refFim} rightSection={pickerControl2} {...form.getInputProps("timeFim")} />
+              <TimeInput
+                label="Hora de Fim"
+                mr={{ sm: "lg" }}
+                mb={{ base: "sm", sm: 0 }}
+                disabled={!creditos}
+                withAsterisk
+                w={{ base: "100%", sm: "auto" }}
+                ref={refFim}
+                rightSection={pickerControl2}
+                {...form.getInputProps("timeFim")}
+              />
 
               <Select
                 label="Selecione o campo"
                 placeholder="Campo"
+                key={resetKey}
                 data={campos?.length > 0 ? campos.map((option) => option.label) : undefined}
                 //onChange={handleCampoChange}
                 disabled={!creditos}

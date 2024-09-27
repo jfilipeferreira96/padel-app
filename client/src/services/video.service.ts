@@ -91,11 +91,11 @@ export const addVideoProcessed = async (data: any) => {
   }
 };
 
-export const processVideo = async (videoId: number, status: boolean) =>
+export const processVideo = async (videoId: number, accepted: boolean) =>
 {
   try
   {
-    const response = await api.post(endpoints.processVideo, { videoId, status });
+    const response = await api.post(endpoints.processVideo, { videoId, accepted });
     return response.data;
   } catch (error)
   {

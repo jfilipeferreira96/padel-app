@@ -200,7 +200,7 @@ class VideoController {
       const { page = 1, limit = 15, orderBy = "vp.id", order = "ASC" } = req.body.pagination || {};
 
       let query = `
-            SELECT vp.*, u.email, u.first_name, u.last_name, u.phone
+            SELECT vp.*, u.email as user_email, u.first_name as user_first_name, u.last_name as user_last_name, u.phone
             FROM videos_processed vp
             LEFT JOIN users u ON vp.user_id = u.user_id
             WHERE status = 'waiting'
@@ -214,12 +214,6 @@ class VideoController {
         `;
 
       const params = [];
-
-      if (userId) {
-        query += ` AND vp.user_id = ?`;
-        totalCountQuery += ` AND vp.user_id = ?`;
-        params.push(userId);
-      }
 
       if (name) {
         query += ` AND (u.first_name LIKE ? OR u.last_name LIKE ?)`;
@@ -253,7 +247,6 @@ class VideoController {
         data: rows,
         pagination: { page, limit, orderBy, order, total: parseInt(totalCountRows[0].count) },
       });
-
     } catch (ex) {
       Logger.error("Ocorreu um erro ao buscar os vídeos processados.", ex);
       res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: "Erro Interno do Servidor", message: ex.message });
@@ -296,7 +289,14 @@ class VideoController {
 
   static async addVideoProcessed(req, res) {
     try {
-      const { userId, campo, date, start_time, end_time } = req.body;
+      const user = req.user;
+      const userId = user.id;
+
+      if (!userId) {
+        return res.status(StatusCodes.BAD_REQUEST).json({ status: false, message: "O ID do Utilizador é obrigatório." });
+      }
+
+      const { campo, date, timeInicio: start_time, timeFim: end_time } = req.body;
 
       // Buscar os créditos do utilizador
       const { rows: userResult } = await db.query(`SELECT video_credits FROM users WHERE user_id = ?`, [userId]);
@@ -311,7 +311,8 @@ class VideoController {
       INSERT INTO videos_processed (user_id, campo, date, start_time, end_time, status)
       VALUES (?, ?, ?, ?, ?, 'waiting')
     `;
-      const { rows: result }  = await db.query(insertVideoQuery, [userId, campo, date, start_time, end_time]);
+
+      const { rows: result } = await db.query(insertVideoQuery, [userId, campo, date, start_time, end_time]);
 
       // Subtrair um crédito do utilizador
       const updateCreditsQuery = `UPDATE users SET video_credits = video_credits - 1 WHERE user_id = ?`;
@@ -336,11 +337,12 @@ class VideoController {
   }
 
   static async processVideo(req, res) {
-    const { videoProcessedId, validatedByUserId, accepted } = req.body;
-
+    const { videoId, accepted } = req.body;
+    const validatedByUserId = req.user.id;
+    console.log(req.body);
     try {
       // Buscar os detalhes do vídeo que está sendo processado
-      const { rows: videoDetails } = await db.query(`SELECT * FROM videos_processed WHERE id = ?`, [videoProcessedId]);
+      const { rows: videoDetails } = await db.query(`SELECT * FROM videos_processed WHERE id = ?`, [videoId]);
 
       if (!videoDetails.length) {
         return res.json({ status: false, message: "Vídeo não encontrado." });
@@ -356,14 +358,14 @@ class VideoController {
         SET status = 'rejected', validated_by = ?, validated_at = NOW()
         WHERE id = ?
       `;
-        await db.query(updateVideoQuery, [validatedByUserId, videoProcessedId]);
+        await db.query(updateVideoQuery, [validatedByUserId, videoId]);
 
         // Devolver um crédito ao utilizador
         const updateCreditsQuery = `UPDATE users SET video_credits = video_credits + 1 WHERE user_id = ?`;
         await db.query(updateCreditsQuery, [user_id]);
 
         // Registrar a devolução de crédito
-        const { rows: userCreditsResult }  = await db.query(`SELECT video_credits FROM users WHERE user_id = ?`, [user_id]);
+        const { rows: userCreditsResult } = await db.query(`SELECT video_credits FROM users WHERE user_id = ?`, [user_id]);
         const userCredits = userCreditsResult[0].video_credits;
 
         const historyQuery = `
@@ -382,12 +384,12 @@ class VideoController {
       SET status = 'processing', validated_by = ?, validated_at = NOW()
       WHERE id = ?
     `;
-      await db.query(updateVideoQuery, [validatedByUserId, videoProcessedId]);
+      await db.query(updateVideoQuery, [validatedByUserId, videoId]);
 
       // Formatar os valores para o comando Python
       const formattedStartDateTime = `${date} ${start_time}`;
       const formattedEndDateTime = `${date} ${end_time}`;
-      const fileName = videoProcessedId; // Considerando que videoId é o mesmo que videoProcessedId
+      const fileName = videoId; // Considerando que videoId é o mesmo que videoId
 
       const url = `${process.env.URL_API_VIDEOS}/script`;
       const body = {
@@ -395,7 +397,7 @@ class VideoController {
         start_time,
         end_time,
         date,
-        videoId: videoProcessedId,
+        videoId: videoId,
         secret: "a@akas34324_!",
       };
 
@@ -414,7 +416,7 @@ class VideoController {
           SET status = 'failed', error_message = ?
           WHERE id = ?
         `;
-          await db.query(updateVideoStatusQuery, ["Falha ao correr o script no videos_api.", videoProcessedId]);
+          await db.query(updateVideoStatusQuery, ["Falha ao correr o script no videos_api.", videoId]);
 
           Logger.error(`Erro ao executar o script Python`);
           return res.json({ status: false, message: "Erro ao processar o vídeo." });
@@ -426,7 +428,7 @@ class VideoController {
         SET status = 'failed', error_message = ?
         WHERE id = ?
       `;
-        await db.query(updateVideoStatusQuery, [err.message, videoProcessedId]);
+        await db.query(updateVideoStatusQuery, [err.message, videoId]);
 
         Logger.error(`Erro ao executar o script Python: ${err.message}`);
         return res.json({ status: false, message: "Erro ao processar o vídeo com o script", error: err.message });

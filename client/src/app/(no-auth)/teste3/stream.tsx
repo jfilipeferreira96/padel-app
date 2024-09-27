@@ -1,5 +1,5 @@
 "use client";
-import { Title, Text, Center, Flex, Button, Loader, Box, InputBase, Input, ActionIcon, rem } from "@mantine/core";
+import { Title, Text, Center, Flex, Button, Loader, Box, InputBase, Input, ActionIcon, rem, Anchor } from "@mantine/core";
 import { SetStateAction, useEffect, useRef, useState } from "react";
 import { IMaskInput } from "react-imask";
 import { useSession } from "@/providers/SessionProvider";
@@ -66,7 +66,7 @@ export default function TesteEComponent() {
   const [videoDuration, setVideoDuration] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const isMobile = useMediaQuery("(max-width: 657px)");
-  
+
   const downloadVideo = async () => {
     const videoUrl = `https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4`;
 
@@ -81,6 +81,12 @@ export default function TesteEComponent() {
     } catch (error) {
       console.log("Erro ao baixar o vídeo: ", error);
     }
+  };
+
+  const getFileNameWithTimestamp = () => {
+    const date = new Date();
+    const timestamp = date.toISOString().replace(/[:.]/g, "-"); // Formata o timestamp
+    return `download_${timestamp}.mp4`;
   };
 
   const loadFFmpeg = async () => {
@@ -165,7 +171,6 @@ export default function TesteEComponent() {
   }, [compatible]);
 
   const trimVideo = async () => {
-
     let ini = startTime;
     let fim = endTime;
 
@@ -176,7 +181,7 @@ export default function TesteEComponent() {
 
     setIsTrimming(true);
     setReady(false);
-    
+
     try {
       await ffmpeg.writeFile("input.mp4", await fetchFile(inputVideoFile));
       await ffmpeg.exec(["-i", "input.mp4", "-ss", ini, "-to", fim, "-c", "copy", "output.mp4"]);
@@ -219,7 +224,7 @@ export default function TesteEComponent() {
 
   const ref1 = useRef<any>(null);
   const ref2 = useRef<any>(null);
-  
+
   if (loading) {
     return (
       <Center mt={100} mih={"50vh"}>
@@ -235,9 +240,16 @@ export default function TesteEComponent() {
 
         <Center mt={"lg"}>
           {streamUrl && (
-            <video crossOrigin="anonymous" controls src={streamUrl} autoPlay width={isMobile ? "320px" : "600px"}>
-              O seu navegador não suporta a reprodução de vídeo.
-            </video>
+            <Box display={"grid"}>
+              <video crossOrigin="anonymous" controls src={streamUrl} autoPlay width={isMobile ? "320px" : "600px"}>
+                O seu navegador não suporta a reprodução de vídeo.
+              </video>
+              <Center>
+                <Anchor mt="md" href={streamUrl} download={getFileNameWithTimestamp()} target="_blank" underline="hover">
+                  Download Vídeo
+                </Anchor>
+              </Center>
+            </Box>
           )}
         </Center>
 
@@ -255,7 +267,6 @@ export default function TesteEComponent() {
                     <Input
                       ref={ref1}
                       component={IMaskInput}
-                      
                       disabled={!downloadComplete}
                       label="Início (HH:MM:SS)"
                       value={startTime}
@@ -269,7 +280,6 @@ export default function TesteEComponent() {
                     <Input
                       ref={ref2}
                       disabled={!downloadComplete}
-                      
                       component={IMaskInput}
                       label="Fim (HH:MM:SS)"
                       value={endTime}
@@ -299,9 +309,14 @@ export default function TesteEComponent() {
 
               {trimmedVideoUrl && (
                 <Center>
-                  <div style={{ marginTop: "1rem", marginBottom: "1rem" }}>
+                  <Box display={"grid"} style={{ marginTop: "1rem", marginBottom: "1rem" }}>
                     <video src={trimmedVideoUrl} controls width={isMobile ? "320px" : "600px"} />
-                  </div>
+                    <Center>
+                      <Anchor mt="md" href={trimmedVideoUrl} download={getFileNameWithTimestamp()} target="_blank" underline="hover">
+                        Download do Vídeo Cortado
+                      </Anchor>
+                    </Center>
+                  </Box>
                 </Center>
               )}
             </div>

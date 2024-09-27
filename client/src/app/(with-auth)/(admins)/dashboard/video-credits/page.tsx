@@ -7,6 +7,7 @@ import { usePathname } from "next/navigation";
 import { useDisclosure } from "@mantine/hooks";
 import { notifications } from "@mantine/notifications";
 import { getCreditsHistory, getVideosWaiting, processVideo } from "@/services/video.service";
+import dayjs from "dayjs";
 
 // Interface para os vouchers
 interface Voucher {
@@ -38,7 +39,7 @@ interface VideoWaiting {
 
 interface VideoActionProps {
   videoId: number;
-  status: boolean; // true para validar, false para rejeitar
+  accepted: boolean; 
 }
 
 function VideoCredits() {
@@ -69,7 +70,7 @@ function VideoCredits() {
       const pagination = {
         page: activePage,
         limit: elementsPerPage,
-        orderBy: "uch.id",
+        orderBy: "vp.id",
         order: "DESC",
       };
 
@@ -157,21 +158,22 @@ function VideoCredits() {
   const initialIndex = (activePage - 1) * elementsPerPage;
   const finalIndex = initialIndex + elementsPerPage;
 
-   const onProcessVideo = async ({ videoId, status }: VideoActionProps) => {
+   const onProcessVideo = async ({ videoId, accepted }: VideoActionProps) => {
      try {
-       const response = await processVideo(videoId, status);
+       const response = await processVideo(videoId, accepted);
        if (response.status) {
          notifications.show({
            title: "Sucesso",
            message: response.message,
            color: "green",
          });
-         fetchData();
+          fetchData();
+          fetchVideosWaiting();
        }
      } catch (error) {
        notifications.show({
          title: "Erro",
-         message: status ? "Falha ao validar o vídeo." : "Falha ao rejeitar o vídeo.",
+         message: accepted ? "Falha ao validar o vídeo." : "Falha ao rejeitar o vídeo.",
          color: "red",
        });
      }
@@ -183,18 +185,18 @@ function VideoCredits() {
       <Table.Td>{`${video.user_first_name} ${video.user_last_name}`}</Table.Td>
       <Table.Td>{video.user_email}</Table.Td>
       <Table.Td>{video.campo}</Table.Td>
-      <Table.Td>{video.date}</Table.Td>
+      <Table.Td>{dayjs(video.date).format("YYYY-MM-DD")}</Table.Td>
       <Table.Td>{video.start_time}</Table.Td>
       <Table.Td>{video.end_time}</Table.Td>
       <Table.Td>
-        <Group>
+        <Group gap={0} justify="center">
           <Tooltip label="Validar Vídeo" withArrow position="top">
-            <ActionIcon variant="subtle" color="green" onClick={() => onProcessVideo({ videoId: video.id, status: true })}>
+            <ActionIcon variant="subtle" color="green" onClick={() => onProcessVideo({ videoId: video.id, accepted: true })}>
               <IconCheck size={18} />
             </ActionIcon>
           </Tooltip>
           <Tooltip label="Recusar Vídeo" withArrow position="top">
-            <ActionIcon variant="subtle" color="red" onClick={() => onProcessVideo({ videoId: video.id, status: false })}>
+            <ActionIcon variant="subtle" color="red" onClick={() => onProcessVideo({ videoId: video.id, accepted: false })}>
               <IconX size={18} />
             </ActionIcon>
           </Tooltip>
