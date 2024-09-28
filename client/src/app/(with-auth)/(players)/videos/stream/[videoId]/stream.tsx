@@ -287,7 +287,7 @@ export default function Stream({ params }: Props) {
             </video>
             <Center>
               <Anchor mt="md" href={streamUrl} download={getFileNameWithTimestamp()} target="_blank" underline="hover">
-                Download Vídeo
+                Transferir Vídeo
               </Anchor>
             </Center>
           </Box>
@@ -354,7 +354,7 @@ export default function Stream({ params }: Props) {
                   <video src={trimmedVideoUrl} controls width={isMobile ? "320px" : "600px"} />
                   <Center>
                     <Anchor mt="md" href={trimmedVideoUrl} download={getFileNameWithTimestamp()} target="_blank" underline="hover">
-                      Download do Vídeo Cortado
+                      Transferir Vídeo Cortado
                     </Anchor>
                   </Center>
                 </Box>
