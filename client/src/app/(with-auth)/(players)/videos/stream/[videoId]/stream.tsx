@@ -304,7 +304,7 @@ export default function Stream({ params }: Props) {
       <Center mt={"lg"}>
         {streamUrl && (
           <Box display={"grid"}>
-            <video crossOrigin="anonymous" controls src={streamUrl} autoPlay width="600px">
+            <video crossOrigin="anonymous" controls src={streamUrl} autoPlay width={isMobile ? "320px" : "600px"}>
               O seu navegador não suporta a reprodução de vídeo.
             </video>
             <Center>
