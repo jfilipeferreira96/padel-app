@@ -1,19 +1,17 @@
 "use client";
-import { Title, Text, Center, Flex, Button, Loader, Box, InputBase, Input, ActionIcon, rem, Anchor } from "@mantine/core";
+import { Title, Text, Center, Flex, Button, Loader, Box, InputBase, Input, ActionIcon, rem, Anchor, Progress } from "@mantine/core";
 import { SetStateAction, useEffect, useRef, useState } from "react";
 import { IMaskInput } from "react-imask";
-import { useSession } from "@/providers/SessionProvider";
 import { useRouter } from "next/navigation";
-import { getSingleVideoProcessed } from "@/services/video.service";
-import { notifications } from "@mantine/notifications";
 import { useMediaQuery } from "@mantine/hooks";
 import classes from "./classes.module.css";
-import { IconClock } from "@tabler/icons-react";
 import "@mantine/dates/styles.css";
 import { get, set } from "idb-keyval";
 import { FFmpeg } from "@ffmpeg/ffmpeg";
 import { toBlobURL, fetchFile } from "@ffmpeg/util";
-import { TimeInput } from "@mantine/dates";
+import useDownloader from "react-use-downloader";
+import { getSingleVideoProcessed } from "@/services/video.service";
+import { notifications } from "@mantine/notifications";
 
 async function getCachedUrl(url: string, type: string, key: string) {
   try {
@@ -66,6 +64,8 @@ export default function Stream({ params }: Props) {
   const [videoDuration, setVideoDuration] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const isMobile = useMediaQuery("(max-width: 657px)");
+
+  const { size, elapsed, percentage, download, cancel, error: errordownload, isInProgress } = useDownloader();
 
   const downloadVideo = async () => {
     const videoUrl = `${process.env.NEXT_URL_API_VIDEOS}/download-file?filepath=videos/${params.videoId}.mp4`;
@@ -198,13 +198,13 @@ export default function Stream({ params }: Props) {
   }, [compatible]);
 
   const trimVideo = async () => {
-      let ini = startTime;
-      let fim = endTime;
+    let ini = startTime;
+    let fim = endTime;
 
-      if (!ffmpeg || !inputVideoFile) return;
-      if (!compatible || !inputVideoFile) return;
+    if (!ffmpeg || !inputVideoFile) return;
+    if (!compatible || !inputVideoFile) return;
 
-      if (!validateTimes(ini, fim)) return;
+    if (!validateTimes(ini, fim)) return;
 
     setIsTrimming(true);
     setReady(false);
@@ -263,9 +263,31 @@ export default function Stream({ params }: Props) {
     });
   };
 
+  const handleDownload = () => {
+    if (inputVideoFile && !isInProgress) {
+      const url = URL.createObjectURL(inputVideoFile);
+
+      // Criar um link temporário para download
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = getFileNameWithTimestamp(); // Define o nome do arquivo usando a função
+      document.body.appendChild(a);
+      a.click(); // Simula o clique no link
+      document.body.removeChild(a); // Remove o link após o download
+    } else {
+      // Se o download não estiver completo, exibe opções de download
+      download(`${process.env.NEXT_URL_API_VIDEOS}/download-file?filepath=videos/${params.videoId}.mp4`, getFileNameWithTimestamp());
+    }
+  };
+
+  const formatSize = (bytes: number): string => {
+    const gb = bytes / 1024 ** 3;
+    const mb = bytes / 1024 ** 2;
+    return gb >= 1 ? `${gb.toFixed(2)} GB` : `${mb.toFixed(2)} MB`;
+  };
+
   const ref1 = useRef<any>(null);
   const ref2 = useRef<any>(null);
-
 
   if (loading) {
     return (
@@ -282,13 +304,30 @@ export default function Stream({ params }: Props) {
       <Center mt={"lg"}>
         {streamUrl && (
           <Box display={"grid"}>
-            <video crossOrigin="anonymous" controls src={streamUrl} autoPlay width={isMobile ? "320px" : "600px"}>
+            <video crossOrigin="anonymous" controls src={streamUrl} autoPlay width="600px">
               O seu navegador não suporta a reprodução de vídeo.
             </video>
             <Center>
-              <Anchor mt="md" href={streamUrl} download={getFileNameWithTimestamp()} target="_blank" underline="hover">
-                Transferir Vídeo
-              </Anchor>
+              <Flex justify="center" align="center" direction="column" mt="md">
+                <Flex>
+                  <Button variant="subtle" color="blue" onClick={handleDownload} disabled={isInProgress}>
+                    Transferir Vídeo Completo
+                  </Button>
+                  {isInProgress && (
+                    <Button onClick={cancel} variant="subtle" color="red" ml="md">
+                      Cancelar Download
+                    </Button>
+                  )}
+                </Flex>
+                {isInProgress && (
+                  <div>
+                    <Center>
+                      <p>Tamanho do ficheiro: {formatSize(size)}</p>
+                    </Center>
+                    <Progress value={percentage} />
+                  </div>
+                )}
+              </Flex>
             </Center>
           </Box>
         )}
