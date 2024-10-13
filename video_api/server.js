@@ -267,7 +267,7 @@ app.post("/script", (req, res) => {
     // Montar o comando Python, garantindo que as aspas simples estão bem formatadas
     const pythonScriptPath = "/root/scripts/padel.py";
     const campoLocation = campo_location.toLowerCase().includes("lamas") ? "lamas" : "padel";
-    const command = `python ${pythonScriptPath} '${formattedStartDateTime}' '${formattedEndDateTime}' ${campoLocation} ${campo} ${fileName}`;
+    const command = `python3 ${pythonScriptPath} '${formattedStartDateTime}' '${formattedEndDateTime}' ${campoLocation} ${campo} ${fileName}`;
 
     console.log("Comando a ser executado:", command);
 
