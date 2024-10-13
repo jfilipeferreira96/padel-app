@@ -339,16 +339,19 @@ class VideoController {
   static async processVideo(req, res) {
     const { videoId, accepted } = req.body;
     const validatedByUserId = req.user.id;
-    console.log(req.body);
+
     try {
       // Buscar os detalhes do vídeo que está sendo processado
-      const { rows: videoDetails } = await db.query(`SELECT * FROM videos_processed WHERE id = ?`, [videoId]);
+      const { rows: videoDetails } = await db.query(
+        `SELECT videos_processed.*, (SELECT name FROM campos WHERE value = videos_processed.campo) as campo_location FROM videos_processed WHERE id = ?`,
+        [videoId]
+      );
 
       if (!videoDetails.length) {
         return res.json({ status: false, message: "Vídeo não encontrado." });
       }
 
-      const { user_id, campo, date, start_time, end_time, status } = videoDetails[0];
+      const { user_id, campo, date, start_time, end_time, status, campo_location } = videoDetails[0];
 
       // Se o vídeo não for aceito, devolver crédito ao utilizador
       if (accepted === false) {
@@ -394,6 +397,7 @@ class VideoController {
       const url = `${process.env.URL_API_VIDEOS}/script`;
       const body = {
         campo,
+        campo_location,
         start_time,
         end_time,
         date,

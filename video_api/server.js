@@ -242,7 +242,7 @@ app.get("/download-file", async (req, res) => {
 //http://localhost:3010/script
 app.post("/script", (req, res) => {
   try {
-    const { campo, start_time, end_time, date, videoId, secret } = req.body;
+    const { campo, campo_location, start_time, end_time, date, videoId, secret } = req.body;
 
     if (secret !== "a@akas34324_!") {
       return res.json({ status: false, message: "Sem permissões" });
@@ -263,7 +263,8 @@ app.post("/script", (req, res) => {
 
     // Montar o comando Python, garantindo que as aspas simples estão bem formatadas
     const pythonScriptPath = "/root/scripts/padel.py";
-    const command = `python ${pythonScriptPath} '${formattedStartDateTime}' '${formattedEndDateTime}' ${campo} ${fileName}`;
+    const campoLocation = campo_location.toLowerCase().includes("lamas") ? "lamas" : "padel";
+    const command = `python ${pythonScriptPath} '${formattedStartDateTime}' '${formattedEndDateTime}' ${campoLocation} ${campo} ${fileName}`;
 
     console.log("Comando a ser executado:", command);
 
