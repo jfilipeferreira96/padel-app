@@ -256,9 +256,12 @@ app.post("/script", (req, res) => {
     const formattedStartTime = start_time.includes(":00") ? start_time : `${start_time}:00`;
     const formattedEndTime = end_time.includes(":00") ? end_time : `${end_time}:00`;
 
+    // Garantir que a data está no formato YYYY-MM-DD
+    const formattedDate = new Date(date).toISOString().split("T")[0];
+
     // Formatar os valores para o comando Python
-    const formattedStartDateTime = `${date} ${formattedStartTime}`.trim();
-    const formattedEndDateTime = `${date} ${formattedEndTime}`.trim();
+    const formattedStartDateTime = `${formattedDate} ${formattedStartTime}`.trim();
+    const formattedEndDateTime = `${formattedDate} ${formattedEndTime}`.trim();
     const fileName = videoId;
 
     // Montar o comando Python, garantindo que as aspas simples estão bem formatadas
