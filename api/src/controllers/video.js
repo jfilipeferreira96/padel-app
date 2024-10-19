@@ -9,6 +9,7 @@ const { exec } = require("child_process");
 const util = require("util");
 const execPromise = util.promisify(exec);
 const axios = require("axios");
+const moment = require("moment-timezone");
 
 class VideoController {
   static async getCreditsHistory(req, res, next) {
@@ -342,10 +343,7 @@ class VideoController {
 
     try {
       // Buscar os detalhes do vídeo que está sendo processado
-      const { rows: videoDetails } = await db.query(
-        `SELECT videos_processed.*, (SELECT name FROM campos WHERE value = videos_processed.campo) as campo_location FROM videos_processed WHERE id = ?`,
-        [videoId]
-      );
+      const { rows: videoDetails } = await db.query(`SELECT videos_processed.*, (SELECT name FROM campos WHERE value = videos_processed.campo) as campo_location FROM videos_processed WHERE id = ?`, [videoId]);
 
       if (!videoDetails.length) {
         return res.json({ status: false, message: "Vídeo não encontrado." });
@@ -395,12 +393,15 @@ class VideoController {
       const fileName = videoId; // Considerando que videoId é o mesmo que videoId
 
       const url = `${process.env.URL_API_VIDEOS}/script`;
+
+      const formattedDate = moment(date).tz("Europe/Lisbon").format("YYYY-MM-DD");
+
       const body = {
         campo,
         campo_location,
         start_time,
         end_time,
-        date,
+        formattedDate,
         videoId: videoId,
         secret: "a@akas34324_!",
       };
