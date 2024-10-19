@@ -8,6 +8,7 @@ const { exec } = require("child_process");
 const util = require("util");
 const execPromise = util.promisify(exec);
 const cors = require("cors");
+const moment = require("moment");
 
 // Configuração do CORS para permitir todos os tipos de pedidos
 app.use(cors());
@@ -257,11 +258,11 @@ app.post("/script", (req, res) => {
     const formattedEndTime = end_time.includes(":00") ? end_time : `${end_time}:00`;
 
     // Garantir que a data está no formato YYYY-MM-DD
-    const formattedDate = new Date(date).toISOString().split("T")[0];
+    const formattedDateString = moment(date).format("YYYY-MM-DD");
 
     // Formatar os valores para o comando Python
-    const formattedStartDateTime = `${formattedDate} ${formattedStartTime}`.trim();
-    const formattedEndDateTime = `${formattedDate} ${formattedEndTime}`.trim();
+    const formattedStartDateTime = `${formattedDateString} ${formattedStartTime}`.trim();
+    const formattedEndDateTime = `${formattedDateString} ${formattedEndTime}`.trim();
     const fileName = videoId;
 
     // Montar o comando Python, garantindo que as aspas simples estão bem formatadas
