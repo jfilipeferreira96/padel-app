@@ -249,7 +249,7 @@ app.post("/script", (req, res) => {
       return res.json({ status: false, message: "Sem permissões" });
     }
 
-    if (!campo || !start_time || !end_time || !date || !videoId) {
+    if (!campo || !start_time || !end_time || !formattedDate || !videoId) {
       return res.json({ status: false, message: "Campos em falta" });
     }
 
