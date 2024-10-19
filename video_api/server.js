@@ -243,7 +243,7 @@ app.get("/download-file", async (req, res) => {
 //http://localhost:3010/script
 app.post("/script", (req, res) => {
   try {
-    const { campo, campo_location, start_time, end_time, date, videoId, secret } = req.body;
+    const { campo, campo_location, start_time, end_time, formattedDate, videoId, secret } = req.body;
 
     if (secret !== "a@akas34324_!") {
       return res.json({ status: false, message: "Sem permissões" });
@@ -257,12 +257,9 @@ app.post("/script", (req, res) => {
     const formattedStartTime = start_time.includes(":00") ? start_time : `${start_time}:00`;
     const formattedEndTime = end_time.includes(":00") ? end_time : `${end_time}:00`;
 
-    // Garantir que a data está no formato YYYY-MM-DD
-    const formattedDateString = moment(date).format("YYYY-MM-DD");
-
     // Formatar os valores para o comando Python
-    const formattedStartDateTime = `${formattedDateString} ${formattedStartTime}`.trim();
-    const formattedEndDateTime = `${formattedDateString} ${formattedEndTime}`.trim();
+    const formattedStartDateTime = `${formattedDate} ${formattedStartTime}`.trim();
+    const formattedEndDateTime = `${formattedDate} ${formattedEndTime}`.trim();
     const fileName = videoId;
 
     // Montar o comando Python, garantindo que as aspas simples estão bem formatadas
