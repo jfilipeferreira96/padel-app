@@ -107,7 +107,71 @@ function cleanOldEntries() {
   fs.writeFileSync(filePath, JSON.stringify(filteredStatuses, null, 2));
 }
 
+
+// ENVIA POR STREAM O VIDEO
+// http://localhost:3010/stream?videoName=aaa.mp4
+app.get("/stream", async (req, res) => {
+  try {
+    const { videoName } = req.query;
+
+    if (!videoName) {
+      return res.json({ status: false, message: "Parâmetros em falta" });
+    }
+
+    const videoPath = path.join(__dirname, "videos", videoName);
+    if (!fs.existsSync(videoPath)) {
+      return res.send("Vídeo não encontrado.");
+    }
+
+    const stat = fs.statSync(videoPath);
+    const fileSize = stat.size;
+    const range = req.headers.range;
+
+    const timestamp = Date.now();
+    const fileNameWithTimestamp = `${timestamp}.mp4`;
+
+    res.setHeader("Content-Disposition", `attachment; filename="${fileNameWithTimestamp}"`);
+
+    if (!range) {
+      // Se o cliente não solicitou um intervalo, retorna o vídeo completo
+      res.writeHead(200, {
+        "Content-Length": fileSize,
+        "Content-Type": "video/mp4",
+      });
+      // Enviar o arquivo completo
+      const videoStream = fs.createReadStream(videoPath);
+      videoStream.pipe(res);
+    } else {
+      // Tratamento do range para streaming parcial
+      const parts = range.replace(/bytes=/, "").split("-");
+      const start = parseInt(parts[0], 10);
+      const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
+
+      if (start >= fileSize || end >= fileSize) {
+        return res.json({ status: false, message: "Range não satisfatório." });
+      }
+
+      const chunkSize = end - start + 1;
+      const videoStream = fs.createReadStream(videoPath, { start, end });
+
+      res.writeHead(206, {
+        "Content-Range": `bytes ${start}-${end}/${fileSize}`,
+        "Accept-Ranges": "bytes",
+        "Content-Length": chunkSize,
+        "Content-Type": "video/mp4",
+      });
+
+      // Enviar o chunk do vídeo
+      videoStream.pipe(res);
+    }
+  } catch (err) {
+    console.log("Erro no streaming de vídeo:", err);
+    res.json({ status: false, message: "Erro no streaming de vídeo" });
+  }
+});
+
 // Endpoint para verificar se o arquivo existe
+//http://localhost:3010/check-file?filepath=videos/aaa.mp4
 app.get("/check-file", async (req, res) => {
   try {
     const { filepath } = req.query;
@@ -119,7 +183,11 @@ app.get("/check-file", async (req, res) => {
 
     // Verifica se o arquivo existe
     fs.exists(fullPath, (exists) => {
-      return res.json({ exists });
+      if (exists) {
+        return res.json({ exists: true });
+      } else {
+        return res.json({ exists: false });
+      }
     });
   } catch (err) {
     console.log("Erro ao verificar o arquivo:", err);
@@ -127,7 +195,8 @@ app.get("/check-file", async (req, res) => {
   }
 });
 
-// Endpoint para download de arquivo
+
+//http://localhost:3010/download-file?filepath=videos/aaa.mp4
 app.get("/download-file", async (req, res) => {
   try {
     const { filepath } = req.query;
@@ -155,55 +224,6 @@ app.get("/download-file", async (req, res) => {
   }
 });
 
-app.get("/stream", async (req, res) => {
-  try {
-    const { videoName } = req.query;
-    if (!videoName) {
-      return res.json({ status: false, message: "Parâmetros em falta" });
-    }
-    const videoPath = path.join(__dirname, "videos", videoName);
-    if (!fs.existsSync(videoPath)) {
-      return res.send("Vídeo não encontrado.");
-    }
-    const stat = fs.statSync(videoPath);
-    const fileSize = stat.size;
-    const range = req.headers.range;
-    const timestamp = Date.now();
-    const fileNameWithTimestamp = `${timestamp}.mp4`;
-    res.setHeader("Content-Disposition", `attachment; filename="${fileNameWithTimestamp}"`);
-    if (!range) {
-      // Se o cliente não solicitou um intervalo, retorna o vídeo completo
-      res.writeHead(200, {
-        "Content-Length": fileSize,
-        "Content-Type": "video/mp4",
-      });
-      // Enviar o arquivo completo
-      const videoStream = fs.createReadStream(videoPath);
-      videoStream.pipe(res);
-    } else {
-      // Tratamento do range para streaming parcial
-      const parts = range.replace(/bytes=/, "").split("-");
-      const start = parseInt(parts[0], 10);
-      const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
-      if (start >= fileSize || end >= fileSize) {
-        return res.json({ status: false, message: "Range não satisfatório." });
-      }
-      const chunkSize = end - start + 1;
-      const videoStream = fs.createReadStream(videoPath, { start, end });
-      res.writeHead(206, {
-        "Content-Range": `bytes ${start}-${end}/${fileSize}`,
-        "Accept-Ranges": "bytes",
-        "Content-Length": chunkSize,
-        "Content-Type": "video/mp4",
-      });
-      // Enviar o chunk do vídeo
-      videoStream.pipe(res);
-    }
-  } catch (err) {
-    console.error("Erro no streaming de vídeo:", err);
-    res.json({ status: false, message: "Erro no streaming de vídeo" });
-  }
-});
 
 // Endpoint para chamar o script
 app.post("/script", (req, res) => {
