@@ -27,7 +27,7 @@ function saveExecutionStatus(videoId, status, retries = 0) {
   if (fs.existsSync(filePath)) {
     statuses = JSON.parse(fs.readFileSync(filePath, "utf8"));
   }
-  
+
   // Atualizar ou criar um novo registro de status
   statuses[videoId] = { status, retries, timestamp: new Date().toISOString() };
   fs.writeFileSync(filePath, JSON.stringify(statuses, null, 2));
@@ -43,10 +43,10 @@ async function checkAndRestartFailedScripts() {
   for (const [videoId, info] of Object.entries(statuses)) {
     const tempVideoPath = path.join(__dirname, "videos", `temp_${videoId}.mp4`);
     const finalVideoPath = path.join(__dirname, "videos", `${videoId}.mp4`);
-    
+
     // Verificar se o arquivo temporário ou final já existe na pasta
     const videoExists = fs.existsSync(tempVideoPath) || fs.existsSync(finalVideoPath);
-    
+
     if (info.status === "failed" || info.status === "pending" && info.retries < 5 && !videoExists) {
       console.log(`Reexecutando script para o vídeo ${videoId}, tentativa ${info.retries + 1}`);
 
@@ -66,23 +66,41 @@ async function checkAndRestartFailedScripts() {
 // Função para executar o script e atualizar o status
 async function executeScript(command, videoId, retries = 0) {
   try {
-    exec(command, (error, stdout, stderr) => {
-      if (error) {
-        console.error(`Erro ao executar o script Python: ${error.message}`);
-        saveExecutionStatus(videoId, "failed", retries);
-        return;
-      }
-      if (stderr) {
-        console.error(`Erro no script Python: ${stderr}`);
-        saveExecutionStatus(videoId, "failed", retries);
-        return;
-      }
-      console.log(`Saída do script Python: ${stdout}`);
-    });
-  } catch (err) {
-    console.error("Erro no script:", err);
+    const { stdout, stderr } = await execPromise(command);
+    if (stderr) {
+      console.log(`Erro no script Python: ${stderr}`);
+      saveExecutionStatus(videoId, "failed", retries);
+      return;
+    }
+    console.log(`Saída do script Python: ${stdout}`);
+    saveExecutionStatus(videoId, "completed");
+  } catch (error) {
+    console.log(`Erro ao executar o script Python: ${error.message}`);
     saveExecutionStatus(videoId, "failed", retries);
   }
+}
+
+// Função para limpar entradas antigas do JSON
+function cleanOldEntries() {
+  const filePath = path.join(__dirname, "execution_status.json");
+  if (!fs.existsSync(filePath)) return;
+
+  const statuses = JSON.parse(fs.readFileSync(filePath, "utf8"));
+  const now = new Date();
+
+  // Filtrar entradas com mais de 2 meses de idade
+  const filteredStatuses = Object.entries(statuses).reduce((acc, [videoId, info]) => {
+    const entryDate = new Date(info.timestamp);
+    const twoMonthsAgo = new Date(now);
+    twoMonthsAgo.setMonth(now.getMonth() - 2);
+
+    if (entryDate > twoMonthsAgo) {
+      acc[videoId] = info;
+    }
+    return acc;
+  }, {});
+
+  fs.writeFileSync(filePath, JSON.stringify(filteredStatuses, null, 2));
 }
 
 // Endpoint para verificar se o arquivo existe
@@ -97,14 +115,10 @@ app.get("/check-file", async (req, res) => {
 
     // Verifica se o arquivo existe
     fs.exists(fullPath, (exists) => {
-      if (exists) {
-        return res.json({ exists: true });
-      } else {
-        return res.json({ exists: false });
-      }
+      return res.json({ exists });
     });
   } catch (err) {
-    console.error("Erro ao verificar o arquivo:", err);
+    console.log("Erro ao verificar o arquivo:", err);
     res.json({ status: false, message: "Erro ao verificar o arquivo" });
   }
 });
@@ -124,7 +138,7 @@ app.get("/download-file", async (req, res) => {
       // Faz o download do arquivo
       res.download(fullPath, (err) => {
         if (err) {
-          console.error("Erro ao fazer o download:", err);
+          console.log("Erro ao fazer o download:", err);
           res.send("Erro ao fazer o download do arquivo.");
         }
       });
@@ -132,7 +146,7 @@ app.get("/download-file", async (req, res) => {
       return res.send("Arquivo não encontrado.");
     }
   } catch (err) {
-    console.error("Erro no download de arquivo:", err);
+    console.log("Erro no download de arquivo:", err);
     res.json({ status: false, message: "Erro ao fazer o download do arquivo" });
   }
 });
@@ -171,15 +185,21 @@ app.post("/script", (req, res) => {
 
     return res.json({ status: true, message: "Comando Python executado. Processamento será feito em segundo plano." });
   } catch (err) {
-    console.error("Erro no endpoint de script:", err);
+    console.log("Erro no endpoint de script:", err);
     res.json({ status: false, message: "Erro ao chamar o script" });
   }
 });
 
 // Agendamento para verificar scripts falhados a cada 5 minutos
 cron.schedule("*/5 * * * *", () => {
-  console.log("Verificando scripts falhados...");
+  console.log("A verificar scripts falhados...");
   checkAndRestartFailedScripts();
+});
+
+// Agendar limpeza a cada dia
+cron.schedule("0 0 * * *", () => {
+  console.log("A Limpar entradas antigas...");
+  cleanOldEntries();
 });
 
 const server = app.listen(port, () => {
