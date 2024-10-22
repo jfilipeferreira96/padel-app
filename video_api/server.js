@@ -20,70 +20,6 @@ app.use((req, res, next) => {
   next();
 });
 
-// Função para salvar o status de execução em um arquivo JSON
-function saveExecutionStatus(videoId, status, retries = 0, command = null) {
-  const filePath = path.join(__dirname, "execution_status.json");
-  let statuses = {};
-  if (fs.existsSync(filePath)) {
-    statuses = JSON.parse(fs.readFileSync(filePath, "utf8"));
-  }
-
-  // Atualizar ou criar um novo registro de status
-  statuses[videoId] = {
-    status,
-    retries,
-    command: command || (statuses[videoId] ? statuses[videoId].command : null),
-    timestamp: new Date().toISOString(),
-  };
-  fs.writeFileSync(filePath, JSON.stringify(statuses, null, 2));
-}
-
-// Função para verificar e reexecutar scripts falhados
-async function checkAndRestartFailedScripts() {
-  const filePath = path.join(__dirname, "execution_status.json");
-  if (!fs.existsSync(filePath)) return;
-
-  const statuses = JSON.parse(fs.readFileSync(filePath, "utf8"));
-
-  for (const [videoId, info] of Object.entries(statuses)) {
-    const tempVideoPath = path.join(__dirname, "videos", `temp_${videoId}.mp4`);
-    const finalVideoPath = path.join(__dirname, "videos", `${videoId}.mp4`);
-
-    const videoExists = fs.existsSync(tempVideoPath) || fs.existsSync(finalVideoPath);
-
-    if (info.status === "failed" || (info.status === "pending" && info.retries < 5 && !videoExists)) {
-      if (info.retries < 5) {
-        console.log(`Reexecutando script para o vídeo ${videoId}, tentativa ${info.retries + 1}`);
-        saveExecutionStatus(videoId, "retrying", info.retries + 1, info.command);
-        await executeScript(info.command, videoId, info.retries + 1);
-      } else {
-        console.log(`Script para o vídeo ${videoId} excedeu o número máximo de tentativas.`);
-        saveExecutionStatus(videoId, "exceeded_retries", info.retries, info.command);
-      }
-    } else if (videoExists && info.status !== "completed") {
-      saveExecutionStatus(videoId, "completed", info.retries, info.command);
-    }
-  }
-}
-
-// Função para executar o script e atualizar o status
-async function executeScript(command, videoId, retries = 0) {
-  try {
-    const { stdout, stderr } = await execPromise(command, { timeout: 600000 }); // 10 minutos de timeout
-
-    if (stderr) {
-      console.log(`Erro no script Python: ${stderr}`);
-      saveExecutionStatus(videoId, "failed", retries, command);
-      return;
-    }
-    console.log(`Saída do script Python: ${stdout}`);
-    saveExecutionStatus(videoId, "completed", retries, command);
-  } catch (error) {
-    console.log(`Erro ao executar o script Python: ${error.message}`);
-    saveExecutionStatus(videoId, "failed", retries, command);
-  }
-}
-
 // Função para limpar entradas antigas do JSON
 function cleanOldEntries() {
   const filePath = path.join(__dirname, "execution_status.json");
@@ -106,7 +42,6 @@ function cleanOldEntries() {
 
   fs.writeFileSync(filePath, JSON.stringify(filteredStatuses, null, 2));
 }
-
 
 // ENVIA POR STREAM O VIDEO
 // http://localhost:3010/stream?videoName=aaa.mp4
@@ -195,7 +130,6 @@ app.get("/check-file", async (req, res) => {
   }
 });
 
-
 //http://localhost:3010/download-file?filepath=videos/aaa.mp4
 app.get("/download-file", async (req, res) => {
   try {
@@ -224,8 +158,108 @@ app.get("/download-file", async (req, res) => {
   }
 });
 
+// Função para salvar o status de execução em um arquivo JSON
+function saveExecutionStatus(videoId, status, retries = 0, command = null) {
+  const filePath = path.join(__dirname, "execution_status.json");
+  let statuses = {};
+  if (fs.existsSync(filePath)) {
+    statuses = JSON.parse(fs.readFileSync(filePath, "utf8"));
+  }
 
-// Endpoint para chamar o script
+  statuses[videoId] = {
+    status,
+    retries,
+    command: command || (statuses[videoId] ? statuses[videoId].command : null),
+    timestamp: new Date().toISOString(),
+  };
+  fs.writeFileSync(filePath, JSON.stringify(statuses, null, 2));
+}
+
+// Função para verificar se há algum script em execução
+function isScriptProcessing() {
+  const filePath = path.join(__dirname, "execution_status.json");
+  if (!fs.existsSync(filePath)) return false;
+
+  const statuses = JSON.parse(fs.readFileSync(filePath, "utf8"));
+  return Object.values(statuses).some((info) => info.status === "processing");
+}
+
+// Função para carregar o próximo script pendente do arquivo JSON e processá-lo
+async function processQueue() {
+  const filePath = path.join(__dirname, "execution_status.json");
+  if (!fs.existsSync(filePath)) return;
+
+  const statuses = JSON.parse(fs.readFileSync(filePath, "utf8"));
+
+  // Verificar se já existe um script sendo processado
+  if (isScriptProcessing()) {
+    return; // Se houver um script em processamento, não inicie outro
+  }
+
+  // Encontrar o próximo item com estado "pending" ou "retrying"
+  const nextItem = Object.entries(statuses).find(([_, info]) => info.status === "pending" || info.status === "retrying");
+
+  if (nextItem) {
+    const [videoId, info] = nextItem;
+
+    // Atualiza o status para "processing"
+    saveExecutionStatus(videoId, "processing", info.retries, info.command);
+
+    // Executa o script
+    try {
+      const { stdout, stderr } = await execPromise(info.command, { timeout: 600000 });
+
+      if (stderr) {
+        console.log(`Erro no script Python: ${stderr}`);
+        saveExecutionStatus(videoId, "failed", info.retries, info.command);
+      } else {
+        console.log(`Saída do script Python: ${stdout}`);
+        saveExecutionStatus(videoId, "completed", info.retries, info.command);
+      }
+    } catch (error) {
+      console.log(`Erro ao executar o script Python: ${error.message}`);
+      saveExecutionStatus(videoId, "failed", info.retries, info.command);
+    }
+
+    // Após completar, tenta processar o próximo na fila
+    processQueue();
+  }
+}
+
+// Função para adicionar comandos ao arquivo JSON e iniciar o processamento se não estiver em execução
+function addToQueue(command, videoId, retries = 0) {
+  saveExecutionStatus(videoId, "pending", retries, command);
+  processQueue(); // Tentar processar a fila se não estiver ocupada
+}
+
+// Função para verificar e reexecutar scripts falhados
+async function checkAndRestartFailedScripts() {
+  const filePath = path.join(__dirname, "execution_status.json");
+  if (!fs.existsSync(filePath)) return;
+
+  const statuses = JSON.parse(fs.readFileSync(filePath, "utf8"));
+
+  for (const [videoId, info] of Object.entries(statuses)) {
+    const tempVideoPath = path.join(__dirname, "videos", `temp_${videoId}.mp4`);
+    const finalVideoPath = path.join(__dirname, "videos", `${videoId}.mp4`);
+
+    const videoExists = fs.existsSync(tempVideoPath) || fs.existsSync(finalVideoPath);
+
+    if (info.status === "failed" || (info.status === "pending" && info.retries < 5 && !videoExists)) {
+      if (info.retries < 5) {
+        console.log(`Reexecutando script para o vídeo ${videoId}, tentativa ${info.retries + 1}`);
+        saveExecutionStatus(videoId, "retrying", info.retries + 1, info.command);
+        processQueue(); // Adiciona ao processamento
+      } else {
+        console.log(`Script para o vídeo ${videoId} excedeu o número máximo de tentativas.`);
+        saveExecutionStatus(videoId, "exceeded_retries", info.retries, info.command);
+      }
+    } else if (videoExists && info.status !== "completed") {
+      saveExecutionStatus(videoId, "completed", info.retries, info.command);
+    }
+  }
+}
+
 app.post("/script", (req, res) => {
   try {
     const { campo, campo_location, start_time, end_time, formattedDate, videoId, secret } = req.body;
@@ -251,13 +285,10 @@ app.post("/script", (req, res) => {
 
     console.log("Comando a ser executado:", command);
 
-    // Salvar o status de execução como "pending" antes de executar
-    saveExecutionStatus(videoId, "pending", 0, command);
+    // Salvar o status de execução como "pending" no JSON
+    addToQueue(command, videoId);
 
-    // Executar o comando de script e atualizar o status
-    executeScript(command, videoId);
-
-    return res.json({ status: true, message: "Comando Python executado. Processamento será feito em segundo plano." });
+    return res.json({ status: true, message: "Comando Python adicionado à fila. Processamento será feito em sequência." });
   } catch (err) {
     console.log("Erro no endpoint de script:", err);
     res.json({ status: false, message: "Erro ao chamar o script" });
