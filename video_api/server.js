@@ -21,7 +21,7 @@ app.use((req, res, next) => {
 });
 
 // Função para salvar o status de execução em um arquivo JSON
-function saveExecutionStatus(videoId, status, retries = 0) {
+function saveExecutionStatus(videoId, status, retries = 0, command = null) {
   const filePath = path.join(__dirname, "execution_status.json");
   let statuses = {};
   if (fs.existsSync(filePath)) {
@@ -29,7 +29,12 @@ function saveExecutionStatus(videoId, status, retries = 0) {
   }
 
   // Atualizar ou criar um novo registro de status
-  statuses[videoId] = { status, retries, timestamp: new Date().toISOString() };
+  statuses[videoId] = {
+    status,
+    retries,
+    command: command || (statuses[videoId] ? statuses[videoId].command : null),
+    timestamp: new Date().toISOString(),
+  };
   fs.writeFileSync(filePath, JSON.stringify(statuses, null, 2));
 }
 
@@ -47,18 +52,18 @@ async function checkAndRestartFailedScripts() {
     // Verificar se o arquivo temporário ou final já existe na pasta
     const videoExists = fs.existsSync(tempVideoPath) || fs.existsSync(finalVideoPath);
 
-    if (info.status === "failed" || info.status === "pending" && info.retries < 5 && !videoExists) {
+    if (info.status === "failed" || (info.status === "pending" && info.retries < 5 && !videoExists)) {
       console.log(`Reexecutando script para o vídeo ${videoId}, tentativa ${info.retries + 1}`);
 
       // Incrementar o número de tentativas e reexecutar o script
-      saveExecutionStatus(videoId, "retrying", info.retries + 1);
+      saveExecutionStatus(videoId, "retrying", info.retries + 1, info.command);
       await executeScript(info.command, videoId, info.retries + 1);
     } else if (info.retries >= 5) {
       console.log(`Script para o vídeo ${videoId} excedeu o número máximo de tentativas.`);
-      saveExecutionStatus(videoId, "exceeded_retries", info.retries);
+      saveExecutionStatus(videoId, "exceeded_retries", info.retries, info.command);
     } else if (videoExists && info.status !== "completed") {
       // Atualizar o status para "completed"
-      saveExecutionStatus(videoId, "completed");
+      saveExecutionStatus(videoId, "completed", info.retries, info.command);
     }
   }
 }
@@ -69,14 +74,14 @@ async function executeScript(command, videoId, retries = 0) {
     const { stdout, stderr } = await execPromise(command);
     if (stderr) {
       console.log(`Erro no script Python: ${stderr}`);
-      saveExecutionStatus(videoId, "failed", retries);
+      saveExecutionStatus(videoId, "failed", retries, command);
       return;
     }
     console.log(`Saída do script Python: ${stdout}`);
-    saveExecutionStatus(videoId, "completed");
+    saveExecutionStatus(videoId, "completed", retries, command);
   } catch (error) {
     console.log(`Erro ao executar o script Python: ${error.message}`);
-    saveExecutionStatus(videoId, "failed", retries);
+    saveExecutionStatus(videoId, "failed", retries, command);
   }
 }
 
@@ -178,7 +183,7 @@ app.post("/script", (req, res) => {
     console.log("Comando a ser executado:", command);
 
     // Salvar o status de execução como "pending" antes de executar
-    saveExecutionStatus(videoId, "pending", 0);
+    saveExecutionStatus(videoId, "pending", 0, command);
 
     // Executar o comando de script e atualizar o status
     executeScript(command, videoId);
@@ -196,7 +201,6 @@ cron.schedule("*/5 * * * *", () => {
   checkAndRestartFailedScripts();
 });
 
-// Agendar limpeza a cada dia
 cron.schedule("0 0 * * *", () => {
   console.log("A Limpar entradas antigas...");
   cleanOldEntries();
