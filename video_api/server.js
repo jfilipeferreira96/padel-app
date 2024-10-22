@@ -197,12 +197,10 @@ app.post("/script", (req, res) => {
 
 // Agendamento para verificar scripts falhados a cada 5 minutos
 cron.schedule("*/5 * * * *", () => {
-  console.log("A verificar scripts falhados...");
   checkAndRestartFailedScripts();
 });
 
 cron.schedule("0 0 * * *", () => {
-  console.log("A Limpar entradas antigas...");
   cleanOldEntries();
 });
 
