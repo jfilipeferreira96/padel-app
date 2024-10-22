@@ -49,20 +49,18 @@ async function checkAndRestartFailedScripts() {
     const tempVideoPath = path.join(__dirname, "videos", `temp_${videoId}.mp4`);
     const finalVideoPath = path.join(__dirname, "videos", `${videoId}.mp4`);
 
-    // Verificar se o arquivo temporário ou final já existe na pasta
     const videoExists = fs.existsSync(tempVideoPath) || fs.existsSync(finalVideoPath);
 
     if (info.status === "failed" || (info.status === "pending" && info.retries < 5 && !videoExists)) {
-      console.log(`Reexecutando script para o vídeo ${videoId}, tentativa ${info.retries + 1}`);
-
-      // Incrementar o número de tentativas e reexecutar o script
-      saveExecutionStatus(videoId, "retrying", info.retries + 1, info.command);
-      await executeScript(info.command, videoId, info.retries + 1);
-    } else if (info.retries >= 5) {
-      console.log(`Script para o vídeo ${videoId} excedeu o número máximo de tentativas.`);
-      saveExecutionStatus(videoId, "exceeded_retries", info.retries, info.command);
+      if (info.retries < 5) {
+        console.log(`Reexecutando script para o vídeo ${videoId}, tentativa ${info.retries + 1}`);
+        saveExecutionStatus(videoId, "retrying", info.retries + 1, info.command);
+        await executeScript(info.command, videoId, info.retries + 1);
+      } else {
+        console.log(`Script para o vídeo ${videoId} excedeu o número máximo de tentativas.`);
+        saveExecutionStatus(videoId, "exceeded_retries", info.retries, info.command);
+      }
     } else if (videoExists && info.status !== "completed") {
-      // Atualizar o status para "completed"
       saveExecutionStatus(videoId, "completed", info.retries, info.command);
     }
   }
@@ -71,7 +69,8 @@ async function checkAndRestartFailedScripts() {
 // Função para executar o script e atualizar o status
 async function executeScript(command, videoId, retries = 0) {
   try {
-    const { stdout, stderr } = await execPromise(command);
+    const { stdout, stderr } = await execPromise(command, { timeout: 600000 }); // 10 minutos de timeout
+
     if (stderr) {
       console.log(`Erro no script Python: ${stderr}`);
       saveExecutionStatus(videoId, "failed", retries, command);
