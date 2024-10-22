@@ -201,18 +201,20 @@ class VideoController {
       const { page = 1, limit = 15, orderBy = "vp.id", order = "ASC" } = req.body.pagination || {};
 
       let query = `
-            SELECT vp.*, u.email as user_email, u.first_name as user_first_name, u.last_name as user_last_name, u.phone
-            FROM videos_processed vp
-            LEFT JOIN users u ON vp.user_id = u.user_id
-            WHERE status = 'waiting'
-        `;
+          SELECT vp.*, u.email as user_email, u.first_name as user_first_name, u.last_name as user_last_name, u.phone, c.name as campo_name
+          FROM videos_processed vp
+          LEFT JOIN users u ON vp.user_id = u.user_id
+          LEFT JOIN campos c ON vp.campo = c.value
+          WHERE vp.status = 'waiting'
+      `;
 
       let totalCountQuery = `
-            SELECT COUNT(*) as count
-            FROM videos_processed vp
-            LEFT JOIN users u ON vp.user_id = u.user_id
-            WHERE status = 'waiting'
-        `;
+          SELECT COUNT(*) as count
+          FROM videos_processed vp
+          LEFT JOIN users u ON vp.user_id = u.user_id
+          LEFT JOIN campos c ON vp.campo = c.value
+          WHERE vp.status = 'waiting'
+      `;
 
       const params = [];
 

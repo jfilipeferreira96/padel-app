@@ -32,6 +32,7 @@ interface VideoWaiting {
   user_last_name: string;
   user_email: string;
   campo: string;
+  campo_name: string;
   date: string;
   start_time: string;
   end_time: string;
@@ -194,7 +195,7 @@ function VideoCredits() {
     <Table.Tr key={index}>
       <Table.Td>{`${video.user_first_name} ${video.user_last_name}`}</Table.Td>
       <Table.Td>{video.user_email}</Table.Td>
-      <Table.Td>{video.campo}</Table.Td>
+      <Table.Td>{video.campo_name}</Table.Td>
       <Table.Td>{dayjs(video.date).format("YYYY-MM-DD")}</Table.Td>
       <Table.Td>{video.start_time}</Table.Td>
       <Table.Td>{video.end_time}</Table.Td>
