@@ -13,6 +13,7 @@ import { useRouter } from "next/navigation";
 import { z } from "zod";
 import { notifications } from "@mantine/notifications";
 import { useForm, zodResolver } from "@mantine/form";
+import { useDisclosure } from '@mantine/hooks';
 
 function getBadge(status: string | null) {
   if (status === "waiting") {
@@ -175,7 +176,8 @@ function ReviewVideos() {
   const router = useRouter();
   const [isSubmiting, setIsSubmiting] = useState<boolean>(false);
   const [firstLoad, setFirstLoad] = useState<boolean>(true);
-    const [resetKey, setResetKey] = useState(0);
+  const [resetKey, setResetKey] = useState(0);
+  const [opened, { open, close }] = useDisclosure(false);
 
   const form = useForm({
     initialValues: {
@@ -210,6 +212,15 @@ function ReviewVideos() {
 
          form.reset();
          setResetKey((prev) => prev + 1); // Força o Select a re-renderizar
+
+         //OPEN MODAL
+         open();
+
+         //Fechar a modal automaticamente após 20 segundos
+         setTimeout(() => {
+           close();
+         }, 20000); 
+
        } else {
         notifications.show({
           title: "Erro",
@@ -486,6 +497,13 @@ function ReviewVideos() {
                 Requisitar
               </Button>
             </Center>
+
+            <Modal opened={opened} onClose={close} size="auto" title="Alerta" centered>
+              Obrigado pela requisição.<br />
+              Este terá de ser aprovado pela gerência, ficando posteriormente disponível.<br />
+              Este processo poderá demorar até 60 minutos após validação.
+            </Modal>
+
           </Paper>
         </form>
       </>
