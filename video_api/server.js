@@ -258,6 +258,7 @@ async function checkAndRestartFailedScripts() {
       saveExecutionStatus(videoId, "completed", info.retries, info.command);
     }
   }
+  cleanOldEntries();
 }
 
 app.post("/script", (req, res) => {
@@ -298,10 +299,6 @@ app.post("/script", (req, res) => {
 // Agendamento para verificar scripts falhados a cada 5 minutos
 cron.schedule("*/5 * * * *", () => {
   checkAndRestartFailedScripts();
-});
-
-cron.schedule("0 0 * * *", () => {
-  cleanOldEntries();
 });
 
 const server = app.listen(port, () => {
