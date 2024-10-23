@@ -498,10 +498,15 @@ function ReviewVideos() {
               </Button>
             </Center>
 
-            <Modal opened={opened} onClose={close} size="auto" title="Alerta" centered>
+            <Modal opened={opened} onClose={close} size="auto" title="Aviso" centered>
               Obrigado pela requisição.<br />
               Este terá de ser aprovado pela gerência, ficando posteriormente disponível.<br />
               Este processo poderá demorar até 60 minutos após validação.
+              <Center>
+              <Button mt={"md"} variant="light" size="sm" onClick={close}>
+                Compreendido
+              </Button>
+            </Center>
             </Modal>
 
           </Paper>
