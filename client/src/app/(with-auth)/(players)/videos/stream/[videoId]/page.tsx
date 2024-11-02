@@ -65,6 +65,7 @@ export default function Stream({ params }: Props) {
   const trimVideo = async () => {
     const ini = startTime;
     const fim = endTime;
+    setTrimmedVideoUrl(null);
 
     if (!validateTimes(ini, fim)) return;
 
@@ -75,9 +76,8 @@ export default function Stream({ params }: Props) {
       const startSeconds = hmsToSeconds(startTime);
       const endSeconds = hmsToSeconds(endTime);
       const response = await cutVideo(Number(params.videoId), startSeconds, endSeconds);
-
       if (response.status === true) {
-        setTrimmedVideoUrl(`${process.env.NEXT_URL_API_VIDEOS}/stream?videoName=${params.videoId}_cut.mp4`);
+        setTrimmedVideoUrl(`${process.env.NEXT_URL_API_VIDEOS}/stream?videoName=${params.videoId}_cut.mp4&timestamp=${Date.now()}`);
       } else {
         notifications.show({
           message: "Ocorreu um erro",
