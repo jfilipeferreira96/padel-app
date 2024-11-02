@@ -16,6 +16,7 @@ videoRoutes.put("/credits", authenticateToken, VideoController.updateUserCredits
 
 videoRoutes.post("/processed/add", authenticateToken, VideoController.addVideoProcessed);
 videoRoutes.post("/processed/edit", authenticateToken, VideoController.processVideo);
+videoRoutes.post("/processed/cut", authenticateToken, VideoController.cutVideo);
 
 // Rota responsável por retornar um vídeo processado específico
 videoRoutes.get("/processed/:id", authenticateToken, VideoController.getSingleVideoProcessed);

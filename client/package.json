@@ -10,8 +10,6 @@
     "export": "next build && next export"
   },
   "dependencies": {
-    "@ffmpeg/ffmpeg": "^0.12.10",
-    "@ffmpeg/util": "^0.12.1",
     "@hookform/resolvers": "^3.3.2",
     "@mantine/carousel": "^7.10.2",
     "@mantine/code-highlight": "^7.0.2",

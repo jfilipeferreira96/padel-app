@@ -261,6 +261,50 @@ async function checkAndRestartFailedScripts() {
   cleanOldEntries();
 }
 
+app.post("/cut-video", async (req, res) => {
+  try {
+    const { videoId, cutTime, secret } = req.body;
+
+    if (secret !== "a@akas34324_!") {
+      return res.json({ status: false, message: "Sem permissões" });
+    }
+
+    if (!videoId || !cutTime) {
+      return res.json({ status: false, message: "Campos em falta" });
+    }
+
+    // Construa os caminhos dos arquivos
+    const inputFilePath = path.join(__dirname, "videos", `${videoId}.mp4`);
+    const outputFilePath = path.join(__dirname, "videos", `${videoId}_cut.mp4`);
+
+    // Verifique se o arquivo de entrada existe
+    if (!fs.existsSync(inputFilePath)) {
+      return res.json({ status: false, message: "Vídeo não encontrado." });
+    }
+
+    // Se o arquivo de saída já existir, remova-o
+    if (fs.existsSync(outputFilePath)) {
+      fs.unlinkSync(outputFilePath);
+    }
+
+    // Comando FFmpeg para cortar o vídeo
+    const command = `ffmpeg -i ${inputFilePath} -ss 0 -t ${cutTime} -c copy ${outputFilePath}`;
+
+    console.log("Executando comando:", command);
+
+    // Executar o comando com FFmpeg
+    // Verifique se o arquivo de saída foi criado
+    if (fs.existsSync(outputFilePath)) {
+      return res.json({ status: true, message: "Vídeo cortado com sucesso.", fileName: `${videoId}_cut.mp4` });
+    } else {
+      return res.json({ status: false, message: "Erro: vídeo não foi cortado." });
+    }
+  } catch (err) {
+    console.log("Erro ao cortar vídeo:", err);
+    res.json({ status: false, message: "Erro ao cortar o vídeo" });
+  }
+});
+
 app.post("/script", (req, res) => {
   try {
     const { campo, campo_location, start_time, end_time, formattedDate, videoId, secret } = req.body;

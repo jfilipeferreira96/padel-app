@@ -339,6 +339,45 @@ class VideoController {
     }
   }
 
+  static async cutVideo(req, res) {
+    const { videoId, cutTime } = req.body;
+
+    try {
+      // Verifique se os parâmetros necessários estão presentes
+      if (!videoId || !cutTime) {
+        return res.json({ status: false, message: "Campos 'videoId' e 'cutTime' são obrigatórios." });
+      }
+      // Buscar os detalhes do vídeo que está sendo cortado
+      const { rows: videoDetails } = await db.query(`SELECT videos_processed.*, (SELECT name FROM campos WHERE value = videos_processed.campo) as campo_location FROM videos_processed WHERE id = ?`, [videoId]);
+
+      if (!videoDetails.length) {
+        return res.json({ status: false, message: "Vídeo não encontrado." });
+      }
+
+      // Preparar o corpo da requisição para o corte de vídeo
+      const body = {
+        videoId: videoId,
+        cutTime: cutTime,
+        secret: "a@akas34324_!",
+      };
+
+      // Chamada à API para cortar o vídeo
+      const cutVideoUrl = `${process.env.URL_API_VIDEOS}/cut-video`;
+
+      try {
+        const response = await axios.post(cutVideoUrl, body);
+        return res.json({ status: response.data.status, message: response.data.message });
+      } catch (err) {
+        // Se a chamada à API falhar
+        Logger.error(`Erro ao cortar vídeo: ${err.message}`);
+        return res.json({ status: false, message: "Erro ao cortar o vídeo.", error: err.message });
+      }
+    } catch (err) {
+      Logger.error(`Erro ao processar corte de vídeo: ${err.message}`);
+      return res.json({ status: false, message: "Erro ao processar corte de vídeo.", error: err.message });
+    }
+  }
+
   static async processVideo(req, res) {
     const { videoId, accepted } = req.body;
     const validatedByUserId = req.user.id;

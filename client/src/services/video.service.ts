@@ -103,6 +103,16 @@ export const processVideo = async (videoId: number, accepted: boolean) =>
   }
 };
 
+export const cutVideo = async (videoId: number, cutTime: number) => {
+  try {
+    const response = await api.post(endpoints.cutVideo, { videoId, cutTime });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+
 // Serviço para obter um vídeo processado específico
 export const getSingleVideoProcessed = async (videoId: number) => {
   try {

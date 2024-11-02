@@ -27,7 +27,7 @@ export const endpoints = {
   acessosEntryRoute: `/api/acessos/entry`,
   acessosValidateRoute: `/api/acessos/validate`,
   updateEntryCountRoute: `/api/acessos/update-entry-count`,
-  /*################## OFFpeakS #############################*/
+  /*################## OFFpeaks #############################*/
   getOffpeakCard: "/api/offpeak/offpeak-card",
   getAllOffpeakCards: "/api/offpeak/offpeak-cards",
   addOffpeakCard: "/api/offpeak/offpeak-card",
@@ -63,7 +63,8 @@ export const endpoints = {
   processVideo: `/api/videos/processed/edit`,
   getSingleVideoProcessed: `/api/videos/processed`,
   getCreditsVideoPage: `/api/videos/page-params`,
-  completeVideo: `/api/videos/stream`
+  completeVideo: `/api/videos/stream`,
+  cutVideo: `/api/videos/processed/cut`,
 };
 
 export const routes = {
