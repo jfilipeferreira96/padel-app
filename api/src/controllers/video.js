@@ -340,15 +340,21 @@ class VideoController {
   }
 
   static async cutVideo(req, res) {
-    const { videoId, cutTime } = req.body;
+    const { videoId, startTime, endTime } = req.body;
 
     try {
-      // Verifique se os parâmetros necessários estão presentes
-      if (!videoId || !cutTime) {
-        return res.json({ status: false, message: "Campos 'videoId' e 'cutTime' são obrigatórios." });
+      // Verificar se os parâmetros necessários estão presentes
+      if (!videoId || startTime === undefined || endTime === undefined) {
+        return res.json({ status: false, message: "Campos 'videoId', 'startTime' e 'endTime' são obrigatórios." });
       }
+
       // Buscar os detalhes do vídeo que está sendo cortado
-      const { rows: videoDetails } = await db.query(`SELECT videos_processed.*, (SELECT name FROM campos WHERE value = videos_processed.campo) as campo_location FROM videos_processed WHERE id = ?`, [videoId]);
+      const { rows: videoDetails } = await db.query(
+        `SELECT videos_processed.*, (SELECT name FROM campos WHERE value = videos_processed.campo) as campo_location 
+         FROM videos_processed 
+         WHERE id = ?`,
+        [videoId]
+      );
 
       if (!videoDetails.length) {
         return res.json({ status: false, message: "Vídeo não encontrado." });
@@ -357,7 +363,8 @@ class VideoController {
       // Preparar o corpo da requisição para o corte de vídeo
       const body = {
         videoId: videoId,
-        cutTime: cutTime,
+        startTime: startTime,
+        endTime: endTime,
         secret: "a@akas34324_!",
       };
 

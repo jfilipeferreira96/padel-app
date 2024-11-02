@@ -263,13 +263,13 @@ async function checkAndRestartFailedScripts() {
 
 app.post("/cut-video", async (req, res) => {
   try {
-    const { videoId, cutTime, secret } = req.body;
+    const { videoId, startTime, endTime, secret } = req.body;
 
     if (secret !== "a@akas34324_!") {
       return res.json({ status: false, message: "Sem permissões" });
     }
 
-    if (!videoId || !cutTime) {
+    if (!videoId || startTime === undefined || endTime === undefined) {
       return res.json({ status: false, message: "Campos em falta" });
     }
 
@@ -287,12 +287,17 @@ app.post("/cut-video", async (req, res) => {
       fs.unlinkSync(outputFilePath);
     }
 
+    // Calcule a duração do corte
+    const cutDuration = endTime - startTime;
+
     // Comando FFmpeg para cortar o vídeo
-    const command = `ffmpeg -i ${inputFilePath} -ss 0 -t ${cutTime} -c copy ${outputFilePath}`;
+    const command = `ffmpeg -i ${inputFilePath} -ss ${startTime} -t ${cutDuration} -c copy ${outputFilePath}`;
 
     console.log("Executando comando:", command);
 
     // Executar o comando com FFmpeg
+    await execPromise(command);
+
     // Verifique se o arquivo de saída foi criado
     if (fs.existsSync(outputFilePath)) {
       return res.json({ status: true, message: "Vídeo cortado com sucesso.", fileName: `${videoId}_cut.mp4` });

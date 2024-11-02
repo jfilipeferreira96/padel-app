@@ -63,8 +63,8 @@ export default function Stream({ params }: Props) {
   } = useDownloader();
 
   const trimVideo = async () => {
-    let ini = startTime;
-    let fim = endTime;
+    const ini = startTime;
+    const fim = endTime;
 
     if (!validateTimes(ini, fim)) return;
 
@@ -72,7 +72,10 @@ export default function Stream({ params }: Props) {
     setReady(false);
 
     try {
-      const response = await cutVideo(Number(params.videoId), hmsToSeconds(fim) - hmsToSeconds(ini));
+      const startSeconds = hmsToSeconds(startTime);
+      const endSeconds = hmsToSeconds(endTime);
+      const response = await cutVideo(Number(params.videoId), startSeconds, endSeconds);
+
       if (response.status === true) {
         setTrimmedVideoUrl(`${process.env.NEXT_URL_API_VIDEOS}/stream?videoName=${params.videoId}_cut.mp4`);
       } else {
@@ -92,6 +95,7 @@ export default function Stream({ params }: Props) {
       setReady(true);
     }
   };
+
 
   const validateTimes = (startTime: string, endTime: string) => {
     if (!videoDuration) {

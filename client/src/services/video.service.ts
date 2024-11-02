@@ -103,9 +103,9 @@ export const processVideo = async (videoId: number, accepted: boolean) =>
   }
 };
 
-export const cutVideo = async (videoId: number, cutTime: number) => {
+export const cutVideo = async (videoId: number, startTime: number, endTime: number) => {
   try {
-    const response = await api.post(endpoints.cutVideo, { videoId, cutTime });
+    const response = await api.post(endpoints.cutVideo, { videoId, startTime, endTime });
     return response.data;
   } catch (error) {
     throw error;
