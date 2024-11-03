@@ -26,6 +26,7 @@ function VouchersPage() {
       voucher_id: number;
       credit_limit: number;
       credit_balance: number;
+      voucher_type: string;
     }[]
   >([]);
   const [page, setPage] = useState(1);
@@ -65,11 +66,15 @@ function VouchersPage() {
     );
   }
 
-  const vouchersPorUsar = vouchers.filter((voucher) => !voucher.activated_at);
-  const vouchersUsados = vouchers.filter((voucher) => voucher.activated_at);
+  // Filtering vouchers based on their status
+  const vouchersPorUsar = vouchers.filter((voucher) => !voucher.activated_at && voucher.voucher_type !== "credito");
+  const vouchersUsados = vouchers.filter((voucher) => voucher.activated_at && voucher.voucher_type !== "credito");
+  const vouchersCreditos = vouchers.filter((voucher) => voucher.voucher_type === "credito");
 
+  // Paginate results
   const paginatedVouchersPorUsar = vouchersPorUsar.slice((page - 1) * elementsPerPage, page * elementsPerPage);
   const paginatedVouchersUsados = vouchersUsados.slice((page - 1) * elementsPerPage, page * elementsPerPage);
+  const paginatedVouchersCreditos = vouchersCreditos.slice((page - 1) * elementsPerPage, page * elementsPerPage);
 
   const handlePageChange = (page: number) => {
     setPage(page);
@@ -80,8 +85,9 @@ function VouchersPage() {
       <Title mt={15} className="productheader">
         Vouchers
       </Title>
-      <SegmentedControl mt={10} radius="md" fullWidth value={selectedTab} onChange={setSelectedTab} data={["Por usar", "Usados"]} />
+      <SegmentedControl mt={10} radius="md" fullWidth value={selectedTab} onChange={setSelectedTab} data={["Por usar", "Usados", "Créditos"]} />
       <Box mt={20}>
+        {/* Tab for "Por usar" vouchers */}
         {selectedTab === "Por usar" && (
           <>
             {paginatedVouchersPorUsar.length === 0 ? (
@@ -94,14 +100,6 @@ function VouchersPage() {
                   <Grid.Col span={{ base: 12, sm: 12, md: 6, lg: 6 }} key={index}>
                     <Card p="md" radius="md" className={classes.card}>
                       <Image src={voucher.image_url ?? "./Placeholder.svg"} alt={voucher.name} />
-                      <Flex>
-                        <Text c="dimmed" size="xs" tt="uppercase" fw={700} mt="md">
-                          Créditos: 0 €
-                        </Text>
-                        <Text c="dimmed" size="xs" tt="uppercase" fw={700} mt="md">
-                          Balanço: 0 €
-                        </Text>
-                      </Flex>
                       <Text c="dimmed" size="xs" tt="uppercase" fw={700} mt="md">
                         Atribuído em: {dayjs(voucher.assigned_at).format("YYYY-MM-DD HH:MM")}
                       </Text>
@@ -113,6 +111,7 @@ function VouchersPage() {
           </>
         )}
 
+        {/* Tab for "Usados" vouchers */}
         {selectedTab === "Usados" && (
           <>
             {paginatedVouchersUsados.length === 0 ? (
@@ -125,14 +124,6 @@ function VouchersPage() {
                   <Grid.Col span={{ base: 12, sm: 12, md: 6, lg: 6 }} key={index}>
                     <Card p="md" radius="md" className={classes.card}>
                       <Image src={voucher.image_url ?? "./Placeholder.svg"} alt={voucher.name} />
-                      <Flex justify={'space-between'}>
-                        <Text c="dimmed" size="xs" tt="uppercase" fw={700} mt="md">
-                          Total de Créditos: 0 €
-                        </Text>
-                        <Text c="dimmed" size="xs" tt="uppercase" fw={700} mt="md">
-                          Balanço: 0 €
-                        </Text>
-                      </Flex>
                       <Text c="dimmed" size="xs" tt="uppercase" fw={700} mt="md">
                         Ativado em: {dayjs(voucher.activated_at).format("YYYY-MM-DD HH:MM")}
                       </Text>
@@ -143,7 +134,38 @@ function VouchersPage() {
             )}
           </>
         )}
+
+        {/* Tab for "Créditos" vouchers */}
+        {selectedTab === "Créditos" && (
+          <>
+            {paginatedVouchersCreditos.length === 0 ? (
+              <Center>
+                <Text>Não tem créditos disponíveis.</Text>
+              </Center>
+            ) : (
+              <Grid mb={"lg"}>
+                {paginatedVouchersCreditos.map((voucher, index) => (
+                  <Grid.Col span={{ base: 12, sm: 12, md: 6, lg: 6 }} key={index}>
+                    <Card p="md" radius="md" className={classes.card}>
+                      <Image src={"./vouchers/123.png"} alt={voucher.name} />
+                      <Flex justify={"space-between"}>
+                        <Text c="dimmed" size="xs" tt="uppercase" fw={700} mt="md">
+                          Balanço: {voucher.credit_balance} €
+                        </Text>
+                        <Text c="dimmed" size="xs" tt="uppercase" fw={700} mt="md">
+                          Atribuído em: {dayjs(voucher.assigned_at).format("YYYY-MM-DD HH:MM")}
+                        </Text>
+                      </Flex>
+                    </Card>
+                  </Grid.Col>
+                ))}
+              </Grid>
+            )}
+          </>
+        )}
       </Box>
+
+      {/* Pagination */}
       {selectedTab === "Por usar" && vouchersPorUsar.length > elementsPerPage && (
         <Center mt={"lg"}>
           <Pagination total={Math.ceil(vouchersPorUsar.length / elementsPerPage)} onChange={handlePageChange} />
@@ -152,6 +174,11 @@ function VouchersPage() {
       {selectedTab === "Usados" && vouchersUsados.length > elementsPerPage && (
         <Center mt={"lg"}>
           <Pagination total={Math.ceil(vouchersUsados.length / elementsPerPage)} onChange={handlePageChange} />
+        </Center>
+      )}
+      {selectedTab === "Créditos" && vouchersCreditos.length > elementsPerPage && (
+        <Center mt={"lg"}>
+          <Pagination total={Math.ceil(vouchersCreditos.length / elementsPerPage)} onChange={handlePageChange} />
         </Center>
       )}
     </div>

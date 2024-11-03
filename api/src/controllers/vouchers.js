@@ -273,7 +273,7 @@ class VouchersController {
       }
 
       const query = `
-        SELECT v.*, uv.assigned_at, uv.assigned_by, uv.activated_at, uv.activated_by
+        SELECT v.*, uv.assigned_at, uv.assigned_by, uv.activated_at, uv.activated_by, uv.credit_balance, uv.credit_limit
         FROM vouchers v
         JOIN user_vouchers uv ON v.voucher_id = uv.voucher_id
         WHERE uv.assigned_to = ?
