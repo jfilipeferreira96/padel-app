@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState, useCallback } from "react";
-import { Modal, Table, Text, Button, Center, Loader, Paper, Divider, Badge, Tooltip, ActionIcon, Group, TextInput, Box, Flex, Select, rem, Card, Pagination, Radio, CheckIcon } from "@mantine/core";
+import { Modal, Table, Text, Button, Center, Loader, Paper, Divider, Badge, Tooltip, ActionIcon, Group, TextInput, Box, Flex, Select, rem, Card, Pagination, Radio, CheckIcon, NumberInput } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { notifications } from "@mantine/notifications";
 import { getUser, UserData } from "@/services/user.service";
@@ -40,13 +40,16 @@ interface Voucher {
   admin_first_name: string;
   admin_last_name: string;
   reason: string;
+  credit_limit: number;
+  credit_balance: number;
+  is_active: boolean;
 }
 
 export default function ModalVoucher({ isModalOpen, setIsModalOpen, userId, fetchData }: Props) {
   const { user } = useSession();
   const pathname = usePathname();
   const [opened, { open, close }] = useDisclosure(false);
-  const [voucherData, setVouchersData] = useState<{ created_at: string; image_url: string; name: string; voucher_id: number }[] | null>(null);
+  const [voucherData, setVouchersData] = useState<{ created_at: string; image_url: string; name: string; voucher_id: number; voucher_type: string }[] | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [userVouchers, setUserVouchers] = useState<Voucher[]>([]);
   const [activePage, setActivePage] = useState<number>(1);
@@ -60,7 +63,8 @@ export default function ModalVoucher({ isModalOpen, setIsModalOpen, userId, fetc
   const [isActive, setIsActive] = useState<string>("0");
   const [selectedVoucher, setSelectedVoucher] = useState<string | null>(null);
   const [reason, setReason] = useState<string>("");
-
+  const [creditLimit, setCreditLimit] = useState<number | null>(null);
+ 
   const onDelete = async (id: number) => {
     try {
       deleteVoucher(id).then((res) => {
@@ -137,6 +141,7 @@ export default function ModalVoucher({ isModalOpen, setIsModalOpen, userId, fetc
       setIsActive("0");
       setSelectedVoucher(null);
       setReason("");
+      setCreditLimit(null);
     }
   }, [opened, setIsModalOpen]);
 
@@ -215,6 +220,7 @@ export default function ModalVoucher({ isModalOpen, setIsModalOpen, userId, fetc
          is_active: Number(isActive),
          reason,
          assigned_to: userId,
+         credit_limit: Number(selectedVoucher) == voucherData?.find((v) => v.voucher_type === "credito")?.voucher_id ? Number(creditLimit) : undefined,
        });
 
        if (response.status) {
@@ -231,9 +237,9 @@ export default function ModalVoucher({ isModalOpen, setIsModalOpen, userId, fetc
 
   const initialIndex = (activePage - 1) * elementsPerPage;
   const finalIndex = initialIndex + elementsPerPage;
-
-  const rows = userVouchers.map((voucher) => (
-    <Table.Tr key={voucher.voucher_id}>
+  
+  const rows = userVouchers.map((voucher, idx) => (
+    <Table.Tr key={idx}>
       <Table.Td>
         <Badge variant="filled" size="md" fw={700} color={getBadge(voucher.activated_at).color} style={{ minWidth: "110px" }}>
           {getBadge(voucher.activated_at).name}
@@ -248,6 +254,8 @@ export default function ModalVoucher({ isModalOpen, setIsModalOpen, userId, fetc
       <Table.Td>{voucher.assigned_at ? `${voucher.admin_first_name} ${voucher.admin_last_name}` : "-"}</Table.Td>
       <Table.Td>{new Date(voucher.assigned_at).toLocaleString()}</Table.Td>
       <Table.Td>{voucher.reason ? voucher.reason : "-"}</Table.Td>
+      <Table.Td>{voucher.credit_limit ? voucher.credit_limit + "€" : "-"}</Table.Td>
+      <Table.Td>{voucher.credit_limit ? voucher.credit_balance + "€" : "-"}</Table.Td>
       <Table.Td>{voucher.activated_at ? `${voucher.admin_first_name} ${voucher.admin_last_name}` : "-"}</Table.Td>
       <Table.Td>{voucher.activated_at ? new Date(voucher.activated_at).toLocaleString() : "-"}</Table.Td>
       <Table.Td>
@@ -278,7 +286,7 @@ export default function ModalVoucher({ isModalOpen, setIsModalOpen, userId, fetc
       </Table.Td>
     </Table.Tr>
   ));
-
+  
   return (
     <Modal opened={opened} onClose={close} title="Ver/atribuir vouchers" size="xxl">
       {isLoading ? (
@@ -330,6 +338,8 @@ export default function ModalVoucher({ isModalOpen, setIsModalOpen, userId, fetc
                         <Table.Th>Atribuido Por</Table.Th>
                         <Table.Th>Data de Atribuição</Table.Th>
                         <Table.Th>Razão</Table.Th>
+                        <Table.Th>Créditos Atribuídos</Table.Th>
+                        <Table.Th>Créditos Disponíveis</Table.Th>
                         <Table.Th>Ativado Por</Table.Th>
                         <Table.Th>Data de Ativação</Table.Th>
                         <Table.Th>Ações</Table.Th>
@@ -361,9 +371,24 @@ export default function ModalVoucher({ isModalOpen, setIsModalOpen, userId, fetc
               value={selectedVoucher}
               onChange={setSelectedVoucher}
               name="selected_voucher"
+              required
             />
 
-            <TextInput className="specialinput" label="Razão de atruibir" placeholder="Digite a razão" value={reason} onChange={(event) => setReason(event.currentTarget.value)} name="reason" />
+            {Number(selectedVoucher) === voucherData?.find((v) => v.voucher_type === "credito")?.voucher_id && (
+              <NumberInput
+                className="specialinput"
+                label="Crédito em €"
+                placeholder="50 €"
+                value={creditLimit ?? undefined}
+                onChange={(event) => {
+                  const value = Number(event);
+                  setCreditLimit(isNaN(value) ? null : value);
+                }}
+                name="credit_limit"
+                required
+              />
+            )}
+            <TextInput className="specialinput" label="Razão de atruibir" placeholder="Digite a razão" value={reason} onChange={(event) => setReason(event.currentTarget.value)} name="reason" required />
 
             <Radio.Group name="is_active" label="Desejar ativar este voucher?" mb={"sm"} value={isActive} onChange={setIsActive} mt={"lg"}>
               <Group mt="xs">

@@ -33,6 +33,9 @@ interface Voucher {
   admin_first_name: string;
   admin_last_name: string;
   reason: string;
+  credit_limit: number;
+  credit_balance: number;
+  is_active: boolean;
 }
 
 function VoucherHistory() {
@@ -163,6 +166,8 @@ function VoucherHistory() {
       <Table.Td>{voucher.assigned_at ? `${voucher.admin_first_name} ${voucher.admin_last_name}` : "-"}</Table.Td>
       <Table.Td>{new Date(voucher.assigned_at).toLocaleString()}</Table.Td>
       <Table.Td>{voucher.reason ? voucher.reason : "-"}</Table.Td>
+      <Table.Td>{voucher.credit_limit ? voucher.credit_limit + "€" : "-"}</Table.Td>
+      <Table.Td>{voucher.credit_limit ? voucher.credit_balance + "€" : "-"}</Table.Td>
       <Table.Td>{voucher.activated_at ? `${voucher.admin_first_name} ${voucher.admin_last_name}` : "-"}</Table.Td>
       <Table.Td>{voucher.activated_at ? new Date(voucher.activated_at).toLocaleString() : "-"}</Table.Td>
       <Table.Td>
@@ -284,6 +289,8 @@ function VoucherHistory() {
                 <Table.Th>Atribuido Por</Table.Th>
                 <Table.Th>Data de Atribuição</Table.Th>
                 <Table.Th>Razão</Table.Th>
+                <Table.Th>Créditos Atribuídos</Table.Th>
+                <Table.Th>Créditos Disponíveis</Table.Th>
                 <Table.Th>Ativado Por</Table.Th>
                 <Table.Th>Data de Ativação</Table.Th>
                 <Table.Th>Ações</Table.Th>

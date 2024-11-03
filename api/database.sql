@@ -247,6 +247,52 @@ ALTER TABLE videos_processed
     ADD COLUMN validated_at TIMESTAMP NULL,
     ADD CONSTRAINT fk_validated_by FOREIGN KEY (validated_by) REFERENCES users(user_id) ON DELETE SET NULL;
 
+ALTER TABLE vouchers
+ADD COLUMN voucher_type ENUM('credito', 'simples') DEFAULT 'simples';
+
+ALTER TABLE user_vouchers
+ADD COLUMN credit_limit DECIMAL(10, 2) DEFAULT NULL,
+ADD COLUMN credit_balance DECIMAL(10, 2) DEFAULT NULL,
+ADD COLUMN is_active BOOLEAN DEFAULT TRUE;
+
+
+CREATE TABLE IF NOT EXISTS voucher_transactions (
+    transaction_id INT AUTO_INCREMENT PRIMARY KEY,
+    user_voucher_id INT NOT NULL,
+    transaction_amount DECIMAL(10, 2) NOT NULL,
+    transaction_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    executed_by INT NOT NULL,
+    FOREIGN KEY (user_voucher_id) REFERENCES user_vouchers(user_voucher_id) ON DELETE CASCADE,
+    FOREIGN KEY (executed_by) REFERENCES users(user_id) ON DELETE CASCADE
+);
+
+DELIMITER //
+CREATE TRIGGER update_voucher_credit_balance
+AFTER INSERT ON voucher_transactions
+FOR EACH ROW
+BEGIN
+    -- Verificar se o voucher é do tipo "credito"
+    DECLARE voucher_type ENUM('credito', 'simples');
+    SELECT v.voucher_type INTO voucher_type
+    FROM vouchers v
+    JOIN user_vouchers uv ON v.voucher_id = uv.voucher_id
+    WHERE uv.user_voucher_id = NEW.user_voucher_id;
+
+    IF voucher_type = 'credito' THEN
+        -- Atualizar o saldo do voucher de crédito
+        UPDATE user_vouchers
+        SET credit_balance = credit_balance - NEW.transaction_amount
+        WHERE user_voucher_id = NEW.user_voucher_id;
+
+        -- Desativar o voucher se o saldo chegar a zero ou menor
+        UPDATE user_vouchers
+        SET is_active = FALSE
+        WHERE user_voucher_id = NEW.user_voucher_id AND credit_balance <= 0;
+    END IF;
+END //
+DELIMITER ;
+
+INSERT INTO `vouchers` (`voucher_id`, `name`, `created_at`, `image_url`, `voucher_type`) VALUES (NULL, 'Créditos', current_timestamp(), NULL, 'credito');
 
 -- Testes:
 

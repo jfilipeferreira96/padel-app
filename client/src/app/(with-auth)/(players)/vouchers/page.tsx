@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { Text, Title, Center, Loader, Box, Image, rem, SegmentedControl, Card, Grid, Pagination } from "@mantine/core";
+import { Text, Title, Center, Loader, Box, Image, rem, SegmentedControl, Card, Grid, Pagination, Flex } from "@mantine/core";
 import classes from "./classes.module.css";
 import { useSession } from "@/providers/SessionProvider";
 import "@mantine/carousel/styles.css";
@@ -24,6 +24,8 @@ function VouchersPage() {
       image_url: string;
       name: string;
       voucher_id: number;
+      credit_limit: number;
+      credit_balance: number;
     }[]
   >([]);
   const [page, setPage] = useState(1);
@@ -92,6 +94,14 @@ function VouchersPage() {
                   <Grid.Col span={{ base: 12, sm: 12, md: 6, lg: 6 }} key={index}>
                     <Card p="md" radius="md" className={classes.card}>
                       <Image src={voucher.image_url ?? "./Placeholder.svg"} alt={voucher.name} />
+                      <Flex>
+                        <Text c="dimmed" size="xs" tt="uppercase" fw={700} mt="md">
+                          Créditos: 0 €
+                        </Text>
+                        <Text c="dimmed" size="xs" tt="uppercase" fw={700} mt="md">
+                          Balanço: 0 €
+                        </Text>
+                      </Flex>
                       <Text c="dimmed" size="xs" tt="uppercase" fw={700} mt="md">
                         Atribuído em: {dayjs(voucher.assigned_at).format("YYYY-MM-DD HH:MM")}
                       </Text>
@@ -115,6 +125,14 @@ function VouchersPage() {
                   <Grid.Col span={{ base: 12, sm: 12, md: 6, lg: 6 }} key={index}>
                     <Card p="md" radius="md" className={classes.card}>
                       <Image src={voucher.image_url ?? "./Placeholder.svg"} alt={voucher.name} />
+                      <Flex justify={'space-between'}>
+                        <Text c="dimmed" size="xs" tt="uppercase" fw={700} mt="md">
+                          Total de Créditos: 0 €
+                        </Text>
+                        <Text c="dimmed" size="xs" tt="uppercase" fw={700} mt="md">
+                          Balanço: 0 €
+                        </Text>
+                      </Flex>
                       <Text c="dimmed" size="xs" tt="uppercase" fw={700} mt="md">
                         Ativado em: {dayjs(voucher.activated_at).format("YYYY-MM-DD HH:MM")}
                       </Text>

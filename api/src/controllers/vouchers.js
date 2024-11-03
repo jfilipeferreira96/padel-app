@@ -30,7 +30,7 @@ class VouchersController {
       const { page = 1, limit = 15, orderBy = "uv.voucher_id", order = "ASC" } = req.body.pagination || {};
 
       let query = `
-      SELECT uv.user_voucher_id, uv.voucher_id, v.name as voucher_name, uv.reason, uv.assigned_at, uv.activated_at, 
+      SELECT uv.user_voucher_id, uv.voucher_id, v.name as voucher_name, uv.reason, uv.credit_limit, uv.credit_balance, uv.assigned_at, uv.activated_at, 
              u.email AS user_email, u.first_name AS user_first_name, u.last_name AS user_last_name, u.phone,
              a.email AS admin_email, a.first_name AS admin_first_name, a.last_name AS admin_last_name,
              act.email AS activated_by_email, act.first_name AS activated_by_first_name, act.last_name AS activated_by_last_name
@@ -203,30 +203,30 @@ class VouchersController {
 
   static async assignVoucher(req, res, next) {
     try {
-      const { voucher_id, assigned_to, reason, is_active } = req.body;
+      const { voucher_id, assigned_to, reason, is_active, credit_limit } = req.body;
       const assigned_by = req.user?.id;
-      
+
       if (!voucher_id || !assigned_by || !assigned_to || !reason) {
         return res.status(200).json({ status: false, message: "Todos os campos são obrigatórios." });
       }
 
       if (!is_active) {
         const query = `
-        INSERT INTO user_vouchers (voucher_id, assigned_by, assigned_to, reason)
-        VALUES (?, ?, ?, ?)
+        INSERT INTO user_vouchers (voucher_id, assigned_by, assigned_to, reason, credit_limit, credit_balance)
+        VALUES (?, ?, ?, ?, ?, ?)
       `;
 
-        await db.query(query, [voucher_id, assigned_by, assigned_to, reason]);
+        await db.query(query, [voucher_id, assigned_by, assigned_to, reason, credit_limit, credit_limit]);
       }
 
-     if (is_active) {
+      if (is_active) {
         const query = `
-        INSERT INTO user_vouchers (voucher_id, assigned_by, assigned_to, reason, activated_by, activated_at)
-        VALUES (?, ?, ?, ?, ?, NOW())
+        INSERT INTO user_vouchers (voucher_id, assigned_by, assigned_to, reason, activated_by, credit_limit, credit_balance, activated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, NOW())
       `;
 
-        await db.query(query, [voucher_id, assigned_by, assigned_to, reason, assigned_by]);
-    }
+        await db.query(query, [voucher_id, assigned_by, assigned_to, reason, assigned_by, credit_limit, credit_limit]);
+      }
 
       return res.status(201).json({ status: true, message: "Voucher atribuído com sucesso." });
     } catch (ex) {
