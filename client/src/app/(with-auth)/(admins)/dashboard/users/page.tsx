@@ -117,6 +117,7 @@ function Users() {
     setEditUserId(userId);
     setIsModalOpenVouchers(true);
   };
+  
    const handleVideoCredits = (userId: number) => {
      setEditUserId(userId);
      setIsModalOpenVideoCredits(true);

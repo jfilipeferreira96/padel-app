@@ -21,7 +21,7 @@ vouchersRoutes.get("/voucher/:id", authenticateToken, VouchersController.getVouc
 // Rota responsável por atualizar um voucher existente
 vouchersRoutes.put("/voucher/:id", authenticateToken, VouchersController.updateVoucher);
 
-vouchersRoutes.post("/voucher/updateCreditBalance", authenticateToken, VouchersController.updateCreditBalance);
+vouchersRoutes.post("/voucher-credit-update", authenticateToken, VouchersController.updateCreditBalance);
 
 // Rota responsável por excluir um voucher
 vouchersRoutes.delete("/voucher/:id", authenticateToken, VouchersController.deleteVoucher);

@@ -262,14 +262,16 @@ ADD COLUMN credit_balance DECIMAL(10, 2) DEFAULT NULL,
 ADD COLUMN is_active BOOLEAN DEFAULT TRUE;
 
 
+DROP TABLE IF EXISTS voucher_transactions;
 CREATE TABLE IF NOT EXISTS voucher_transactions (
-    transaction_id INT AUTO_INCREMENT PRIMARY KEY,
+    id INT AUTO_INCREMENT PRIMARY KEY,
     user_voucher_id INT NOT NULL,
-    transaction_amount DECIMAL(10, 2) NOT NULL,
-    transaction_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    executed_by INT NOT NULL,
-    FOREIGN KEY (user_voucher_id) REFERENCES user_vouchers(user_voucher_id) ON DELETE CASCADE,
-    FOREIGN KEY (executed_by) REFERENCES users(user_id) ON DELETE CASCADE
+    credits_before INT NOT NULL,
+    credits_after INT NOT NULL,
+    changed_by INT DEFAULT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_voucher_id) REFERENCES user_vouchers(user_voucher_id) ON DELETE CASCADE, 
+    FOREIGN KEY (changed_by) REFERENCES users(user_id) ON DELETE SET NULL
 );
 
 DELIMITER //
@@ -285,15 +287,19 @@ BEGIN
     WHERE uv.user_voucher_id = NEW.user_voucher_id;
 
     IF voucher_type = 'credito' THEN
-        -- Atualizar o saldo do voucher de crédito
-        UPDATE user_vouchers
-        SET credit_balance = credit_balance - NEW.transaction_amount
-        WHERE user_voucher_id = NEW.user_voucher_id;
+        -- Desativar o voucher se credits_after for <= 0
+        IF NEW.credits_after <= 0 THEN
+            UPDATE user_vouchers
+            SET is_active = FALSE
+            WHERE user_voucher_id = NEW.user_voucher_id;
+        END IF;
 
-        -- Desativar o voucher se o saldo chegar a zero ou menor
-        UPDATE user_vouchers
-        SET is_active = FALSE
-        WHERE user_voucher_id = NEW.user_voucher_id AND credit_balance <= 0;
+        -- Ativar o voucher se credits_after for positivo e is_active estiver desativado
+        IF NEW.credits_after > 0 THEN
+            UPDATE user_vouchers
+            SET is_active = TRUE
+            WHERE user_voucher_id = NEW.user_voucher_id AND is_active = FALSE;
+        END IF;
     END IF;
 END //
 DELIMITER ;

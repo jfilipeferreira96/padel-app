@@ -107,10 +107,7 @@ export const ativarVoucher = async (id: number) => {
   }
 };
 
-export const updateCreditBalance = async (data: {
-  voucher_id: number;
-  new_credit_balance: number;
-}) => {
+export const updateCreditBalance = async (data: { user_voucher_id: number; new_credit_balance: number }) => {
   try {
     const response = await api.post(endpoints.updateCreditBalance, data);
     return response.data;

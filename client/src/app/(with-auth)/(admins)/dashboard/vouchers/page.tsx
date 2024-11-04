@@ -273,21 +273,16 @@ function VoucherHistory()
           variant="filled"
           color="red"
           size="md"
-          onClick={() =>
-          {
-            if (deleteId)
-            {
+          onClick={() => {
+            if (deleteId) {
               deleteVoucher(deleteId)
-                .then((res) =>
-                {
-                  if (res.status === true)
-                  {
+                .then((res) => {
+                  if (res.status === true) {
                     notifications.show({
                       message: res.message,
                       color: "red",
                     });
-                  } else
-                  {
+                  } else {
                     notifications.show({
                       title: "Erro",
                       message: "Algo correu mal",
@@ -295,8 +290,7 @@ function VoucherHistory()
                     });
                   }
                 })
-                .finally(() =>
-                {
+                .finally(() => {
                   close(), fetchData();
                 });
             }
@@ -307,11 +301,11 @@ function VoucherHistory()
       </Modal>
 
       <EditBalanceModal
-        opened={editModalOpened}
-        onClose={() => setEditModalOpened(false)}
+        isModalOpen={editModalOpened}
+        setIsModalOpen={setEditModalOpened}
+        fetchData={fetchData}
         voucherId={selectedVoucher?.user_voucher_id || null}
         currentBalance={selectedVoucher?.credit_balance || 0}
-        fetchData={fetchData}
       />
 
       <Card withBorder shadow="md" p={30} mt={10} radius="md" style={{ flex: 1 }}>
