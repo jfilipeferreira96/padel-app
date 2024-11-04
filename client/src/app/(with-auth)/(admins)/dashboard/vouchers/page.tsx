@@ -9,16 +9,20 @@ import { useDisclosure } from "@mantine/hooks";
 import { notifications } from "@mantine/notifications";
 import EditBalanceModal from "@/components/user-modal/balance-voucher-modal";
 
-function getBadge(activated_by: string | null) {
-  if (!activated_by) {
+function getBadge(activated_by: string | null)
+{
+  if (!activated_by)
+  {
     return { name: "Não ativado", color: "red" };
-  } else {
+  } else
+  {
     return { name: "Ativado", color: "green" };
   }
 }
 
 // Interface para os vouchers
-interface Voucher {
+interface Voucher
+{
   user_voucher_id: number;
   voucher_id: number;
   voucher_name: string;
@@ -39,10 +43,12 @@ interface Voucher {
   is_active: boolean;
 }
 
-function VoucherHistory() {
+function VoucherHistory()
+{
   const pathname = usePathname();
   const [activePage, setActivePage] = useState<number>(1);
-  const [elementsPerPage, setElementsPerPage] = useState<number>(() => {
+  const [elementsPerPage, setElementsPerPage] = useState<number>(() =>
+  {
     const storedValue = localStorage.getItem(pathname);
     return storedValue ? parseInt(storedValue) : 10;
   });
@@ -53,7 +59,8 @@ function VoucherHistory() {
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [opened, { open, close }] = useDisclosure(false);
   const [deleteId, setDeleteId] = useState<number | null>(null);
-  const [filterOption, setFilterOption] = useState<string | null>(() => {
+  const [filterOption, setFilterOption] = useState<string | null>(() =>
+  {
     const storedValue = localStorage.getItem("filterVoucher");
     return storedValue ? storedValue : null;
   });
@@ -61,9 +68,11 @@ function VoucherHistory() {
   const [selectedVoucher, setSelectedVoucher] = useState<Voucher | null>(null);
 
 
-  const fetchData = async () => {
+  const fetchData = async () =>
+  {
     setLoading(true);
-    try {
+    try
+    {
       const pagination = {
         page: activePage,
         limit: elementsPerPage,
@@ -77,39 +86,47 @@ function VoucherHistory() {
         phone: searchTerm ?? null,
       };
 
-      if (filterOption === "Ver ativados") {
+      if (filterOption === "Ver ativados")
+      {
         filters.validated_by = false;
-      } else if (filterOption === "Ver não ativados") {
+      } else if (filterOption === "Ver não ativados")
+      {
         filters.validated_by = true;
       }
 
       const response = await getAllVouchersHistory(pagination, filters);
 
-      if (response.status) {
+      if (response.status)
+      {
         setVouchers(response.data);
         setTotalVouchers(response.pagination.total || 0);
         setActivePage(response.pagination.page || 1);
       }
 
       setLoading(false);
-    } catch (error) {
+    } catch (error)
+    {
       console.error("Error fetching data:", error);
       setLoading(false);
     }
   };
 
-  const onValidate = async (id: number) => {
-    try {
+  const onValidate = async (id: number) =>
+  {
+    try
+    {
       const response = await ativarVoucher(id);
 
-      if (response.status) {
+      if (response.status)
+      {
         notifications.show({
           title: "Sucesso",
           message: "",
           color: "green",
         });
       }
-      if (response.status === false) {
+      if (response.status === false)
+      {
         notifications.show({
           message: response.message,
           color: "red",
@@ -117,7 +134,8 @@ function VoucherHistory() {
       }
 
       fetchData();
-    } catch (error) {
+    } catch (error)
+    {
       notifications.show({
         title: "Erro",
         message: "Algo correu mal",
@@ -126,35 +144,42 @@ function VoucherHistory() {
     }
   };
 
-  const handleFilterChange = (value: string | null) => {
-      setFilterOption(value);
-      localStorage.setItem("filterVoucher", value || "");
+  const handleFilterChange = (value: string | null) =>
+  {
+    setFilterOption(value);
+    localStorage.setItem("filterVoucher", value || "");
   };
-  
-  useEffect(() => {
+
+  useEffect(() =>
+  {
     fetchData();
   }, [activePage, elementsPerPage, searchTerm, filterOption]);
 
-  const handlePageChange = (page: number) => {
+  const handlePageChange = (page: number) =>
+  {
     setActivePage(page);
   };
 
-  const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) =>
+  {
     setSearchTerm(event.currentTarget.value);
   };
 
-  const handleEditBalanceClick = (voucher: Voucher) => {
+  const handleEditBalanceClick = (voucher: Voucher) =>
+  {
     setSelectedVoucher(voucher);
     setEditModalOpened(true);
   };
 
   const handleSaveCreditBalance = async () =>
   {
-    
+
   };
 
-  const handleElementsPerPageChange = (value: string | null) => {
-    if (value) {
+  const handleElementsPerPageChange = (value: string | null) =>
+  {
+    if (value)
+    {
       setElementsPerPage(parseInt(value));
       setActivePage(1); // Reset to first page whenever elements per page change
       localStorage.setItem(pathname, value);
@@ -201,15 +226,15 @@ function VoucherHistory() {
             </>
           ) : (
             <>
-              {/* Se o voucher não estiver ativado, mostra os botões de ativar e remover */}
-                <Tooltip label={"Remover voucher"} withArrow position="top">
-                {voucher.credit_limit > 0 && (
-                    <Tooltip label="Editar Saldo" withArrow position="top">
-                      <ActionIcon variant="subtle" onClick={() => handleEditBalanceClick(voucher)} color="blue">
-                        <IconCurrencyEuro style={{ width: rem(20), height: rem(20) }} stroke={1.5} />
-                      </ActionIcon>
-                    </Tooltip>
-                )}
+              {voucher.credit_limit > 0 && (
+                <Tooltip label="Editar Saldo" withArrow position="top">
+                  <ActionIcon variant="subtle" onClick={() => handleEditBalanceClick(voucher)} color="blue">
+                    <IconCurrencyEuro style={{ width: rem(20), height: rem(20) }} stroke={1.5} />
+                  </ActionIcon>
+                </Tooltip>
+              )}
+              <Tooltip label={"Remover voucher"} withArrow position="top">
+
                 <ActionIcon
                   variant="subtle"
                   color="red"
@@ -248,16 +273,21 @@ function VoucherHistory() {
           variant="filled"
           color="red"
           size="md"
-          onClick={() => {
-            if (deleteId) {
+          onClick={() =>
+          {
+            if (deleteId)
+            {
               deleteVoucher(deleteId)
-                .then((res) => {
-                  if (res.status === true) {
+                .then((res) =>
+                {
+                  if (res.status === true)
+                  {
                     notifications.show({
                       message: res.message,
                       color: "red",
                     });
-                  } else {
+                  } else
+                  {
                     notifications.show({
                       title: "Erro",
                       message: "Algo correu mal",
@@ -265,7 +295,8 @@ function VoucherHistory() {
                     });
                   }
                 })
-                .finally(() => {
+                .finally(() =>
+                {
                   close(), fetchData();
                 });
             }
