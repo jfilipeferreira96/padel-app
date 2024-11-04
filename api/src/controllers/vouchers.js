@@ -30,7 +30,7 @@ class VouchersController {
       const { page = 1, limit = 15, orderBy = "uv.voucher_id", order = "ASC" } = req.body.pagination || {};
 
       let query = `
-      SELECT uv.user_voucher_id, uv.voucher_id, v.name as voucher_name, uv.reason, uv.credit_limit, uv.credit_balance, uv.assigned_at, uv.activated_at, 
+      SELECT uv.user_voucher_id, uv.voucher_id, v.name as voucher_name, uv.reason, uv.credit_limit, uv.credit_balance, uv.is_active, uv.assigned_at, uv.activated_at, 
              u.email AS user_email, u.first_name AS user_first_name, u.last_name AS user_last_name, u.phone,
              a.email AS admin_email, a.first_name AS admin_first_name, a.last_name AS admin_last_name,
              act.email AS activated_by_email, act.first_name AS activated_by_first_name, act.last_name AS activated_by_last_name
@@ -273,7 +273,7 @@ class VouchersController {
       }
 
       const query = `
-        SELECT v.*, uv.assigned_at, uv.assigned_by, uv.activated_at, uv.activated_by, uv.credit_balance, uv.credit_limit
+        SELECT v.*, uv.assigned_at, uv.assigned_by, uv.activated_at, uv.activated_by, uv.credit_balance, uv.is_active, uv.credit_limit
         FROM vouchers v
         JOIN user_vouchers uv ON v.voucher_id = uv.voucher_id
         WHERE uv.assigned_to = ?

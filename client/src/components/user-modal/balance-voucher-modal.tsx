@@ -79,8 +79,8 @@ const EditBalanceModal: React.FC<Props> = ({ opened, onClose, voucherId, current
                 </Center>
             ) : (
                 <>
-                    <Text color="dimmed" mb="sm">
-                        Saldo atual: {currentBalance} créditos
+                    <Text mb="sm">
+                        Saldo atual: <Text span fw={700} c="green">{currentBalance} € </Text>
                     </Text>
 
                     <NumberInput

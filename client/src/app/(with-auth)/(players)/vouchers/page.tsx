@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { Text, Title, Center, Loader, Box, Image, rem, SegmentedControl, Card, Grid, Pagination, Flex } from "@mantine/core";
+import { Text, Title, Center, Loader, Box, Image, rem, SegmentedControl, Card, Grid, Pagination, Flex, Badge } from "@mantine/core";
 import classes from "./classes.module.css";
 import { useSession } from "@/providers/SessionProvider";
 import "@mantine/carousel/styles.css";
@@ -27,11 +27,12 @@ function VouchersPage() {
       credit_limit: number;
       credit_balance: number;
       voucher_type: string;
+      is_active: number;
     }[]
   >([]);
   const [page, setPage] = useState(1);
   const elementsPerPage = 4;
-
+    console.log(vouchers)
   const fetchData = async () => {
     setIsLoading(true);
     if (!user) return;
@@ -69,7 +70,7 @@ function VouchersPage() {
   // Filtering vouchers based on their status
   const vouchersPorUsar = vouchers.filter((voucher) => !voucher.activated_at && voucher.voucher_type !== "credito");
   const vouchersUsados = vouchers.filter((voucher) => voucher.activated_at && voucher.voucher_type !== "credito");
-  const vouchersCreditos = vouchers.filter((voucher) => voucher.voucher_type === "credito");
+  const vouchersCreditos = vouchers.filter((voucher) => voucher.voucher_type === "credito" && voucher.is_active == 1);
 
   // Paginate results
   const paginatedVouchersPorUsar = vouchersPorUsar.slice((page - 1) * elementsPerPage, page * elementsPerPage);
@@ -101,7 +102,7 @@ function VouchersPage() {
                     <Card p="md" radius="md" className={classes.card}>
                       <Image src={voucher.image_url ?? "./Placeholder.svg"} alt={voucher.name} />
                       <Text c="dimmed" size="xs" tt="uppercase" fw={700} mt="md">
-                        Atribuído em: {dayjs(voucher.assigned_at).format("YYYY-MM-DD HH:MM")}
+                        Atribuído em: {dayjs(voucher.assigned_at).format("YYYY-MM-DD HH:mm")}
                       </Text>
                     </Card>
                   </Grid.Col>
@@ -125,7 +126,7 @@ function VouchersPage() {
                     <Card p="md" radius="md" className={classes.card}>
                       <Image src={voucher.image_url ?? "./Placeholder.svg"} alt={voucher.name} />
                       <Text c="dimmed" size="xs" tt="uppercase" fw={700} mt="md">
-                        Ativado em: {dayjs(voucher.activated_at).format("YYYY-MM-DD HH:MM")}
+                        Ativado em: {dayjs(voucher.activated_at).format("YYYY-MM-DD HH:mm")}
                       </Text>
                     </Card>
                   </Grid.Col>
@@ -147,13 +148,16 @@ function VouchersPage() {
                 {paginatedVouchersCreditos.map((voucher, index) => (
                   <Grid.Col span={{ base: 12, sm: 12, md: 6, lg: 6 }} key={index}>
                     <Card p="md" radius="md" className={classes.card}>
+                      <Flex justify={"flex-end"}>
+                        {voucher.activated_at ? <Badge color="green" variant="filled">Ativo</Badge> : <Badge color="gray" variant="filled">Por ativar</Badge>}
+                      </Flex>
                       <Image src={"./vouchers/123.png"} alt={voucher.name} />
                       <Flex justify={"space-between"}>
                         <Text c="dimmed" size="xs" tt="uppercase" fw={700} mt="md">
-                          Balanço: {voucher.credit_balance} €
+                          Saldo: <Text span fw={700} c="green">{voucher.credit_balance} €</Text>
                         </Text>
                         <Text c="dimmed" size="xs" tt="uppercase" fw={700} mt="md">
-                          Atribuído em: {dayjs(voucher.assigned_at).format("YYYY-MM-DD HH:MM")}
+                          Atribuído em: {dayjs(voucher.assigned_at).format("YYYY-MM-DD HH:mm")}
                         </Text>
                       </Flex>
                     </Card>

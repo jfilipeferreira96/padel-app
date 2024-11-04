@@ -11,9 +11,15 @@ CREATE TABLE IF NOT EXISTS users (
 );
 
 -- Criar a tabela 'locations'
-ALTER TABLE users 
-ADD COLUMN reset_password_token VARCHAR(255),
-ADD COLUMN reset_password_expires TIMESTAMP;
+CREATE TABLE IF NOT EXISTS locations (
+    location_id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    address VARCHAR(255) NOT NULL,
+    city VARCHAR(100) NOT NULL,
+    country VARCHAR(100) NOT NULL,
+    href VARCHAR(255) DEFAULT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 
 INSERT INTO `locations` (`location_id`, `name`, `address`, `city`, `country`,  `href`, `created_at`) VALUES 
 (NULL, 'Pro Padel - Mozelos', 'Rua Bairro da Mata, 644, Santa Maria de Lamas', 'Mozelos', 'Portugal', '', current_timestamp()),

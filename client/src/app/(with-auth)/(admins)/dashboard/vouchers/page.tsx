@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { Card, Table, Badge, Select, Flex, Tooltip, ActionIcon, TextInput, Box, Text, Group, Pagination, rem, Modal, Center, Button } from "@mantine/core";
-import { IconCheck, IconEdit, IconRefresh, IconSearch, IconTrash } from "@tabler/icons-react";
+import { IconCheck, IconEdit, IconRefresh, IconSearch, IconTrash, IconCurrencyEuro } from "@tabler/icons-react";
 import { useLocation } from "@/providers/LocationProvider";
 import { usePathname } from "next/navigation";
 import { getAllVouchersHistory, deleteVoucher, ativarVoucher } from "@/services/vouchers.service";
@@ -187,14 +187,34 @@ function VoucherHistory() {
       <Table.Td>
         <Group gap={0} justify="center">
           {voucher.activated_at ? (
-            <>-</>
+            <>
+              {/* Exibe o hífen caso o voucher esteja ativado, mas o limite de crédito seja 0 */}
+              {voucher.credit_limit > 0 ? (
+                <Tooltip label="Editar Saldo" withArrow position="top">
+                  <ActionIcon variant="subtle" onClick={() => handleEditBalanceClick(voucher)} color="blue">
+                    <IconCurrencyEuro style={{ width: rem(20), height: rem(20) }} stroke={1.5} />
+                  </ActionIcon>
+                </Tooltip>
+              ) : (
+                <span>-</span>
+              )}
+            </>
           ) : (
             <>
-              <Tooltip label={"Remover voucher"} withArrow position="top">
+              {/* Se o voucher não estiver ativado, mostra os botões de ativar e remover */}
+                <Tooltip label={"Remover voucher"} withArrow position="top">
+                {voucher.credit_limit > 0 && (
+                    <Tooltip label="Editar Saldo" withArrow position="top">
+                      <ActionIcon variant="subtle" onClick={() => handleEditBalanceClick(voucher)} color="blue">
+                        <IconCurrencyEuro style={{ width: rem(20), height: rem(20) }} stroke={1.5} />
+                      </ActionIcon>
+                    </Tooltip>
+                )}
                 <ActionIcon
                   variant="subtle"
                   color="red"
-                  onClick={() => {
+                  onClick={() =>
+                  {
                     setDeleteId(voucher.user_voucher_id);
                     open();
                   }}
@@ -206,17 +226,11 @@ function VoucherHistory() {
                 <ActionIcon variant="subtle" color="green" onClick={() => onValidate(voucher.user_voucher_id)}>
                   <IconCheck style={{ width: rem(20), height: rem(20) }} stroke={1.5} />
                 </ActionIcon>
-                </Tooltip>
-                {voucher.credit_limit > 0 && (
-                  <Tooltip label="Editar Saldo" withArrow position="top">
-                    <ActionIcon onClick={() => handleEditBalanceClick(voucher)} color="blue">
-                      <IconEdit size={20} />
-                    </ActionIcon>
-                  </Tooltip>
-                )}
+              </Tooltip>
             </>
           )}
         </Group>
+
       </Table.Td>
     </Table.Tr>
   ));
