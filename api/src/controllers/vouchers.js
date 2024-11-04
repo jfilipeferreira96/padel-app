@@ -296,6 +296,70 @@ class VouchersController {
       return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: "Erro Interno do Servidor", message: ex.message });
     }
   }
+
+  static async updateCreditBalance(req, res, next) {
+    try {
+      const { user_voucher_id, new_credit_balance } = req.body;
+      const given_by = req.user?.id;  
+    
+      if (!given_by) {
+          return res.status(StatusCodes.UNAUTHORIZED).json({ 
+              status: false, 
+              message: "Utilizador não autenticado." 
+          });
+      }
+
+      if (!user_voucher_id || new_credit_balance === undefined) {
+          return res.status(StatusCodes.BAD_REQUEST).json({ 
+              status: false, 
+              message: "Os campos user_voucher_id e new_credit_balance são obrigatórios." 
+          });
+      }
+
+      const selectQuery = `
+          SELECT credit_balance, assigned_to 
+          FROM user_vouchers 
+          WHERE user_voucher_id = ?
+      `;
+      const [voucherResult] = await db.query(selectQuery, [user_voucher_id]);
+
+      if (voucherResult.length === 0) {
+          return res.status(StatusCodes.NOT_FOUND).json({ 
+              status: false, 
+              message: "Voucher não encontrado." 
+          });
+      }
+
+      const currentBalance = voucherResult[0].credit_balance;
+      const userId = voucherResult[0].assigned_to;
+
+      const updateQuery = `
+          UPDATE user_vouchers 
+          SET credit_balance = ? 
+          WHERE user_voucher_id = ?
+      `;
+      await db.query(updateQuery, [new_credit_balance, user_voucher_id]);
+
+      const historyQuery = `
+          INSERT INTO users_credits_history (
+              user_id, credits_before, credits_after, given_by
+          ) VALUES (?, ?, ?, ?)
+      `;
+      await db.query(historyQuery, [userId, currentBalance, new_credit_balance, given_by]);
+
+      return res.status(StatusCodes.OK).json({ 
+          status: true, 
+          message: "Saldo de crédito atualizado e registrado com sucesso." 
+      });
+    
+    } catch (ex) {
+        Logger.error("Ocorreu um erro ao atualizar o saldo de crédito.", ex);
+        res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ 
+            error: "Erro Interno do Servidor", 
+            message: ex.message 
+        });
+    }
+  }
 }
 
 module.exports = VouchersController;

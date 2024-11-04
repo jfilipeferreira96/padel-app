@@ -214,6 +214,17 @@ export default function ModalVoucher({ isModalOpen, setIsModalOpen, userId, fetc
        return;
      }
 
+     const hasCredit = Number(selectedVoucher) == voucherData?.find((v) => v.voucher_type === "credito")?.voucher_id;
+     if (hasCredit && Number(creditLimit) <= 0)
+     {
+       notifications.show({
+         title: "Erro",
+         message: "Crédito tem de ser maior que 0€.",
+         color: "red",
+       });
+       return;
+     }
+
      try {
        const response = await assignVoucher({
          voucher_id: Number(selectedVoucher),
@@ -386,6 +397,7 @@ export default function ModalVoucher({ isModalOpen, setIsModalOpen, userId, fetc
                 }}
                 name="credit_limit"
                 required
+                min={0.5}
               />
             )}
             <TextInput className="specialinput" label="Razão de atruibir" placeholder="Digite a razão" value={reason} onChange={(event) => setReason(event.currentTarget.value)} name="reason" required />

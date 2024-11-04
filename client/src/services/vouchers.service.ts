@@ -83,7 +83,13 @@ export const getUserVouchers = async (userId: number) => {
   }
 };
 
-export const assignVoucher = async (data: { voucher_id: number; is_active: number; reason: string; assigned_to: number, credit_limit: number | string | any }) => {
+export const assignVoucher = async (data: {
+  voucher_id: number;
+  is_active: number;
+  reason: string;
+  assigned_to: number;
+  credit_limit: number | string | any;
+}) => {
   try {
     const response = await api.post(endpoints.assignVoucher, data);
     return response.data;
@@ -92,10 +98,21 @@ export const assignVoucher = async (data: { voucher_id: number; is_active: numbe
   }
 };
 
-
 export const ativarVoucher = async (id: number) => {
   try {
-    const response = await api.post(endpoints.ativarVoucher, {id});
+    const response = await api.post(endpoints.ativarVoucher, { id });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const updateCreditBalance = async (data: {
+  voucher_id: number;
+  new_credit_balance: number;
+}) => {
+  try {
+    const response = await api.post(endpoints.updateCreditBalance, data);
     return response.data;
   } catch (error) {
     throw error;

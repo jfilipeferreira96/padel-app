@@ -1,12 +1,13 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { Card, Table, Badge, Select, Flex, Tooltip, ActionIcon, TextInput, Box, Text, Group, Pagination, rem, Modal, Center, Button } from "@mantine/core";
-import { IconCheck, IconRefresh, IconSearch, IconTrash } from "@tabler/icons-react";
+import { IconCheck, IconEdit, IconRefresh, IconSearch, IconTrash } from "@tabler/icons-react";
 import { useLocation } from "@/providers/LocationProvider";
 import { usePathname } from "next/navigation";
 import { getAllVouchersHistory, deleteVoucher, ativarVoucher } from "@/services/vouchers.service";
 import { useDisclosure } from "@mantine/hooks";
 import { notifications } from "@mantine/notifications";
+import EditBalanceModal from "@/components/user-modal/balance-voucher-modal";
 
 function getBadge(activated_by: string | null) {
   if (!activated_by) {
@@ -56,6 +57,9 @@ function VoucherHistory() {
     const storedValue = localStorage.getItem("filterVoucher");
     return storedValue ? storedValue : null;
   });
+  const [editModalOpened, setEditModalOpened] = useState(false);
+  const [selectedVoucher, setSelectedVoucher] = useState<Voucher | null>(null);
+
 
   const fetchData = async () => {
     setLoading(true);
@@ -139,6 +143,16 @@ function VoucherHistory() {
     setSearchTerm(event.currentTarget.value);
   };
 
+  const handleEditBalanceClick = (voucher: Voucher) => {
+    setSelectedVoucher(voucher);
+    setEditModalOpened(true);
+  };
+
+  const handleSaveCreditBalance = async () =>
+  {
+    
+  };
+
   const handleElementsPerPageChange = (value: string | null) => {
     if (value) {
       setElementsPerPage(parseInt(value));
@@ -192,7 +206,14 @@ function VoucherHistory() {
                 <ActionIcon variant="subtle" color="green" onClick={() => onValidate(voucher.user_voucher_id)}>
                   <IconCheck style={{ width: rem(20), height: rem(20) }} stroke={1.5} />
                 </ActionIcon>
-              </Tooltip>
+                </Tooltip>
+                {voucher.credit_limit > 0 && (
+                  <Tooltip label="Editar Saldo" withArrow position="top">
+                    <ActionIcon onClick={() => handleEditBalanceClick(voucher)} color="blue">
+                      <IconEdit size={20} />
+                    </ActionIcon>
+                  </Tooltip>
+                )}
             </>
           )}
         </Group>
@@ -239,6 +260,14 @@ function VoucherHistory() {
           Confirmo
         </Button>
       </Modal>
+
+      <EditBalanceModal
+        opened={editModalOpened}
+        onClose={() => setEditModalOpened(false)}
+        voucherId={selectedVoucher?.user_voucher_id || null}
+        currentBalance={selectedVoucher?.credit_balance || 0}
+        fetchData={fetchData}
+      />
 
       <Card withBorder shadow="md" p={30} mt={10} radius="md" style={{ flex: 1 }}>
         <Box maw={600}>
