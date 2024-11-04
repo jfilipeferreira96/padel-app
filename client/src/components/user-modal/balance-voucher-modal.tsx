@@ -9,7 +9,7 @@ interface Props {
   setIsModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
   voucherId: number | null;
   currentBalance: number;
-  fetchData: () => Promise<void>;
+  fetchData: (userId: number | null) => Promise<void>;
 }
 
 const EditBalanceModal: React.FC<Props> = ({ isModalOpen, setIsModalOpen, voucherId, currentBalance, fetchData }) => {
@@ -50,7 +50,7 @@ const EditBalanceModal: React.FC<Props> = ({ isModalOpen, setIsModalOpen, vouche
           color: "green",
         });
 
-        await fetchData();
+        await fetchData(null);
         close();
       } else {
         notifications.show({

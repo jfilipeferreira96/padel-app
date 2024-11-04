@@ -5,9 +5,10 @@ import { useDisclosure } from "@mantine/hooks";
 import { notifications } from "@mantine/notifications";
 import { getUser, UserData } from "@/services/user.service";
 import { getAllVouchersHistory, assignVoucher, getAllVouchers, ativarVoucher, deleteVoucher } from "@/services/vouchers.service";
-import { IconCheck, IconRefresh, IconSearch, IconTrash } from "@tabler/icons-react";
+import { IconCheck, IconCurrencyEuro, IconRefresh, IconSearch, IconTrash } from "@tabler/icons-react";
 import { useSession } from "@/providers/SessionProvider";
 import { usePathname } from "next/navigation";
+import EditBalanceModal from "./balance-voucher-modal";
 
 interface Props {
   isModalOpen: boolean;
@@ -64,7 +65,9 @@ export default function ModalVoucher({ isModalOpen, setIsModalOpen, userId, fetc
   const [selectedVoucher, setSelectedVoucher] = useState<string | null>(null);
   const [reason, setReason] = useState<string>("");
   const [creditLimit, setCreditLimit] = useState<number | null>(null);
- 
+  const [editModalOpened, setEditModalOpened] = useState(false);
+   const [clickedVoucher, setClickedVoucher] = useState<Voucher | null>(null);
+
   const onDelete = async (id: number) => {
     try {
       deleteVoucher(id).then((res) => {
@@ -204,6 +207,11 @@ export default function ModalVoucher({ isModalOpen, setIsModalOpen, userId, fetc
     }
   };
 
+    const handleEditBalanceClick = (voucher: Voucher) => {
+      setClickedVoucher(voucher);
+      setEditModalOpened(true);
+    };
+
    const onSubmit = async () => {
      if (!selectedVoucher || !reason || !userId) {
        notifications.show({
@@ -270,30 +278,49 @@ export default function ModalVoucher({ isModalOpen, setIsModalOpen, userId, fetc
       <Table.Td>{voucher.activated_at ? `${voucher.admin_first_name} ${voucher.admin_last_name}` : "-"}</Table.Td>
       <Table.Td>{voucher.activated_at ? new Date(voucher.activated_at).toLocaleString() : "-"}</Table.Td>
       <Table.Td>
-        <Group gap={0} justify="center">
-          {voucher.activated_at ? (
-            <>-</>
-          ) : (
-            <>
-              <Tooltip label={"Remover voucher"} withArrow position="top">
-                <ActionIcon
-                  variant="subtle"
-                  color="red"
-                  onClick={() => {
-                    onDelete(voucher.user_voucher_id);
-                  }}
-                >
-                  <IconTrash style={{ width: rem(20), height: rem(20) }} stroke={1.5} />
-                </ActionIcon>
-              </Tooltip>
-              <Tooltip label={"Ativar voucher"} withArrow position="top">
-                <ActionIcon variant="subtle" color="green" onClick={() => onValidate(voucher.user_voucher_id)}>
-                  <IconCheck style={{ width: rem(20), height: rem(20) }} stroke={1.5} />
-                </ActionIcon>
-              </Tooltip>
-            </>
-          )}
-        </Group>
+    
+          <Group gap={0} justify="center">
+            {voucher.activated_at ? (
+              <>
+                {/* Exibe o hífen caso o voucher esteja ativado, mas o limite de crédito seja 0 */}
+                {voucher.credit_limit > 0 ? (
+                  <Tooltip label="Editar Saldo" withArrow position="top">
+                    <ActionIcon variant="subtle" onClick={() => handleEditBalanceClick(voucher)} color="blue">
+                      <IconCurrencyEuro style={{ width: rem(20), height: rem(20) }} stroke={1.5} />
+                    </ActionIcon>
+                  </Tooltip>
+                ) : (
+                  <span>-</span>
+                )}
+              </>
+            ) : (
+              <>
+                {voucher.credit_limit > 0 && (
+                  <Tooltip label="Editar Saldo" withArrow position="top">
+                    <ActionIcon variant="subtle" onClick={() => handleEditBalanceClick(voucher)} color="blue">
+                      <IconCurrencyEuro style={{ width: rem(20), height: rem(20) }} stroke={1.5} />
+                    </ActionIcon>
+                  </Tooltip>
+                )}
+                <Tooltip label={"Remover voucher"} withArrow position="top">
+                  <ActionIcon
+                    variant="subtle"
+                    color="red"
+                    onClick={() => {
+                      onDelete(voucher.user_voucher_id);
+                    }}
+                  >
+                    <IconTrash style={{ width: rem(20), height: rem(20) }} stroke={1.5} />
+                  </ActionIcon>
+                </Tooltip>
+                <Tooltip label={"Ativar voucher"} withArrow position="top">
+                  <ActionIcon variant="subtle" color="green" onClick={() => onValidate(voucher.user_voucher_id)}>
+                    <IconCheck style={{ width: rem(20), height: rem(20) }} stroke={1.5} />
+                  </ActionIcon>
+                </Tooltip>
+              </>
+            )}
+          </Group>
       </Table.Td>
     </Table.Tr>
   ));
@@ -310,6 +337,15 @@ export default function ModalVoucher({ isModalOpen, setIsModalOpen, userId, fetc
             <Center>
               <h3>Histórico de vouchers</h3>
             </Center>
+
+            <EditBalanceModal
+              isModalOpen={editModalOpened}
+              setIsModalOpen={setEditModalOpened}
+              fetchData={() => (userId !== null ? fetchUserData(userId) : Promise.resolve())}
+              voucherId={clickedVoucher?.user_voucher_id || null}
+              currentBalance={clickedVoucher?.credit_balance || 0}
+            />
+
             {userVouchers.length === 0 && (
               <>
                 <Box miw={600}>
