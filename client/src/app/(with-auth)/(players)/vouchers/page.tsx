@@ -157,7 +157,7 @@ function VouchersPage() {
               <Grid mb={"lg"}>
                   {paginatedVouchersCreditos.map((voucher, index) => (
                   <Grid.Col span={{ base: 12, sm: 12, md: 6, lg: 6 }} key={index}>
-                      <Card p="md" radius="md" className={classes.card} onClick={() => openTransactionModal(voucher.user_voucher_id)}>
+                      <Card p="md" radius="md" className={classes.card} onClick={() => openTransactionModal(voucher.user_voucher_id)} style={{"cursor":"pointer"}}>
                       <Flex justify={"flex-end"}>
                         {voucher.activated_at ? <Badge color="green" variant="filled">Ativo</Badge> : <Badge color="gray" variant="filled">Por ativar</Badge>}
                       </Flex>

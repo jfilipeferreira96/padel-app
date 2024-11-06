@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Modal, Center, Loader, NumberInput, Button } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { notifications } from "@mantine/notifications";
-import { getUser } from "@/services/user.service"; // Usando o getUser para buscar os dados do usuário
+import { getUser } from "@/services/user.service";
 import { updateUserCredits } from "@/services/video.service";
 
 interface Props {

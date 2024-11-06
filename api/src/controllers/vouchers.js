@@ -363,11 +363,11 @@ class VouchersController {
 static async getVoucherTransactions(req, res, next) {
   try {
     const { user_voucher_id } = req.params;  
-
+    console.log('entrei')
     if (!user_voucher_id) {
       return res.status(400).json({ status: false, message: "Campos em falta" });
     }
-
+    console.log(user_voucher_id)
     const query = `
       SELECT 
         vt.id AS transaction_id,
@@ -393,7 +393,7 @@ static async getVoucherTransactions(req, res, next) {
       LEFT JOIN user_vouchers uv ON vt.user_voucher_id = uv.user_voucher_id
       LEFT JOIN users owner ON uv.assigned_to = owner.user_id
       WHERE vt.user_voucher_id = ?
-      ORDER BY vt.created_at DESC
+      ORDER BY vt.created_at ASC
     `;
 
     const params = [user_voucher_id];

@@ -43,7 +43,7 @@ export const endpoints = {
   assignVoucher: "/api/voucher/voucher/assign",
   ativarVoucher: "/api/voucher/activate",
   updateCreditBalance: "/api/voucher/voucher-credit-update",
-  getVoucherTransactions: "/api/voucher/transactions/",
+  getVoucherTransactions: "/api/voucher/transactions",
   userVoucher: "/api/voucher/user",
   /*################## News #############################*/
   // Rotas para Notícias

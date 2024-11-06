@@ -36,6 +36,6 @@ vouchersRoutes.post("/activate", authenticateToken, VouchersController.activateV
 vouchersRoutes.get("/user/:userId", authenticateToken, VouchersController.getUserVouchers);
 
 // Rota responsável por obter todas as transaçoes de um voucher de creditos
-vouchersRoutes.get("/voucher/transactions/:user_voucher_id", authenticateToken, VouchersController.getVoucherTransactions);
+vouchersRoutes.get("/transactions/:user_voucher_id", authenticateToken, VouchersController.getVoucherTransactions);
 
 module.exports = vouchersRoutes;

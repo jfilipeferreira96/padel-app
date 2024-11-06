@@ -10,6 +10,7 @@ interface ModalTransactionsProps
     opened: boolean;
     onClose: () => void;
     user_voucher_id: number | null;
+    isAdmin?: boolean;
 }
 
 interface Transaction
@@ -31,7 +32,7 @@ interface Transaction
     owner_phone: string | null;
 }
 
-const ModalTransactions: React.FC<ModalTransactionsProps> = ({ opened, onClose, user_voucher_id }) => {
+const ModalTransactions: React.FC<ModalTransactionsProps> = ({ opened, onClose, user_voucher_id, isAdmin = false }) => {
     const [transactions, setTransactions] = useState<Transaction[]>([]);
     const [loading, setLoading] = useState(true);
 
@@ -60,14 +61,14 @@ const ModalTransactions: React.FC<ModalTransactionsProps> = ({ opened, onClose, 
     }, [opened, user_voucher_id]);
 
     return (
-        <Modal opened={opened} onClose={onClose} title="Histórico de Transações" size="lg" centered>
+        <Modal opened={opened} onClose={onClose} title="Histórico de Transações" size="md" centered>
             {loading ? (
                 <Center mt={20}>
                     <Loader color="blue" />
                 </Center>
             ) : transactions.length === 0 ? (
                 <>
-                    <Box miw={600}>
+                    <Box>
                         <Center>
                             <Text>Nenhuma transação encontrada.</Text>
                         </Center>
@@ -80,6 +81,12 @@ const ModalTransactions: React.FC<ModalTransactionsProps> = ({ opened, onClose, 
                             <th>Saldo</th>
                             <th>Observações</th>
                             <th>Data</th>
+                            {isAdmin && (
+                                <>
+                                    <th>Email do Responsável</th>
+                                    <th>Nome do Responsável</th>
+                                </>
+                            )}
                         </tr>
                     </thead>
                     <tbody>
@@ -88,6 +95,12 @@ const ModalTransactions: React.FC<ModalTransactionsProps> = ({ opened, onClose, 
                                 <td>{transaction.credits_after} €</td>
                                 <td>{transaction.observacoes || "-"}</td>
                                 <td>{dayjs(transaction.created_at).format("YYYY-MM-DD HH:mm")}</td>
+                                {isAdmin && (
+                                    <>
+                                        <td>{transaction.changed_by_email || "-"}</td>
+                                        <td>{transaction.changed_by_first_name + " " + transaction.changed_by_last_name }</td>
+                                    </>
+                                )}
                             </tr>
                         ))}
                     </tbody>
