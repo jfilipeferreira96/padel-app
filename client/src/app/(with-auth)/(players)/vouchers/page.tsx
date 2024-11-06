@@ -7,6 +7,7 @@ import "@mantine/carousel/styles.css";
 import { getUserVouchers } from "@/services/vouchers.service";
 import dayjs from "dayjs";
 import "dayjs/locale/pt";
+import ModalTransactions from "@/components/user-modal/modal-transactions";
 dayjs.locale("pt");
 
 function VouchersPage() {
@@ -16,6 +17,7 @@ function VouchersPage() {
   const [selectedTab, setSelectedTab] = useState<string>("Por usar");
   const [vouchers, setVouchers] = useState<
     {
+      user_voucher_id: number;
       activated_at: string | null;
       activated_by: number;
       assigned_at: string;
@@ -32,7 +34,15 @@ function VouchersPage() {
   >([]);
   const [page, setPage] = useState(1);
   const elementsPerPage = 4;
-    console.log(vouchers)
+  
+  const [opened, setOpened] = useState(false);
+  const [selectedVoucherId, setSelectedVoucherId] = useState<number | null>(null);
+
+  const openTransactionModal = (user_voucher_id: number) => {
+    setSelectedVoucherId(user_voucher_id);
+    setOpened(true);
+  };
+
   const fetchData = async () => {
     setIsLoading(true);
     if (!user) return;
@@ -145,9 +155,9 @@ function VouchersPage() {
               </Center>
             ) : (
               <Grid mb={"lg"}>
-                {paginatedVouchersCreditos.map((voucher, index) => (
+                  {paginatedVouchersCreditos.map((voucher, index) => (
                   <Grid.Col span={{ base: 12, sm: 12, md: 6, lg: 6 }} key={index}>
-                    <Card p="md" radius="md" className={classes.card}>
+                      <Card p="md" radius="md" className={classes.card} onClick={() => openTransactionModal(voucher.user_voucher_id)}>
                       <Flex justify={"flex-end"}>
                         {voucher.activated_at ? <Badge color="green" variant="filled">Ativo</Badge> : <Badge color="gray" variant="filled">Por ativar</Badge>}
                       </Flex>
@@ -168,6 +178,12 @@ function VouchersPage() {
           </>
         )}
       </Box>
+
+      <ModalTransactions
+        opened={opened}
+        onClose={() => { setOpened(false); setSelectedVoucherId(null)}}
+        user_voucher_id={selectedVoucherId ?? null}
+      />
 
       {/* Pagination */}
       {selectedTab === "Por usar" && vouchersPorUsar.length > elementsPerPage && (

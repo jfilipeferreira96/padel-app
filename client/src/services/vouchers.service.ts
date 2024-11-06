@@ -115,3 +115,15 @@ export const updateCreditBalance = async (data: { user_voucher_id: number; new_c
     throw error;
   }
 };
+
+export const getVoucherTransactions = async (id: number) =>
+{
+  try
+  {
+    const response = await api.get(`${endpoints.getVoucherTransactions}/${id}`);
+    return response.data;
+  } catch (error)
+  {
+    throw error;
+  }
+};

@@ -348,11 +348,9 @@ export default function ModalVoucher({ isModalOpen, setIsModalOpen, userId, fetc
 
             {userVouchers.length === 0 && (
               <>
-                <Box miw={600}>
                   <Center>
                     <Text>Este utilizador não tem vouchers atribuídos.</Text>
                   </Center>
-                </Box>
               </>
             )}
             {userVouchers.length > 0 && (

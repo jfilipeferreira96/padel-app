@@ -306,6 +306,9 @@ DELIMITER ;
 
 INSERT INTO `vouchers` (`voucher_id`, `name`, `created_at`, `image_url`, `voucher_type`) VALUES (NULL, 'Créditos', current_timestamp(), NULL, 'credito');
 
+ALTER TABLE voucher_transactions
+ADD COLUMN observacoes TEXT DEFAULT NULL;
+
 -- Testes:
 
 INSERT INTO users (password, email, user_type, first_name, last_name, birthdate) 

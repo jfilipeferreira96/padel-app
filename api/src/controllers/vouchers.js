@@ -41,7 +41,7 @@ class VouchersController {
       LEFT JOIN users act ON uv.activated_by = act.user_id
       WHERE 1 = 1
     `;
-
+      
       let totalCountQuery = `
       SELECT COUNT(*) AS count
       FROM user_vouchers uv
@@ -203,7 +203,7 @@ class VouchersController {
 
   static async assignVoucher(req, res, next) {
     try {
-      const { voucher_id, assigned_to, reason, is_active, credit_limit } = req.body;
+      const { voucher_id, assigned_to, reason, is_active, credit_limit, observacoes } = req.body;
       const assigned_by = req.user?.id;
 
       if (!voucher_id || !assigned_by || !assigned_to || !reason) {
@@ -212,20 +212,20 @@ class VouchersController {
 
       if (!is_active) {
         const query = `
-        INSERT INTO user_vouchers (voucher_id, assigned_by, assigned_to, reason, credit_limit, credit_balance)
+        INSERT INTO user_vouchers (voucher_id, assigned_by, assigned_to, reason, credit_limit, credit_balance, observacoes)
         VALUES (?, ?, ?, ?, ?, ?)
       `;
 
-        await db.query(query, [voucher_id, assigned_by, assigned_to, reason, credit_limit, credit_limit]);
+        await db.query(query, [voucher_id, assigned_by, assigned_to, reason, credit_limit, credit_limit, observacoes]);
       }
 
       if (is_active) {
         const query = `
-        INSERT INTO user_vouchers (voucher_id, assigned_by, assigned_to, reason, activated_by, credit_limit, credit_balance, activated_at)
+        INSERT INTO user_vouchers (voucher_id, assigned_by, assigned_to, reason, activated_by, credit_limit, observacoes, credit_balance, activated_at)
         VALUES (?, ?, ?, ?, ?, ?, ?, NOW())
       `;
 
-        await db.query(query, [voucher_id, assigned_by, assigned_to, reason, assigned_by, credit_limit, credit_limit]);
+        await db.query(query, [voucher_id, assigned_by, assigned_to, reason, assigned_by, credit_limit, observacoes, credit_limit]);
       }
 
       return res.status(201).json({ status: true, message: "Voucher atribuído com sucesso." });
@@ -273,7 +273,7 @@ class VouchersController {
       }
 
       const query = `
-        SELECT v.*, uv.assigned_at, uv.assigned_by, uv.activated_at, uv.activated_by, uv.credit_balance, uv.is_active, uv.credit_limit
+        SELECT v.*, uv.assigned_at, uv.assigned_by, uv.activated_at, uv.activated_by, uv.credit_balance, uv.is_active, uv.credit_limit, uv.*
         FROM vouchers v
         JOIN user_vouchers uv ON v.voucher_id = uv.voucher_id
         WHERE uv.assigned_to = ?
@@ -359,6 +359,57 @@ class VouchersController {
       });
     }
   }
+
+static async getVoucherTransactions(req, res, next) {
+  try {
+    const { user_voucher_id } = req.params;  
+
+    if (!user_voucher_id) {
+      return res.status(400).json({ status: false, message: "Campos em falta" });
+    }
+
+    const query = `
+      SELECT 
+        vt.id AS transaction_id,
+        vt.user_voucher_id,
+        vt.credits_before,
+        vt.credits_after,
+        vt.created_at,
+        vt.observacoes,
+        
+        -- Informações de quem realizou a transação
+        changer.email AS changed_by_email,
+        changer.first_name AS changed_by_first_name,
+        changer.last_name AS changed_by_last_name,
+
+        -- Informações do proprietário do voucher
+        owner.email AS owner_email,
+        owner.first_name AS owner_first_name,
+        owner.last_name AS owner_last_name,
+        owner.phone AS owner_phone
+
+      FROM voucher_transactions vt
+      LEFT JOIN users changer ON vt.changed_by = changer.user_id
+      LEFT JOIN user_vouchers uv ON vt.user_voucher_id = uv.user_voucher_id
+      LEFT JOIN users owner ON uv.assigned_to = owner.user_id
+      WHERE vt.user_voucher_id = ?
+      ORDER BY vt.created_at DESC
+    `;
+
+    const params = [user_voucher_id];
+
+    const { rows } = await db.query(query, params);
+
+    return res.status(200).json({
+      status: true,
+      data: rows
+    });
+  } catch (ex) {
+    console.error("Erro ao buscar transações do voucher:", ex);
+    res.status(500).json({ error: "Erro Interno do Servidor", message: ex.message });
+  }
+}
+
 }
 
 module.exports = VouchersController;
