@@ -41,7 +41,7 @@ class VouchersController {
       LEFT JOIN users act ON uv.activated_by = act.user_id
       WHERE 1 = 1
     `;
-      
+
       let totalCountQuery = `
       SELECT COUNT(*) AS count
       FROM user_vouchers uv
@@ -203,7 +203,7 @@ class VouchersController {
 
   static async assignVoucher(req, res, next) {
     try {
-      const { voucher_id, assigned_to, reason, is_active, credit_limit, observacoes } = req.body;
+      const { voucher_id, assigned_to, reason, is_active, credit_limit } = req.body;
       const assigned_by = req.user?.id;
 
       if (!voucher_id || !assigned_by || !assigned_to || !reason) {
@@ -299,9 +299,9 @@ class VouchersController {
 
   static async updateCreditBalance(req, res, next) {
     try {
-      const { user_voucher_id, new_credit_balance } = req.body;
+      const { user_voucher_id, new_credit_balance, obvservation } = req.body;
       const changed_by = req.user?.id;
-
+      console.log(req.body);
       if (!changed_by) {
         return res.json({
           status: false,
@@ -342,10 +342,11 @@ class VouchersController {
 
       // Registrar a alteração de créditos
       const historyQuery = `
-      INSERT INTO voucher_transactions (user_voucher_id, credits_before, credits_after, changed_by)
-      VALUES (?, ?, ?, ?)
+      INSERT INTO voucher_transactions (user_voucher_id, credits_before, credits_after, changed_by, obvservation)
+      VALUES (?, ?, ?, ?, ?)
     `;
-      await db.query(historyQuery, [user_voucher_id, currentBalance, new_credit_balance, changed_by || null]);
+      console.log("asdasdasdasdad", obvservation);
+      await db.query(historyQuery, [user_voucher_id, currentBalance, new_credit_balance, changed_by || null, obvservation]);
 
       return res.status(StatusCodes.OK).json({
         status: true,
@@ -360,22 +361,22 @@ class VouchersController {
     }
   }
 
-static async getVoucherTransactions(req, res, next) {
-  try {
-    const { user_voucher_id } = req.params;  
-    console.log('entrei')
-    if (!user_voucher_id) {
-      return res.status(400).json({ status: false, message: "Campos em falta" });
-    }
-    console.log(user_voucher_id)
-    const query = `
+  static async getVoucherTransactions(req, res, next) {
+    try {
+      const { user_voucher_id } = req.params;
+
+      if (!user_voucher_id) {
+        return res.status(400).json({ status: false, message: "Campos em falta" });
+      }
+      console.log(user_voucher_id);
+      const query = `
       SELECT 
         vt.id AS transaction_id,
         vt.user_voucher_id,
         vt.credits_before,
         vt.credits_after,
         vt.created_at,
-        vt.observacoes,
+        vt.obvservation,
         
         -- Informações de quem realizou a transação
         changer.email AS changed_by_email,
@@ -396,20 +397,19 @@ static async getVoucherTransactions(req, res, next) {
       ORDER BY vt.created_at ASC
     `;
 
-    const params = [user_voucher_id];
+      const params = [user_voucher_id];
 
-    const { rows } = await db.query(query, params);
+      const { rows } = await db.query(query, params);
 
-    return res.status(200).json({
-      status: true,
-      data: rows
-    });
-  } catch (ex) {
-    console.error("Erro ao buscar transações do voucher:", ex);
-    res.status(500).json({ error: "Erro Interno do Servidor", message: ex.message });
+      return res.status(200).json({
+        status: true,
+        data: rows,
+      });
+    } catch (ex) {
+      console.error("Erro ao buscar transações do voucher:", ex);
+      res.status(500).json({ error: "Erro Interno do Servidor", message: ex.message });
+    }
   }
-}
-
 }
 
 module.exports = VouchersController;

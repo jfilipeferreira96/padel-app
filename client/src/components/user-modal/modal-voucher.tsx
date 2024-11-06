@@ -74,6 +74,7 @@ export default function ModalVoucher({ isModalOpen, setIsModalOpen, userId, fetc
   const [creditLimit, setCreditLimit] = useState<number | null>(null);
   const [editModalOpened, setEditModalOpened] = useState(false);
   const [clickedVoucher, setClickedVoucher] = useState<Voucher | null>(null);
+  const [deleteFlag, setDeleteFlag] = useState<number>(0);
 
   const onDelete = async (id: number) =>
   {
@@ -139,6 +140,7 @@ export default function ModalVoucher({ isModalOpen, setIsModalOpen, userId, fetc
       {
         fetchUserData(userId);
       }
+      setDeleteFlag(deleteFlag + 1);
       fetchData();
     } catch (error)
     {
@@ -150,17 +152,14 @@ export default function ModalVoucher({ isModalOpen, setIsModalOpen, userId, fetc
     }
   };
 
-  useEffect(() =>
-  {
-    if (isModalOpen && userId)
-    {
+  useEffect(() => {
+    if (isModalOpen && userId) {
       fetchUserData(userId);
       open();
-    } else
-    {
+    } else {
       close();
     }
-  }, [isModalOpen, open, close, userId]);
+  }, [isModalOpen, open, close, userId, deleteFlag]);
 
   useEffect(() =>
   {
