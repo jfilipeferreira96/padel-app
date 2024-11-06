@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { Card, Table, Badge, Select, Flex, Tooltip, ActionIcon, TextInput, Box, Text, Group, Pagination, rem, Modal, Center, Button } from "@mantine/core";
-import { IconCheck, IconEdit, IconRefresh, IconSearch, IconTrash, IconCurrencyEuro } from "@tabler/icons-react";
+import { IconCheck, IconEdit, IconRefresh, IconSearch, IconTrash, IconCurrencyEuro, IconEye } from "@tabler/icons-react";
 import { useLocation } from "@/providers/LocationProvider";
 import { usePathname } from "next/navigation";
 import { getAllVouchersHistory, deleteVoucher, ativarVoucher } from "@/services/vouchers.service";
@@ -200,8 +200,8 @@ function VoucherHistory()
       <Table.Td>
         {voucher.user_first_name} {voucher.user_last_name}
       </Table.Td>
-      <Table.Td>{voucher.user_email}</Table.Td>
-      <Table.Td>{voucher.phone}</Table.Td>
+      <Table.Td>{voucher.user_email ?? "-"}</Table.Td>
+      <Table.Td>{voucher.phone ?? "-"}</Table.Td>
       <Table.Td>{voucher.assigned_at ? `${voucher.admin_first_name} ${voucher.admin_last_name}` : "-"}</Table.Td>
       <Table.Td>{new Date(voucher.assigned_at).toLocaleString()}</Table.Td>
       <Table.Td>{voucher.reason ? voucher.reason : "-"}</Table.Td>
@@ -211,51 +211,37 @@ function VoucherHistory()
       <Table.Td>{voucher.activated_at ? new Date(voucher.activated_at).toLocaleString() : "-"}</Table.Td>
       <Table.Td>
         <Group gap={0} justify="center">
-          {voucher.activated_at ? (
+          <Tooltip label={"Remover voucher"} withArrow position="top">
+            <ActionIcon
+              variant="subtle"
+              color="red"
+              onClick={() => {
+                onDelete(voucher.user_voucher_id);
+              }}
+            >
+              <IconTrash style={{ width: rem(20), height: rem(20) }} stroke={1.5} />
+            </ActionIcon>
+          </Tooltip>
+          {voucher.activated_at ? <></> : <Tooltip label={"Ativar voucher"} withArrow position="top">
+            <ActionIcon variant="subtle" color="green" onClick={() => onValidate(voucher.user_voucher_id)}>
+              <IconCheck style={{ width: rem(20), height: rem(20) }} stroke={1.5} />
+            </ActionIcon>
+          </Tooltip>}
+          {voucher.credit_limit > 0 && (
             <>
-              {/* Exibe o hífen caso o voucher esteja ativado, mas o limite de crédito seja 0 */}
-              {voucher.credit_limit > 0 ? (
-                <Tooltip label="Editar Saldo" withArrow position="top">
-                  <ActionIcon variant="subtle" onClick={() => handleEditBalanceClick(voucher)} color="blue">
-                    <IconCurrencyEuro style={{ width: rem(20), height: rem(20) }} stroke={1.5} />
-                  </ActionIcon>
-                </Tooltip>
-              ) : (
-                <span>-</span>
-              )}
-            </>
-          ) : (
-            <>
-              {voucher.credit_limit > 0 && (
-                <Tooltip label="Editar Saldo" withArrow position="top">
-                  <ActionIcon variant="subtle" onClick={() => handleEditBalanceClick(voucher)} color="blue">
-                    <IconCurrencyEuro style={{ width: rem(20), height: rem(20) }} stroke={1.5} />
-                  </ActionIcon>
-                </Tooltip>
-              )}
-              <Tooltip label={"Remover voucher"} withArrow position="top">
-
-                <ActionIcon
-                  variant="subtle"
-                  color="red"
-                  onClick={() =>
-                  {
-                    setDeleteId(voucher.user_voucher_id);
-                    open();
-                  }}
-                >
-                  <IconTrash style={{ width: rem(20), height: rem(20) }} stroke={1.5} />
+              <Tooltip label="Editar Saldo" withArrow position="top">
+                <ActionIcon variant="subtle" onClick={() => handleEditBalanceClick(voucher)} color="blue">
+                  <IconCurrencyEuro style={{ width: rem(20), height: rem(20) }} stroke={1.5} />
                 </ActionIcon>
               </Tooltip>
-              <Tooltip label={"Ativar voucher"} withArrow position="top">
-                <ActionIcon variant="subtle" color="green" onClick={() => onValidate(voucher.user_voucher_id)}>
-                  <IconCheck style={{ width: rem(20), height: rem(20) }} stroke={1.5} />
+              <Tooltip label="Ver Transações" withArrow position="top">
+                <ActionIcon variant="subtle" onClick={() => console.log(voucher)} color="gray">
+                  <IconEye style={{ width: rem(20), height: rem(20) }} stroke={1.5} />
                 </ActionIcon>
               </Tooltip>
             </>
           )}
         </Group>
-
       </Table.Td>
     </Table.Tr>
   ));
@@ -382,3 +368,8 @@ function VoucherHistory()
 }
 
 export default VoucherHistory;
+function onDelete(user_voucher_id: number)
+{
+  throw new Error("Function not implemented.");
+}
+

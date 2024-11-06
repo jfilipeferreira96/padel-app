@@ -5,27 +5,32 @@ import { useDisclosure } from "@mantine/hooks";
 import { notifications } from "@mantine/notifications";
 import { getUser, UserData } from "@/services/user.service";
 import { getAllVouchersHistory, assignVoucher, getAllVouchers, ativarVoucher, deleteVoucher } from "@/services/vouchers.service";
-import { IconCheck, IconCurrencyEuro, IconRefresh, IconSearch, IconTrash } from "@tabler/icons-react";
+import { IconCheck, IconCurrencyEuro, IconEye, IconRefresh, IconSearch, IconTrash } from "@tabler/icons-react";
 import { useSession } from "@/providers/SessionProvider";
 import { usePathname } from "next/navigation";
 import EditBalanceModal from "./balance-voucher-modal";
 
-interface Props {
+interface Props
+{
   isModalOpen: boolean;
   setIsModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
   userId: number | null;
   fetchData: () => Promise<void>;
 }
 
-function getBadge(activated_by: string | null) {
-  if (!activated_by) {
+function getBadge(activated_by: string | null)
+{
+  if (!activated_by)
+  {
     return { name: "Não ativado", color: "red" };
-  } else {
+  } else
+  {
     return { name: "Ativado", color: "green" };
   }
 }
 
-interface Voucher {
+interface Voucher
+{
   user_voucher_id: number;
   voucher_id: number;
   voucher_name: string;
@@ -46,7 +51,8 @@ interface Voucher {
   is_active: boolean;
 }
 
-export default function ModalVoucher({ isModalOpen, setIsModalOpen, userId, fetchData }: Props) {
+export default function ModalVoucher({ isModalOpen, setIsModalOpen, userId, fetchData }: Props)
+{
   const { user } = useSession();
   const pathname = usePathname();
   const [opened, { open, close }] = useDisclosure(false);
@@ -54,7 +60,8 @@ export default function ModalVoucher({ isModalOpen, setIsModalOpen, userId, fetc
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [userVouchers, setUserVouchers] = useState<Voucher[]>([]);
   const [activePage, setActivePage] = useState<number>(1);
-  const [elementsPerPage, setElementsPerPage] = useState<number>(() => {
+  const [elementsPerPage, setElementsPerPage] = useState<number>(() =>
+  {
     const storedValue = localStorage.getItem(pathname);
     return storedValue ? parseInt(storedValue) : 10;
   });
@@ -66,17 +73,22 @@ export default function ModalVoucher({ isModalOpen, setIsModalOpen, userId, fetc
   const [reason, setReason] = useState<string>("");
   const [creditLimit, setCreditLimit] = useState<number | null>(null);
   const [editModalOpened, setEditModalOpened] = useState(false);
-   const [clickedVoucher, setClickedVoucher] = useState<Voucher | null>(null);
+  const [clickedVoucher, setClickedVoucher] = useState<Voucher | null>(null);
 
-  const onDelete = async (id: number) => {
-    try {
-      deleteVoucher(id).then((res) => {
-        if (res.status === true) {
+  const onDelete = async (id: number) =>
+  {
+    try
+    {
+      deleteVoucher(id).then((res) =>
+      {
+        if (res.status === true)
+        {
           notifications.show({
             message: res.message,
             color: "green",
           });
-        } else {
+        } else
+        {
           notifications.show({
             title: "Erro",
             message: "Algo correu mal",
@@ -84,59 +96,76 @@ export default function ModalVoucher({ isModalOpen, setIsModalOpen, userId, fetc
           });
         }
       });
-      if (userId) {
+      if (userId)
+      {
         fetchUserData(userId);
       }
-    } catch (error) {
+    } catch (error)
+    {
+      notifications.show({
+        title: "Erro",
+        message: "Algo correu mal",
+        color: "red",
+      });
+      if (userId)
+      {
+        fetchUserData(userId);
+      }
+    }
+  }
+  const onValidate = async (id: number) =>
+  {
+    try
+    {
+
+      const response = await ativarVoucher(id);
+
+      if (response.status)
+      {
+        notifications.show({
+          title: "Sucesso",
+          message: "",
+          color: "green",
+        });
+      }
+      if (response.status === false)
+      {
+        notifications.show({
+          message: response.message,
+          color: "red",
+        });
+      }
+      if (userId)
+      {
+        fetchUserData(userId);
+      }
+      fetchData();
+    } catch (error)
+    {
       notifications.show({
         title: "Erro",
         message: "Algo correu mal",
         color: "red",
       });
     }
-  }
-    const onValidate = async (id: number) => {
-      try {
-        
-        const response = await ativarVoucher(id);
-
-        if (response.status) {
-          notifications.show({
-            title: "Sucesso",
-            message: "",
-            color: "green",
-          });
-        }
-        if (response.status === false) {
-          notifications.show({
-            message: response.message,
-            color: "red",
-          });
-        }
-        if (userId) {
-          fetchUserData(userId);
-        }
-        fetchData();
-      } catch (error) {
-        notifications.show({
-          title: "Erro",
-          message: "Algo correu mal",
-          color: "red",
-        });
-      }
   };
-  
-  useEffect(() => {
-    if (isModalOpen && userId) {
+
+  useEffect(() =>
+  {
+    if (isModalOpen && userId)
+    {
       fetchUserData(userId);
       open();
-    } else {
+    } else
+    {
       close();
     }
   }, [isModalOpen, open, close, userId]);
 
-  useEffect(() => {
-    if (!opened) {
+  useEffect(() =>
+  {
+    if (!opened)
+    {
       setIsModalOpen(false);
       setVouchersData(null);
       setUserVouchers([]);
@@ -148,10 +177,12 @@ export default function ModalVoucher({ isModalOpen, setIsModalOpen, userId, fetc
     }
   }, [opened, setIsModalOpen]);
 
-  const fetchUserData = async (userId: number) => {
+  const fetchUserData = async (userId: number) =>
+  {
     if (!userId) return;
 
-    try {
+    try
+    {
       const pagination = {
         page: activePage,
         limit: elementsPerPage,
@@ -159,25 +190,28 @@ export default function ModalVoucher({ isModalOpen, setIsModalOpen, userId, fetc
         order: "DESC",
       };
 
-       const filters: any = {
-         email: searchTerm ?? null,
-         name: searchTerm ?? null,
-         phone: searchTerm ?? null,
-         assigned_to: userId,
-       };
+      const filters: any = {
+        email: searchTerm ?? null,
+        name: searchTerm ?? null,
+        phone: searchTerm ?? null,
+        assigned_to: userId,
+      };
 
       const [vouchers, vouchersResponse] = await Promise.all([getAllVouchers(), getAllVouchersHistory(pagination, filters)]);
-      
-      if (vouchers.status) {
+
+      if (vouchers.status)
+      {
         setVouchersData(vouchers.data);
       }
-      if (vouchersResponse.status) {
+      if (vouchersResponse.status)
+      {
         setUserVouchers(vouchersResponse.data);
         setTotalVouchers(vouchersResponse.pagination.total || 0);
         setActivePage(vouchersResponse.pagination.page || 1);
       }
       setIsLoading(false);
-    } catch (error) {
+    } catch (error)
+    {
       notifications.show({
         title: "Erro",
         message: "Não foi possível carregar os dados",
@@ -187,76 +221,88 @@ export default function ModalVoucher({ isModalOpen, setIsModalOpen, userId, fetc
     }
   };
 
-  useEffect(() => {
+  useEffect(() =>
+  {
     if (userId) fetchUserData(userId);
   }, [userId, activePage, elementsPerPage, searchTerm]);
 
-  const handlePageChange = (page: number) => {
+  const handlePageChange = (page: number) =>
+  {
     setActivePage(page);
   };
 
-  const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) =>
+  {
     setSearchTerm(event.currentTarget.value);
   };
 
-  const handleElementsPerPageChange = (value: string | null) => {
-    if (value) {
+  const handleElementsPerPageChange = (value: string | null) =>
+  {
+    if (value)
+    {
       setElementsPerPage(parseInt(value));
       setActivePage(1);
       localStorage.setItem(pathname, value);
     }
   };
 
-    const handleEditBalanceClick = (voucher: Voucher) => {
-      setClickedVoucher(voucher);
-      setEditModalOpened(true);
-    };
+  const handleEditBalanceClick = (voucher: Voucher) =>
+  {
+    setClickedVoucher(voucher);
+    setEditModalOpened(true);
+  };
 
-   const onSubmit = async () => {
-     if (!selectedVoucher || !reason || !userId) {
-       notifications.show({
-         title: "Erro",
-         message: "Por favor, preencha todos os campos obrigatórios.",
-         color: "red",
-       });
-       return;
-     }
+  const onSubmit = async () =>
+  {
+    if (!selectedVoucher || !reason || !userId)
+    {
+      notifications.show({
+        title: "Erro",
+        message: "Por favor, preencha todos os campos obrigatórios.",
+        color: "red",
+      });
+      return;
+    }
 
-     const hasCredit = Number(selectedVoucher) == voucherData?.find((v) => v.voucher_type === "credito")?.voucher_id;
-     if (hasCredit && Number(creditLimit) <= 0)
-     {
-       notifications.show({
-         title: "Erro",
-         message: "Crédito tem de ser maior que 0€.",
-         color: "red",
-       });
-       return;
-     }
+    const hasCredit = Number(selectedVoucher) == voucherData?.find((v) => v.voucher_type === "credito")?.voucher_id;
+    if (hasCredit && Number(creditLimit) <= 0)
+    {
+      notifications.show({
+        title: "Erro",
+        message: "Crédito tem de ser maior que 0€.",
+        color: "red",
+      });
+      return;
+    }
 
-     try {
-       const response = await assignVoucher({
-         voucher_id: Number(selectedVoucher),
-         is_active: Number(isActive),
-         reason,
-         assigned_to: userId,
-         credit_limit: Number(selectedVoucher) == voucherData?.find((v) => v.voucher_type === "credito")?.voucher_id ? Number(creditLimit) : undefined,
-       });
+    try
+    {
+      const response = await assignVoucher({
+        voucher_id: Number(selectedVoucher),
+        is_active: Number(isActive),
+        reason,
+        assigned_to: userId,
+        credit_limit: Number(selectedVoucher) == voucherData?.find((v) => v.voucher_type === "credito")?.voucher_id ? Number(creditLimit) : undefined,
+      });
 
-       if (response.status) {
-         notifications.show({ title: "Sucesso", message: response.message, color: "green" });
-         fetchData();
-         close();
-       } else {
-         notifications.show({ title: "Erro", message: response.message, color: "red" });
-       }
-     } catch (error) {
-       notifications.show({ title: "Erro", message: "Algo correu mal", color: "red" });
-     }
-   };
+      if (response.status)
+      {
+        notifications.show({ title: "Sucesso", message: response.message, color: "green" });
+        fetchData();
+        close();
+      } else
+      {
+        notifications.show({ title: "Erro", message: response.message, color: "red" });
+      }
+    } catch (error)
+    {
+      notifications.show({ title: "Erro", message: "Algo correu mal", color: "red" });
+    }
+  };
 
   const initialIndex = (activePage - 1) * elementsPerPage;
   const finalIndex = initialIndex + elementsPerPage;
-  
+
   const rows = userVouchers.map((voucher, idx) => (
     <Table.Tr key={idx}>
       <Table.Td>
@@ -278,53 +324,43 @@ export default function ModalVoucher({ isModalOpen, setIsModalOpen, userId, fetc
       <Table.Td>{voucher.activated_at ? `${voucher.admin_first_name} ${voucher.admin_last_name}` : "-"}</Table.Td>
       <Table.Td>{voucher.activated_at ? new Date(voucher.activated_at).toLocaleString() : "-"}</Table.Td>
       <Table.Td>
-    
-          <Group gap={0} justify="center">
-            {voucher.activated_at ? (
-              <>
-                {/* Exibe o hífen caso o voucher esteja ativado, mas o limite de crédito seja 0 */}
-                {voucher.credit_limit > 0 ? (
-                  <Tooltip label="Editar Saldo" withArrow position="top">
-                    <ActionIcon variant="subtle" onClick={() => handleEditBalanceClick(voucher)} color="blue">
-                      <IconCurrencyEuro style={{ width: rem(20), height: rem(20) }} stroke={1.5} />
-                    </ActionIcon>
-                  </Tooltip>
-                ) : (
-                  <span>-</span>
-                )}
-              </>
-            ) : (
-              <>
-                {voucher.credit_limit > 0 && (
-                  <Tooltip label="Editar Saldo" withArrow position="top">
-                    <ActionIcon variant="subtle" onClick={() => handleEditBalanceClick(voucher)} color="blue">
-                      <IconCurrencyEuro style={{ width: rem(20), height: rem(20) }} stroke={1.5} />
-                    </ActionIcon>
-                  </Tooltip>
-                )}
-                <Tooltip label={"Remover voucher"} withArrow position="top">
-                  <ActionIcon
-                    variant="subtle"
-                    color="red"
-                    onClick={() => {
-                      onDelete(voucher.user_voucher_id);
-                    }}
-                  >
-                    <IconTrash style={{ width: rem(20), height: rem(20) }} stroke={1.5} />
-                  </ActionIcon>
-                </Tooltip>
-                <Tooltip label={"Ativar voucher"} withArrow position="top">
-                  <ActionIcon variant="subtle" color="green" onClick={() => onValidate(voucher.user_voucher_id)}>
-                    <IconCheck style={{ width: rem(20), height: rem(20) }} stroke={1.5} />
-                  </ActionIcon>
-                </Tooltip>
-              </>
-            )}
-          </Group>
+        <Group gap={0} justify="center">
+          <Tooltip label={"Remover voucher"} withArrow position="top">
+            <ActionIcon
+              variant="subtle"
+              color="red"
+              onClick={() =>
+              {
+                onDelete(voucher.user_voucher_id);
+              }}
+            >
+              <IconTrash style={{ width: rem(20), height: rem(20) }} stroke={1.5} />
+            </ActionIcon>
+          </Tooltip>
+          {voucher.activated_at ? <></> : <Tooltip label={"Ativar voucher"} withArrow position="top">
+            <ActionIcon variant="subtle" color="green" onClick={() => onValidate(voucher.user_voucher_id)}>
+              <IconCheck style={{ width: rem(20), height: rem(20) }} stroke={1.5} />
+            </ActionIcon>
+          </Tooltip>}
+          {voucher.credit_limit > 0 && (
+            <>
+              <Tooltip label="Editar Saldo" withArrow position="top">
+                <ActionIcon variant="subtle" onClick={() => handleEditBalanceClick(voucher)} color="blue">
+                  <IconCurrencyEuro style={{ width: rem(20), height: rem(20) }} stroke={1.5} />
+                </ActionIcon>
+              </Tooltip>
+              <Tooltip label="Ver Transações" withArrow position="top">
+                <ActionIcon variant="subtle" onClick={() => console.log(voucher)} color="gray">
+                  <IconEye style={{ width: rem(20), height: rem(20) }} stroke={1.5} />
+                </ActionIcon>
+              </Tooltip>
+            </>
+          )}
+        </Group>
       </Table.Td>
     </Table.Tr>
   ));
-  
+
   return (
     <Modal opened={opened} onClose={close} title="Ver/atribuir vouchers" size="xxl">
       {isLoading ? (
@@ -348,9 +384,9 @@ export default function ModalVoucher({ isModalOpen, setIsModalOpen, userId, fetc
 
             {userVouchers.length === 0 && (
               <>
-                  <Center>
-                    <Text>Este utilizador não tem vouchers atribuídos.</Text>
-                  </Center>
+                <Center>
+                  <Text>Este utilizador não tem vouchers atribuídos.</Text>
+                </Center>
               </>
             )}
             {userVouchers.length > 0 && (
@@ -425,7 +461,8 @@ export default function ModalVoucher({ isModalOpen, setIsModalOpen, userId, fetc
                 label="Crédito em €"
                 placeholder="50 €"
                 value={creditLimit ?? undefined}
-                onChange={(event) => {
+                onChange={(event) =>
+                {
                   const value = Number(event);
                   setCreditLimit(isNaN(value) ? null : value);
                 }}
@@ -452,3 +489,8 @@ export default function ModalVoucher({ isModalOpen, setIsModalOpen, userId, fetc
     </Modal>
   );
 }
+function finnaly()
+{
+  throw new Error("Function not implemented.");
+}
+
