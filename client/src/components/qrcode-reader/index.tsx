@@ -70,7 +70,7 @@ function QrReader(props: Props) {
         setContact("");
       }
     } catch (error) {
-      console.log(error);
+    
       notifications.show({
         title: "Erro",
         message: "Algo correu mal",

@@ -8,6 +8,7 @@ import { getAllVouchersHistory, deleteVoucher, ativarVoucher } from "@/services/
 import { useDisclosure } from "@mantine/hooks";
 import { notifications } from "@mantine/notifications";
 import EditBalanceModal from "@/components/user-modal/balance-voucher-modal";
+import ModalTransactions from "@/components/user-modal/modal-transactions";
 
 function getBadge(activated_by: string | null)
 {
@@ -67,6 +68,13 @@ function VoucherHistory()
   const [editModalOpened, setEditModalOpened] = useState(false);
   const [selectedVoucher, setSelectedVoucher] = useState<Voucher | null>(null);
 
+  const [openedTransactions, setOpenedTransactions] = useState(false);
+  const [selectedVoucherId, setSelectedVoucherId] = useState<number | null>(null);
+
+  const openTransactionModal = (user_voucher_id: number) => {
+    setSelectedVoucherId(user_voucher_id);
+    setOpenedTransactions(true);
+  };
 
   const fetchData = async () =>
   {
@@ -222,11 +230,15 @@ function VoucherHistory()
               <IconTrash style={{ width: rem(20), height: rem(20) }} stroke={1.5} />
             </ActionIcon>
           </Tooltip>
-          {voucher.activated_at ? <></> : <Tooltip label={"Ativar voucher"} withArrow position="top">
-            <ActionIcon variant="subtle" color="green" onClick={() => onValidate(voucher.user_voucher_id)}>
-              <IconCheck style={{ width: rem(20), height: rem(20) }} stroke={1.5} />
-            </ActionIcon>
-          </Tooltip>}
+          {voucher.activated_at ? (
+            <></>
+          ) : (
+            <Tooltip label={"Ativar voucher"} withArrow position="top">
+              <ActionIcon variant="subtle" color="green" onClick={() => onValidate(voucher.user_voucher_id)}>
+                <IconCheck style={{ width: rem(20), height: rem(20) }} stroke={1.5} />
+              </ActionIcon>
+            </Tooltip>
+          )}
           {voucher.credit_limit > 0 && (
             <>
               <Tooltip label="Editar Saldo" withArrow position="top">
@@ -235,7 +247,7 @@ function VoucherHistory()
                 </ActionIcon>
               </Tooltip>
               <Tooltip label="Ver Transações" withArrow position="top">
-                <ActionIcon variant="subtle" onClick={() => console.log(voucher)} color="gray">
+                <ActionIcon variant="subtle" onClick={() => openTransactionModal(voucher.user_voucher_id)} color="gray">
                   <IconEye style={{ width: rem(20), height: rem(20) }} stroke={1.5} />
                 </ActionIcon>
               </Tooltip>
@@ -292,6 +304,16 @@ function VoucherHistory()
         fetchData={fetchData}
         voucherId={selectedVoucher?.user_voucher_id || null}
         currentBalance={selectedVoucher?.credit_balance || 0}
+      />
+
+      <ModalTransactions
+        opened={openedTransactions}
+        onClose={() => {
+          setOpenedTransactions(false);
+          setSelectedVoucherId(null);
+        }}
+        user_voucher_id={selectedVoucherId ?? null}
+        isAdmin
       />
 
       <Card withBorder shadow="md" p={30} mt={10} radius="md" style={{ flex: 1 }}>

@@ -301,7 +301,7 @@ class VouchersController {
     try {
       const { user_voucher_id, new_credit_balance, obvservation } = req.body;
       const changed_by = req.user?.id;
-      console.log(req.body);
+
       if (!changed_by) {
         return res.json({
           status: false,
@@ -368,7 +368,7 @@ class VouchersController {
       if (!user_voucher_id) {
         return res.status(400).json({ status: false, message: "Campos em falta" });
       }
-      console.log(user_voucher_id);
+
       const query = `
       SELECT 
         vt.id AS transaction_id,

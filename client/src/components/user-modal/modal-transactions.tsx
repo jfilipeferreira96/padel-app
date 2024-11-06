@@ -5,12 +5,11 @@ import dayjs from "dayjs";
 import "dayjs/locale/pt";
 dayjs.locale("pt");
 
-interface ModalTransactionsProps
-{
-    opened: boolean;
-    onClose: () => void;
-    user_voucher_id: number | null;
-    isAdmin?: boolean;
+interface ModalTransactionsProps {
+  opened: boolean;
+  onClose: () => void;
+  user_voucher_id: number | null;
+  isAdmin?: boolean;
 }
 
 interface Transaction {
@@ -32,81 +31,81 @@ interface Transaction {
 }
 
 const ModalTransactions: React.FC<ModalTransactionsProps> = ({ opened, onClose, user_voucher_id, isAdmin = false }) => {
-    const [transactions, setTransactions] = useState<Transaction[]>([]);
-    const [loading, setLoading] = useState(true);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [loading, setLoading] = useState(true);
 
-    const fetchTransactions = async (user_voucher_id: number) => {
-        setLoading(true);
-        try
-        {
-            const response = await getVoucherTransactions(user_voucher_id);
-            console.log(response)
-            setTransactions(response.data);
-        } catch (error)
-        {
-            console.error("Erro ao buscar transações:", error);
-        } finally
-        {
-            setLoading(false);
-        }
-    };
+  const fetchTransactions = async (user_voucher_id: number) => {
+    setLoading(true);
+    try {
+      const response = await getVoucherTransactions(user_voucher_id);
+      setTransactions(response.data);
+    } catch (error) {
+      console.error("Erro ao buscar transações:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    useEffect(() =>{
-        if (opened && user_voucher_id)
-        {
-            console.log('entrei')
-            fetchTransactions(user_voucher_id);
-        }
-    }, [opened, user_voucher_id]);
+  useEffect(() => {
+    if (opened && user_voucher_id) {
+      fetchTransactions(user_voucher_id);
+    }
+  }, [opened, user_voucher_id]);
 
-    return (
-      <Modal opened={opened} onClose={onClose} title="Histórico de Transações" size="md" centered>
-        {loading ? (
-          <Center mt={20}>
-            <Loader color="blue" />
-          </Center>
-        ) : transactions.length === 0 ? (
-          <>
-            <Box>
-              <Center>
-                <Text>Nenhuma transação encontrada.</Text>
-              </Center>
-            </Box>
-          </>
-        ) : (
-          <Table striped highlightOnHover>
-            <thead>
-              <tr>
-                <th>Saldo</th>
-                <th>Observações</th>
-                <th>Data</th>
+  return (
+    <Modal opened={opened} onClose={onClose} title="Histórico de Transações" size="xl" centered>
+      {loading ? (
+        <Center mt={20}>
+          <Loader color="blue" />
+        </Center>
+      ) : transactions.length === 0 ? (
+        <>
+          <Box>
+            <Center>
+              <Text>Nenhuma transação encontrada.</Text>
+            </Center>
+          </Box>
+        </>
+      ) : (
+        <Table.ScrollContainer minWidth={600}>
+          <Table highlightOnHover>
+            <Table.Thead>
+              <Table.Tr>
+                <Table.Th>#</Table.Th>
+
+                <Table.Th>Saldo</Table.Th>
+                <Table.Th>Observações</Table.Th>
+                <Table.Th>Data</Table.Th>
                 {isAdmin && (
                   <>
-                    <th>Email do Responsável</th>
-                    <th>Nome do Responsável</th>
+                    <Table.Th>Email do Responsável</Table.Th>
+                    <Table.Th>Nome do Responsável</Table.Th>
                   </>
                 )}
-              </tr>
-            </thead>
-            <tbody>
-              {transactions.map((transaction) => (
-                <tr key={transaction.transaction_id}>
-                  <td>{transaction.credits_after} €</td>
-                  <td>{transaction.obvservation || "-"}</td>
-                  <td>{dayjs(transaction.created_at).format("YYYY-MM-DD HH:mm")}</td>
+              </Table.Tr>
+            </Table.Thead>
+            <Table.Tbody>
+              {transactions.map((transaction, idx) => (
+                <Table.Tr key={transaction.transaction_id}>
+                  <Table.Td>{idx + 1}</Table.Td>
+
+                  <Table.Td>{transaction.credits_after} €</Table.Td>
+                  <Table.Td>{transaction.obvservation || "-"}</Table.Td>
+                  <Table.Td>{dayjs(transaction.created_at).format("YYYY-MM-DD HH:mm")}</Table.Td>
                   {isAdmin && (
                     <>
-                      <td>{transaction.changed_by_email || "-"}</td>
-                      <td>{transaction.changed_by_first_name + " " + transaction.changed_by_last_name}</td>
+                      <Table.Td>{transaction.changed_by_email || "-"}</Table.Td>
+                      <Table.Td>{transaction.changed_by_first_name + " " + transaction.changed_by_last_name}</Table.Td>
                     </>
                   )}
-                </tr>
+                </Table.Tr>
               ))}
-            </tbody>
+            </Table.Tbody>
           </Table>
-        )}
-      </Modal>
-    );
+        </Table.ScrollContainer>
+      )}
+    </Modal>
+  );
 };
 
 export default ModalTransactions;

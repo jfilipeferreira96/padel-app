@@ -9,6 +9,7 @@ import { IconCheck, IconCurrencyEuro, IconEye, IconRefresh, IconSearch, IconTras
 import { useSession } from "@/providers/SessionProvider";
 import { usePathname } from "next/navigation";
 import EditBalanceModal from "./balance-voucher-modal";
+import ModalTransactions from "./modal-transactions";
 
 interface Props
 {
@@ -75,7 +76,14 @@ export default function ModalVoucher({ isModalOpen, setIsModalOpen, userId, fetc
   const [editModalOpened, setEditModalOpened] = useState(false);
   const [clickedVoucher, setClickedVoucher] = useState<Voucher | null>(null);
   const [deleteFlag, setDeleteFlag] = useState<number>(0);
-
+const [openedTransactions, setOpenedTransactions] = useState(false);
+  const [selectedVoucherId, setSelectedVoucherId] = useState<number | null>(null);
+  
+const openTransactionModal = (user_voucher_id: number) => {
+  setSelectedVoucherId(user_voucher_id);
+  setOpenedTransactions(true);
+  };
+  
   const onDelete = async (id: number) =>
   {
     try
@@ -328,19 +336,22 @@ export default function ModalVoucher({ isModalOpen, setIsModalOpen, userId, fetc
             <ActionIcon
               variant="subtle"
               color="red"
-              onClick={() =>
-              {
+              onClick={() => {
                 onDelete(voucher.user_voucher_id);
               }}
             >
               <IconTrash style={{ width: rem(20), height: rem(20) }} stroke={1.5} />
             </ActionIcon>
           </Tooltip>
-          {voucher.activated_at ? <></> : <Tooltip label={"Ativar voucher"} withArrow position="top">
-            <ActionIcon variant="subtle" color="green" onClick={() => onValidate(voucher.user_voucher_id)}>
-              <IconCheck style={{ width: rem(20), height: rem(20) }} stroke={1.5} />
-            </ActionIcon>
-          </Tooltip>}
+          {voucher.activated_at ? (
+            <></>
+          ) : (
+            <Tooltip label={"Ativar voucher"} withArrow position="top">
+              <ActionIcon variant="subtle" color="green" onClick={() => onValidate(voucher.user_voucher_id)}>
+                <IconCheck style={{ width: rem(20), height: rem(20) }} stroke={1.5} />
+              </ActionIcon>
+            </Tooltip>
+          )}
           {voucher.credit_limit > 0 && (
             <>
               <Tooltip label="Editar Saldo" withArrow position="top">
@@ -349,7 +360,7 @@ export default function ModalVoucher({ isModalOpen, setIsModalOpen, userId, fetc
                 </ActionIcon>
               </Tooltip>
               <Tooltip label="Ver Transações" withArrow position="top">
-                <ActionIcon variant="subtle" onClick={() => console.log(voucher)} color="gray">
+                <ActionIcon variant="subtle" onClick={() => openTransactionModal(voucher.user_voucher_id)} color="gray">
                   <IconEye style={{ width: rem(20), height: rem(20) }} stroke={1.5} />
                 </ActionIcon>
               </Tooltip>
@@ -362,6 +373,7 @@ export default function ModalVoucher({ isModalOpen, setIsModalOpen, userId, fetc
 
   return (
     <Modal opened={opened} onClose={close} title="Ver/atribuir vouchers" size="xxl">
+      <Box miw={800}></Box>
       {isLoading ? (
         <Center mt={50} mih={"40vh"}>
           <Loader color="blue" />
@@ -379,6 +391,16 @@ export default function ModalVoucher({ isModalOpen, setIsModalOpen, userId, fetc
               fetchData={() => (userId !== null ? fetchUserData(userId) : Promise.resolve())}
               voucherId={clickedVoucher?.user_voucher_id || null}
               currentBalance={clickedVoucher?.credit_balance || 0}
+            />
+
+            <ModalTransactions
+              opened={openedTransactions}
+              onClose={() => {
+                setOpenedTransactions(false);
+                setSelectedVoucherId(null);
+              }}
+              user_voucher_id={selectedVoucherId ?? null}
+              isAdmin
             />
 
             {userVouchers.length === 0 && (
@@ -460,8 +482,7 @@ export default function ModalVoucher({ isModalOpen, setIsModalOpen, userId, fetc
                 label="Crédito em €"
                 placeholder="50 €"
                 value={creditLimit ?? undefined}
-                onChange={(event) =>
-                {
+                onChange={(event) => {
                   const value = Number(event);
                   setCreditLimit(isNaN(value) ? null : value);
                 }}
