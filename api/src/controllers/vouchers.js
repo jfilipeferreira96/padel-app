@@ -212,20 +212,20 @@ class VouchersController {
 
       if (!is_active) {
         const query = `
-        INSERT INTO user_vouchers (voucher_id, assigned_by, assigned_to, reason, credit_limit, credit_balance, observacoes)
+        INSERT INTO user_vouchers (voucher_id, assigned_by, assigned_to, reason, credit_limit, credit_balance)
         VALUES (?, ?, ?, ?, ?, ?)
       `;
 
-        await db.query(query, [voucher_id, assigned_by, assigned_to, reason, credit_limit, credit_limit, observacoes]);
+        await db.query(query, [voucher_id, assigned_by, assigned_to, reason, credit_limit, credit_limit]);
       }
 
       if (is_active) {
         const query = `
-        INSERT INTO user_vouchers (voucher_id, assigned_by, assigned_to, reason, activated_by, credit_limit, observacoes, credit_balance, activated_at)
+        INSERT INTO user_vouchers (voucher_id, assigned_by, assigned_to, reason, activated_by, credit_limit, credit_balance, activated_at)
         VALUES (?, ?, ?, ?, ?, ?, ?, NOW())
       `;
 
-        await db.query(query, [voucher_id, assigned_by, assigned_to, reason, assigned_by, credit_limit, observacoes, credit_limit]);
+        await db.query(query, [voucher_id, assigned_by, assigned_to, reason, assigned_by, credit_limit, credit_limit]);
       }
 
       return res.status(201).json({ status: true, message: "Voucher atribuído com sucesso." });
