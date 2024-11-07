@@ -1,5 +1,5 @@
 import { rem, Flex, useComputedColorScheme, Tooltip, Menu, Group, HoverCard, Center, Text, Divider, SimpleGrid, Box, Button, UnstyledButton, ThemeIcon, useMantineTheme } from "@mantine/core";
-import {  IconCards, IconTournament, IconCalendarTime, IconHome, IconChevronDown, IconSquareRoundedNumber1, IconSquareRoundedNumber2, IconQrcode, IconSticker, IconGiftCard, IconGift } from "@tabler/icons-react";
+import {  IconCards, IconTournament, IconCalendarTime, IconHome, IconChevronDown, IconSquareRoundedNumber1, IconSquareRoundedNumber2, IconQrcode, IconSticker, IconGiftCard, IconGift, IconBrandZoom } from "@tabler/icons-react";
 import classes from "./MobileFooter.module.css";
 import Image from "next/image";
 import { useEffect, useState } from "react";
@@ -144,10 +144,20 @@ export function MobileFooter() {
       },
     },
     {
+      icon: <IconBrandZoom style={{ width: "100%", height: rem(25) }} stroke={1.5} />,
+      label: "Vídeos",
+      url: routes.videos.url,
+      onClick: () =>
+      {
+        router.push(routes.videos.url);
+      },
+    },
+    {
       icon: <IconCards style={{ width: "100%", height: rem(25) }} stroke={1.5} />,
       label: "Off Peak",
       url: routes.offpeaks.url,
-      onClick: () => {
+      onClick: () =>
+      {
         router.push(routes.offpeaks.url);
       },
     },
