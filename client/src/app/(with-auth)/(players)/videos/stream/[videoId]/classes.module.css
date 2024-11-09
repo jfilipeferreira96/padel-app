@@ -3,3 +3,9 @@
     align-items: center;
     display: block;
 }
+.center{
+    min-width: 120px;
+}
+.center input{
+    text-align: center;
+}

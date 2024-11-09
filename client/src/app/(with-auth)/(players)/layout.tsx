@@ -39,7 +39,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <HeaderMegaMenu />
       </AppShell.Header>
       <>
-        <Container size={"md"} mt={100} mih={670} mb={isMobile ? 100 : 0}>
+        <Container size={"md"} mt={100} mih={isMobile ? 670 : 800} mb={isMobile ? 100 : 0}>
           {children}
         </Container>
       </>

@@ -9,6 +9,7 @@ import "@mantine/dates/styles.css";
 import useDownloader from "react-use-downloader";
 import { cutVideo, getSingleVideoProcessed } from "@/services/video.service";
 import { notifications } from "@mantine/notifications";
+import { TimeInput } from "@mantine/dates";
 
 const secondsToHms = (seconds: number) => {
   const hours = Math.floor(seconds / 3600);
@@ -96,6 +97,67 @@ export default function Stream({ params }: Props) {
     }
   };
 
+  const validateLimits = (startTime: string, endTime: string) => {
+    if (!videoDuration) {
+      setError("A duração do vídeo não está disponível.");
+      return false;
+    }
+
+    const timeRegex = /^([01]\d|2[0-3]):([0-5]\d):([0-5]\d)$/;
+
+    if (!timeRegex.test(startTime) || !timeRegex.test(endTime)) {
+      setError("Por favor, insira um horário válido no formato HH:MM:SS.");
+      return false;
+    }
+
+    const startSeconds = hmsToSeconds(startTime);
+    const endSeconds = hmsToSeconds(endTime);
+    const durationSeconds = videoDuration;
+
+    // Verifica se startTime está dentro do intervalo [00:00:00, videoDuration]
+    if (startSeconds < 0 || startSeconds > durationSeconds) {
+      setError("O horário de início deve estar dentro da duração do vídeo.");
+      return false;
+    }
+
+    // Verifica se endTime está dentro do intervalo [startTime, videoDuration]
+    if (endSeconds < startSeconds || endSeconds > durationSeconds) {
+      setError("O horário de fim deve estar dentro da duração do vídeo e após o horário de início.");
+      return false;
+    }
+
+    setError(null);
+    return true; 
+  };
+
+  const fetchStreamVideo = async () => {
+    try {
+      if (params.videoId) {
+        const check = await getSingleVideoProcessed(parseInt(params.videoId));
+
+        if (check.status) {
+          const streamUrl = `${process.env.NEXT_URL_API_VIDEOS}/stream?videoName=${params.videoId}.mp4`;
+
+          setStreamUrl(streamUrl);
+          setLoading(false);
+          await getVideoDuration(streamUrl);
+        } else {
+          notifications.show({
+            message: check.message,
+            color: "red",
+          });
+          router.back();
+        }
+      }
+    } catch (error) {
+      setLoading(false);
+      console.error("Erro ao carregar vídeo completo:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchStreamVideo();
+  }, []);
 
   const validateTimes = (startTime: string, endTime: string) => {
     if (!videoDuration) {
@@ -132,35 +194,6 @@ export default function Stream({ params }: Props) {
     setError(null);
     return true;
   };
-
-  const fetchStreamVideo = async () => {
-    try {
-      if (params.videoId) {
-        const check = await getSingleVideoProcessed(parseInt(params.videoId));
-
-        if (check.status) {
-          const streamUrl = `${process.env.NEXT_URL_API_VIDEOS}/stream?videoName=${params.videoId}.mp4`;
-
-          setStreamUrl(streamUrl);
-          setLoading(false);
-          await getVideoDuration(streamUrl);
-        } else {
-          notifications.show({
-            message: check.message,
-            color: "red",
-          });
-          router.back();
-        }
-      }
-    } catch (error) {
-      setLoading(false);
-      console.error("Erro ao carregar vídeo completo:", error);
-    }
-  };
-
-  useEffect(() => {
-    fetchStreamVideo();
-  }, []);
 
   const getFileNameWithTimestamp = () => {
     const date = new Date();
@@ -260,34 +293,42 @@ export default function Stream({ params }: Props) {
           <div>
             <div>
               <Center>Selecione os Trechos para Cortar</Center>
+
               <Flex justify="center" align="center" mt={"md"}>
-                <Input
+                <TimeInput
                   ref={ref1}
-                  component={IMaskInput}
-                  disabled={isTrimming}
-                  label="Início (HH:MM:SS)"
+                  label="Início"
+                  withSeconds
+                  min="00:00:00"
+                  max={videoDuration ? secondsToHms(videoDuration) : "23:59:59"}
                   value={startTime}
                   onChange={(event) => {
-                    setStartTime(event.currentTarget.value);
+                    const newStartTime = event.target.value;
+                    if (validateLimits(newStartTime, endTime)) {
+                      setStartTime(newStartTime);
+                    }
                   }}
-                  placeholder="00:00:10"
+                  mr={"md"}
                   className={classes.center}
                 />
 
-                <Input
+                <TimeInput
                   ref={ref2}
-                  disabled={isTrimming}
-                  component={IMaskInput}
-                  label="Fim (HH:MM:SS)"
+                  label="Fim"
+                  withSeconds
+                  min="00:00:00"
+                  max={videoDuration ? secondsToHms(videoDuration) : "23:59:59"}
                   value={endTime}
                   onChange={(event) => {
-                    setEndTime(event.currentTarget.value);
+                    const newEndTime = event.target.value;
+                    if (validateLimits(startTime, newEndTime)) {
+                      setEndTime(newEndTime);
+                    }
                   }}
-                  placeholder="00:01:00"
-                  ml="md"
                   className={classes.center}
                 />
               </Flex>
+
               <Center mt="md">
                 <Button onClick={trimVideo} disabled={isTrimming} loading={isTrimming}>
                   {loading ? <Loader size="sm" /> : "Aplicar Corte"}
