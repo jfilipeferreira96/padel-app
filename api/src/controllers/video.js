@@ -171,8 +171,8 @@ class VideoController {
       }
 
       if (below_48h) {
-        query += ` AND vp.created_at >= NOW() - INTERVAL 48 HOUR`;
-        totalCountQuery += ` AND vp.created_at >= NOW() - INTERVAL 48 HOUR`;
+        query += ` AND vp.updated_at >= NOW() - INTERVAL 48 HOUR`;
+        totalCountQuery += ` AND vp.updated_at >= NOW() - INTERVAL 48 HOUR`;
       }
 
       const offset = (page - 1) * limit;
