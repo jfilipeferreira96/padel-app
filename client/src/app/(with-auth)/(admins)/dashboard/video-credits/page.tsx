@@ -10,7 +10,8 @@ import { getCreditsHistory, getVideosWaiting, processVideo } from "@/services/vi
 import dayjs from "dayjs";
 
 // Interface para os vouchers
-interface Voucher {
+interface Voucher
+{
   user_id: number;
   credits_before: number;
   credits_after: number;
@@ -26,7 +27,8 @@ interface Voucher {
 }
 
 // Interface para os vídeos waiting
-interface VideoWaiting {
+interface VideoWaiting
+{
   id: number;
   user_first_name: string;
   user_last_name: string;
@@ -38,16 +40,19 @@ interface VideoWaiting {
   end_time: string;
 }
 
-interface VideoActionProps {
+interface VideoActionProps
+{
   videoId: number;
   accepted: boolean;
 }
 
-function VideoCredits() {
+function VideoCredits()
+{
   const pathname = usePathname();
   const [activeVoucherPage, setActiveVoucherPage] = useState<number>(1); // Separado para os vouchers
   const [activeVideoPage, setActiveVideoPage] = useState<number>(1); // Separado para vídeos
-  const [elementsPerPage, setElementsPerPage] = useState<number>(() => {
+  const [elementsPerPage, setElementsPerPage] = useState<number>(() =>
+  {
     const storedValue = localStorage.getItem(pathname);
     return storedValue ? parseInt(storedValue) : 10;
   });
@@ -59,15 +64,18 @@ function VideoCredits() {
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [opened, { open, close }] = useDisclosure(false);
   const [deleteId, setDeleteId] = useState<number | null>(null);
-  const [filterOption, setFilterOption] = useState<string | null>(() => {
+  const [filterOption, setFilterOption] = useState<string | null>(() =>
+  {
     const storedValue = localStorage.getItem("filterVoucher");
     return storedValue ? storedValue : null;
   });
 
   // Função para buscar vídeos com status "waiting"
-  const fetchVideosWaiting = async () => {
+  const fetchVideosWaiting = async () =>
+  {
     setLoading(true);
-    try {
+    try
+    {
       const pagination = {
         page: activeVideoPage, // Usando activeVideoPage para paginação de vídeos
         limit: elementsPerPage,
@@ -82,20 +90,24 @@ function VideoCredits() {
       };
 
       const response = await getVideosWaiting(pagination, filters);
-      if (response.status) {
+      if (response.status)
+      {
         setVideosWaiting(response.data);
       }
       setLoading(false);
-    } catch (error) {
+    } catch (error)
+    {
       console.error("Erro ao buscar vídeos por aceitar:", error);
       setLoading(false);
     }
   };
 
   // Função para buscar dados dos históricos de crédito
-  const fetchData = async () => {
+  const fetchData = async () =>
+  {
     setLoading(true);
-    try {
+    try
+    {
       const pagination = {
         page: activeVoucherPage, // Usando activeVoucherPage para paginação de vouchers
         limit: elementsPerPage,
@@ -109,51 +121,62 @@ function VideoCredits() {
         phone: searchTerm ?? null,
       };
 
-      if (filterOption === "Ver ativados") {
+      if (filterOption === "Ver ativados")
+      {
         filters.validated_by = false;
-      } else if (filterOption === "Ver não ativados") {
+      } else if (filterOption === "Ver não ativados")
+      {
         filters.validated_by = true;
       }
 
       const response = await getCreditsHistory(pagination, filters);
 
-      if (response.status) {
+      if (response.status)
+      {
         setVouchers(response.data);
         setTotalVouchers(response.pagination.total || 0);
         setActiveVoucherPage(response.pagination.page || 1);
       }
 
       setLoading(false);
-    } catch (error) {
+    } catch (error)
+    {
       console.error("Erro ao buscar histórico de créditos:", error);
       setLoading(false);
     }
   };
 
-  const handleFilterChange = (value: string | null) => {
+  const handleFilterChange = (value: string | null) =>
+  {
     setFilterOption(value);
     localStorage.setItem("filterVoucher", value || "");
   };
 
-  useEffect(() => {
+  useEffect(() =>
+  {
     fetchData();
     fetchVideosWaiting(); // Buscar vídeos por aceitar ao carregar o componente
   }, [activeVoucherPage, activeVideoPage, elementsPerPage, searchTerm, filterOption]);
 
-  const handleVoucherPageChange = (page: number) => {
+  const handleVoucherPageChange = (page: number) =>
+  {
     setActiveVoucherPage(page); // Função específica para mudar página dos vouchers
   };
 
-  const handleVideoPageChange = (page: number) => {
+  const handleVideoPageChange = (page: number) =>
+  {
     setActiveVideoPage(page); // Função específica para mudar página dos vídeos
   };
 
-  const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) =>
+  {
     setSearchTerm(event.currentTarget.value);
   };
 
-  const handleElementsPerPageChange = (value: string | null) => {
-    if (value) {
+  const handleElementsPerPageChange = (value: string | null) =>
+  {
+    if (value)
+    {
       setElementsPerPage(parseInt(value));
       setActiveVoucherPage(1); // Reset para primeira página sempre que o número de elementos por página muda
       localStorage.setItem(pathname, value);
@@ -163,10 +186,13 @@ function VideoCredits() {
   const initialIndex = (activeVoucherPage - 1) * elementsPerPage;
   const finalIndex = initialIndex + elementsPerPage;
 
-  const onProcessVideo = async ({ videoId, accepted }: VideoActionProps) => {
-    try {
+  const onProcessVideo = async ({ videoId, accepted }: VideoActionProps) =>
+  {
+    try
+    {
       const response = await processVideo(videoId, accepted);
-      if (response.status) {
+      if (response.status)
+      {
         notifications.show({
           title: "Sucesso",
           message: response.message,
@@ -174,14 +200,16 @@ function VideoCredits() {
         });
         fetchData();
         fetchVideosWaiting();
-      } else {
+      } else
+      {
         notifications.show({
           title: "Erro",
           message: accepted ? "Falha ao validar o vídeo." : "Falha ao rejeitar o vídeo.",
           color: "red",
         });
       }
-    } catch (error) {
+    } catch (error)
+    {
       notifications.show({
         title: "Erro",
         message: accepted ? "Falha ao validar o vídeo." : "Falha ao rejeitar o vídeo.",
@@ -202,12 +230,12 @@ function VideoCredits() {
       <Table.Td>
         <Group gap={0} justify="center">
           <Tooltip label="Validar Vídeo" withArrow position="top">
-            <ActionIcon variant="subtle" color="green" onClick={() => onProcessVideo({ videoId: video.id, accepted: true })}>
+            <ActionIcon className="action-icon-size" variant="filled" color="green" onClick={() => onProcessVideo({ videoId: video.id, accepted: true })}>
               <IconCheck size={18} />
             </ActionIcon>
           </Tooltip>
           <Tooltip label="Recusar Vídeo" withArrow position="top">
-            <ActionIcon variant="subtle" color="red" onClick={() => onProcessVideo({ videoId: video.id, accepted: false })}>
+            <ActionIcon className="action-icon-size" variant="filled" color="red" onClick={() => onProcessVideo({ videoId: video.id, accepted: false })}>
               <IconX size={18} />
             </ActionIcon>
           </Tooltip>

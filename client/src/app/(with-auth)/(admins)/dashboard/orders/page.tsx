@@ -124,7 +124,7 @@ function Orders() {
       <Table.Td>
         <Group gap={0} justify="center">
           <Tooltip label={"Ver encomenda"} withArrow position="top">
-            <ActionIcon variant="subtle" onClick={() => handleClick(element.order_id)}>
+            <ActionIcon variant="filled" className="action-icon-size" onClick={() => handleClick(element.order_id)}>
               <IconEye style={{ width: rem(20), height: rem(20) }} stroke={1.5} />
             </ActionIcon>
           </Tooltip>

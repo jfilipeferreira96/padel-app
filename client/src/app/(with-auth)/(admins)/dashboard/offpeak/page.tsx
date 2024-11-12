@@ -109,7 +109,7 @@ function CardsOffpeak() {
         <Group gap={0} justify="center">
           <Tooltip label={"Eliminar Cartão Offpeak"} withArrow position="top">
             <ActionIcon
-              variant="subtle"
+              variant="filled" className="action-icon-size" 
               color="red"
               onClick={() => {
                 setDeleteCardId(card.offpeak_card_id);
@@ -120,7 +120,7 @@ function CardsOffpeak() {
             </ActionIcon>
           </Tooltip>
           <Tooltip label={"Editar Cartão Offpeak"} withArrow position="top">
-            <ActionIcon variant="subtle" onClick={() => handleEditCleak(card.offpeak_card_id)}>
+            <ActionIcon variant="filled" className="action-icon-size"  onClick={() => handleEditCleak(card.offpeak_card_id)}>
               <IconPencil size={20} stroke={1.5} />
             </ActionIcon>
           </Tooltip>

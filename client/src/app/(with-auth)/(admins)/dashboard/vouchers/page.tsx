@@ -14,10 +14,10 @@ function getBadge(activated_by: string | null)
 {
   if (!activated_by)
   {
-    return { name: "Não ativado", color: "red" };
+    return { name: "Por Ativar", color: "red" };
   } else
   {
-    return { name: "Ativado", color: "green" };
+    return { name: "Ativo", color: "green" };
   }
 }
 
@@ -200,7 +200,7 @@ function VoucherHistory()
   const rows = vouchers.map((voucher, index) => (
     <Table.Tr key={index}>
       <Table.Td>
-        <Badge variant="filled" size="md" fw={700} color={getBadge(voucher.activated_at).color} style={{ minWidth: "110px" }}>
+        <Badge variant="filled" size="md" fw={700} color={getBadge(voucher.activated_at).color} style={{ minWidth: "100px" }}>
           {getBadge(voucher.activated_at).name}
         </Badge>
       </Table.Td>
@@ -221,7 +221,8 @@ function VoucherHistory()
         <Group gap={0} justify="center">
           <Tooltip label={"Remover voucher"} withArrow position="top">
             <ActionIcon
-              variant="subtle"
+              className="action-icon-size"
+              variant="filled"
               color="red"
               onClick={() => {
                 onDelete(voucher.user_voucher_id);
@@ -234,7 +235,8 @@ function VoucherHistory()
             <></>
           ) : (
             <Tooltip label={"Ativar voucher"} withArrow position="top">
-              <ActionIcon variant="subtle" color="green" onClick={() => onValidate(voucher.user_voucher_id)}>
+              <ActionIcon className="action-icon-size"
+              variant="filled" color="green" onClick={() => onValidate(voucher.user_voucher_id)}>
                 <IconCheck style={{ width: rem(20), height: rem(20) }} stroke={1.5} />
               </ActionIcon>
             </Tooltip>
@@ -242,12 +244,14 @@ function VoucherHistory()
           {voucher.credit_limit > 0 && (
             <>
               <Tooltip label="Editar Saldo" withArrow position="top">
-                <ActionIcon variant="subtle" onClick={() => handleEditBalanceClick(voucher)} color="blue">
+                <ActionIcon className="action-icon-size"
+              variant="filled" onClick={() => handleEditBalanceClick(voucher)} color="blue">
                   <IconCurrencyEuro style={{ width: rem(20), height: rem(20) }} stroke={1.5} />
                 </ActionIcon>
               </Tooltip>
               <Tooltip label="Ver Transações" withArrow position="top">
-                <ActionIcon variant="subtle" onClick={() => openTransactionModal(voucher.user_voucher_id)} color="gray">
+                <ActionIcon className="action-icon-size"
+              variant="filled" onClick={() => openTransactionModal(voucher.user_voucher_id)} color="gray">
                   <IconEye style={{ width: rem(20), height: rem(20) }} stroke={1.5} />
                 </ActionIcon>
               </Tooltip>
@@ -346,7 +350,8 @@ function VoucherHistory()
           <Group>
             <Select placeholder="Seleciona filtros" data={["Ver ativados", "Ver não ativados"]} value={filterOption} onChange={(value) => handleFilterChange(value)} />
             <Tooltip label={"Atualizar Tabela"} withArrow position="top">
-              <ActionIcon variant="subtle" color="green" onClick={() => fetchData()} size="lg">
+              <ActionIcon className="action-icon-size"
+              variant="filled" color="green" onClick={() => fetchData()} size="lg">
                 <IconRefresh size={18} />
               </ActionIcon>
             </Tooltip>

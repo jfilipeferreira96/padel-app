@@ -130,7 +130,8 @@ function News()
         <Group gap={0} justify="center">
           <Tooltip label={"Apagar Notícias"} withArrow position="top">
             <ActionIcon
-              variant="subtle"
+              className="action-icon-size"
+              variant="filled"
               color="red"
               onClick={() => {
                 setDeleteNewsId(article.id);
@@ -142,7 +143,7 @@ function News()
           </Tooltip>
 
           <Tooltip label={article.is_active ? "Desativar" : "Ativar"} withArrow position="top">
-            <ActionIcon variant="subtle" onClick={() => handleEditClick(article.id)}>
+            <ActionIcon className="action-icon-size" variant="filled" onClick={() => handleEditClick(article.id)}>
               {article.is_active ? <IconCircleLetterD size={20} stroke={1.5} /> : <IconCircleLetterA size={20} stroke={1.5} />}
             </ActionIcon>
           </Tooltip>

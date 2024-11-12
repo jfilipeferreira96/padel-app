@@ -76,14 +76,15 @@ export default function ModalVoucher({ isModalOpen, setIsModalOpen, userId, fetc
   const [editModalOpened, setEditModalOpened] = useState(false);
   const [clickedVoucher, setClickedVoucher] = useState<Voucher | null>(null);
   const [deleteFlag, setDeleteFlag] = useState<number>(0);
-const [openedTransactions, setOpenedTransactions] = useState(false);
+  const [openedTransactions, setOpenedTransactions] = useState(false);
   const [selectedVoucherId, setSelectedVoucherId] = useState<number | null>(null);
-  
-const openTransactionModal = (user_voucher_id: number) => {
-  setSelectedVoucherId(user_voucher_id);
-  setOpenedTransactions(true);
+
+  const openTransactionModal = (user_voucher_id: number) =>
+  {
+    setSelectedVoucherId(user_voucher_id);
+    setOpenedTransactions(true);
   };
-  
+
   const onDelete = async (id: number) =>
   {
     try
@@ -160,11 +161,14 @@ const openTransactionModal = (user_voucher_id: number) => {
     }
   };
 
-  useEffect(() => {
-    if (isModalOpen && userId) {
+  useEffect(() =>
+  {
+    if (isModalOpen && userId)
+    {
       fetchUserData(userId);
       open();
-    } else {
+    } else
+    {
       close();
     }
   }, [isModalOpen, open, close, userId, deleteFlag]);
@@ -334,9 +338,11 @@ const openTransactionModal = (user_voucher_id: number) => {
         <Group gap={0} justify="center">
           <Tooltip label={"Remover voucher"} withArrow position="top">
             <ActionIcon
-              variant="subtle"
+              className="action-icon-size"
+              variant="filled"
               color="red"
-              onClick={() => {
+              onClick={() =>
+              {
                 onDelete(voucher.user_voucher_id);
               }}
             >
@@ -347,7 +353,8 @@ const openTransactionModal = (user_voucher_id: number) => {
             <></>
           ) : (
             <Tooltip label={"Ativar voucher"} withArrow position="top">
-              <ActionIcon variant="subtle" color="green" onClick={() => onValidate(voucher.user_voucher_id)}>
+              <ActionIcon className="action-icon-size"
+                variant="filled" color="green" onClick={() => onValidate(voucher.user_voucher_id)}>
                 <IconCheck style={{ width: rem(20), height: rem(20) }} stroke={1.5} />
               </ActionIcon>
             </Tooltip>
@@ -355,12 +362,14 @@ const openTransactionModal = (user_voucher_id: number) => {
           {voucher.credit_limit > 0 && (
             <>
               <Tooltip label="Editar Saldo" withArrow position="top">
-                <ActionIcon variant="subtle" onClick={() => handleEditBalanceClick(voucher)} color="blue">
+                <ActionIcon className="action-icon-size"
+                  variant="filled" onClick={() => handleEditBalanceClick(voucher)} color="blue">
                   <IconCurrencyEuro style={{ width: rem(20), height: rem(20) }} stroke={1.5} />
                 </ActionIcon>
               </Tooltip>
               <Tooltip label="Ver Transações" withArrow position="top">
-                <ActionIcon variant="subtle" onClick={() => openTransactionModal(voucher.user_voucher_id)} color="gray">
+                <ActionIcon className="action-icon-size"
+                  variant="filled" onClick={() => openTransactionModal(voucher.user_voucher_id)} color="gray">
                   <IconEye style={{ width: rem(20), height: rem(20) }} stroke={1.5} />
                 </ActionIcon>
               </Tooltip>
@@ -395,7 +404,8 @@ const openTransactionModal = (user_voucher_id: number) => {
 
             <ModalTransactions
               opened={openedTransactions}
-              onClose={() => {
+              onClose={() =>
+              {
                 setOpenedTransactions(false);
                 setSelectedVoucherId(null);
               }}
@@ -482,7 +492,8 @@ const openTransactionModal = (user_voucher_id: number) => {
                 label="Crédito em €"
                 placeholder="50 €"
                 value={creditLimit ?? undefined}
-                onChange={(event) => {
+                onChange={(event) =>
+                {
                   const value = Number(event);
                   setCreditLimit(isNaN(value) ? null : value);
                 }}

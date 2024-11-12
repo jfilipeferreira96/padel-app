@@ -226,12 +226,12 @@ function Dashboard() {
           ) : (
             <>
               <Tooltip label={"Validar entrada"} withArrow position="top">
-                <ActionIcon variant="subtle" color="green" onClick={() => onValidate({ entryIds: [element.entry_id] })}>
+                <ActionIcon variant="filled" className="action-icon-size" color="green" onClick={() => onValidate({ entryIds: [element.entry_id] })}>
                   <IconCheck style={{ width: rem(20), height: rem(20) }} stroke={1.5} />
                 </ActionIcon>
               </Tooltip>
               <Tooltip label={"Remover entrada"} withArrow position="top">
-                <ActionIcon variant="subtle" color="red" onClick={() => onRemoveEntry(element.entry_id)}>
+                <ActionIcon variant="filled" className="action-icon-size" color="red" onClick={() => onRemoveEntry(element.entry_id)}>
                   <IconX style={{ width: rem(20), height: rem(20) }} stroke={1.5} />
                 </ActionIcon>
               </Tooltip>
@@ -283,7 +283,7 @@ function Dashboard() {
           <Group gap={8}>
             <Select placeholder="Seleciona filtros" data={["Ver por validar", "Ver validados"]} value={filterOption} onChange={(value) => handleFilterChange(value)} />
             <Tooltip label={"Atualizar Tabela"} withArrow position="top">
-              <ActionIcon variant="subtle" color="green" onClick={() => fetchData()} size="lg">
+              <ActionIcon variant="filled" className="action-icon-size" color="green" onClick={() => fetchData()} size="lg">
                 <IconRefresh size={18} />
               </ActionIcon>
             </Tooltip>

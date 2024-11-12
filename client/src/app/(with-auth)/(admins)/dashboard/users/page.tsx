@@ -157,7 +157,7 @@ function Users() {
         <Group gap={0} justify="center">
           <Tooltip label={"Apagar Utilizador"} withArrow position="top">
             <ActionIcon
-              variant="subtle"
+              variant="filled" className="action-icon-size"
               color="red"
               onClick={() => {
                 setDeleteUserId(element.user_id);
@@ -169,31 +169,31 @@ function Users() {
           </Tooltip>
 
           <Tooltip label={"Editar Perfil"} withArrow position="top">
-            <ActionIcon variant="subtle" onClick={() => handleEditCleak(element.user_id)}>
+            <ActionIcon variant="filled" className="action-icon-size" onClick={() => handleEditCleak(element.user_id)}>
               <IconPencil size={20} stroke={1.5} />
             </ActionIcon>
           </Tooltip>
 
           <Tooltip label={"Ver/Atribuir Offpeaks"} withArrow position="top">
-            <ActionIcon color="green" variant="subtle" onClick={() => handleOffpeak(element.user_id)}>
+            <ActionIcon color="green" variant="filled" className="action-icon-size" onClick={() => handleOffpeak(element.user_id)}>
               <IconCards size={20} stroke={1.5} />
             </ActionIcon>
           </Tooltip>
           
           <Tooltip label={"Ver/Editar Carimbos"} withArrow position="top">
-            <ActionIcon color="yellow" variant="subtle" onClick={() => handleCarimbos(element.user_id)}>
+            <ActionIcon color="yellow" variant="filled" className="action-icon-size" onClick={() => handleCarimbos(element.user_id)}>
               <IconSticker size={20} stroke={1.5} />
             </ActionIcon>
           </Tooltip>
 
           <Tooltip label={"Ver/Editar Vouchers"} withArrow position="top">
-            <ActionIcon color="orange" variant="subtle" onClick={() => handleVouchers(element.user_id)}>
+            <ActionIcon color="orange" variant="filled" className="action-icon-size" onClick={() => handleVouchers(element.user_id)}>
               <IconGift size={20} stroke={1.5} />
             </ActionIcon>
           </Tooltip>
 
           <Tooltip label={"Atribuir Créditos"} withArrow position="top">
-            <ActionIcon color="gray" variant="subtle" onClick={() => handleVideoCredits(element.user_id)}>
+            <ActionIcon color="gray" variant="filled" className="action-icon-size" onClick={() => handleVideoCredits(element.user_id)}>
               <IconBrandZoom size={20} stroke={1.5} />
             </ActionIcon>
           </Tooltip>

@@ -236,3 +236,11 @@ table{
 .pswp__top-bar{
   display: none!important;
 }
+
+.action-icon-size{
+  margin: 2px;
+  @media (max-width: 769px) {
+    width: 50px;
+    height: 35px;
+  }
+}
