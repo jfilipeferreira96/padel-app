@@ -4,8 +4,11 @@ import { Container } from "@mantine/core";
 import { useSession } from "@/providers/SessionProvider";
 import { routes } from "@/config/routes";
 import { useEffect, useState } from "react";
+import 'dayjs/locale/pt';
+import { DatesProvider } from '@mantine/dates'; 
 
-export default function AuthLayout({ children }: { children: React.ReactNode }) {
+export default function AuthLayout({ children }: { children: React.ReactNode })
+{
   //checking session
   const { user } = useSession();
   const router = useRouter();
@@ -13,14 +16,18 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
   const [state, setState] = useState<"loading" | "success">("loading");
 
   useEffect(() => {
-    if (user && (pathname === routes.register.url || pathname === routes.signin.url)) {
+    
+    if (user && (pathname === routes.register.url || pathname === routes.signin.url))
+    {
       router.push(routes.home.url);
       return;
     }
+
     if (!user || pathname === routes.landingpage.url) {
       setState("success");
       return;
     }
+
   }, [user]);
 
   if (state === "loading") {
@@ -28,8 +35,8 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
   }
 
   return (
-    <>
+    <DatesProvider settings={{ locale: 'pt' }}>
       {children}
-    </>
+    </DatesProvider>
   );
 }

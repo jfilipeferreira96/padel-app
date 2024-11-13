@@ -7,16 +7,16 @@ import { useDisclosure, useMediaQuery } from "@mantine/hooks";
 import { AppShell, Burger } from "@mantine/core";
 import { AdminHeader } from "@/components/header/admin-header";
 import { NavbarSimpleColored } from "@/components/sidebar";
-
+import 'dayjs/locale/pt';
+import { DatesProvider } from '@mantine/dates';
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
-  //checking session
   const { user, isReady } = useSession();
   const router = useRouter();
   const pathname = usePathname();
   const [opened, { open, close, toggle }] = useDisclosure();
-  const isSmallScreen = useMediaQuery("(max-width: 768px)"); 
-  
+  const isSmallScreen = useMediaQuery("(max-width: 768px)");
+
   useEffect(() => {
     if (!isReady) return;
 
@@ -34,14 +34,16 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <AppShell header={{ height: 70, collapsed: isSmallScreen ? false : true }} navbar={{ width: 300, breakpoint: "sm", collapsed: { mobile: !opened } }} padding="md">
-      <AppShell.Header>
-        <AdminHeader opened={opened} toggle={toggle} />
-      </AppShell.Header>
-      <AppShell.Navbar>
-        <NavbarSimpleColored close={close} />
-      </AppShell.Navbar>
-      <AppShell.Main mb={40}>{children}</AppShell.Main>
-    </AppShell>
+    <DatesProvider settings={{ locale: 'pt' }}> {/* Configura a localidade para PT-PT */}
+      <AppShell header={{ height: 70, collapsed: isSmallScreen ? false : true }} navbar={{ width: 300, breakpoint: "sm", collapsed: { mobile: !opened } }} padding="md">
+        <AppShell.Header>
+          <AdminHeader opened={opened} toggle={toggle} />
+        </AppShell.Header>
+        <AppShell.Navbar>
+          <NavbarSimpleColored close={close} />
+        </AppShell.Navbar>
+        <AppShell.Main mb={40}>{children}</AppShell.Main>
+      </AppShell>
+    </DatesProvider>
   );
 }
