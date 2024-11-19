@@ -398,13 +398,14 @@ function ReviewVideos() {
             <Text c="dimmed" size="sm">
               Dirija-se à recepção para adquirir créditos.
             </Text>
-
+            
             <Text size="sm" mt={4} ml={4}>
-              <b>1 crédito = 2€</b>
+              1 crédito = 2€
             </Text>
             <Text size="sm" mt={4} ml={4}>
-              <b>7 créditos = 10€</b>
+              7 créditos = 10€
             </Text>
+            
           </Timeline.Item>
           <Timeline.Item bullet={<IconNumber2 size={16} />} title="Selecione o horário do jogo">
             <Text c="dimmed" size="sm">
