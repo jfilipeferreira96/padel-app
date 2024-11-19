@@ -1,5 +1,5 @@
 "use client";
-import { Title, Text, Center, Flex, Button, Loader, Box, InputBase, Input, ActionIcon, rem, Anchor, Progress, Divider } from "@mantine/core";
+import { Title, Text, Center, Flex, Button, Loader, Box, InputBase, Input, ActionIcon, rem, Anchor, Progress, Divider, Tooltip } from "@mantine/core";
 import { SetStateAction, useEffect, useRef, useState } from "react";
 import { IMaskInput } from "react-imask";
 import { useRouter } from "next/navigation";
@@ -10,6 +10,7 @@ import useDownloader from "react-use-downloader";
 import { cutVideo, getSingleVideoProcessed } from "@/services/video.service";
 import { notifications } from "@mantine/notifications";
 import { TimeInput } from "@mantine/dates";
+import { IconVideo, IconVideoOff } from "@tabler/icons-react";
 
 const secondsToHms = (seconds: number) => {
   const hours = Math.floor(seconds / 3600);
@@ -41,6 +42,8 @@ export default function Stream({ params }: Props) {
   const [videoDuration, setVideoDuration] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const isMobile = useMediaQuery("(max-width: 657px)");
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [isStartDisabled, setIsStartDisabled] = useState(false);
 
   // Dois hooks useDownloader, um para cada download
   const {
@@ -238,6 +241,23 @@ export default function Stream({ params }: Props) {
     return gb >= 1 ? `${gb.toFixed(2)} GB` : `${mb.toFixed(2)} MB`;
   };
 
+    const handleStartClick = () => {
+      if (videoRef.current) {
+        const currentTime = videoRef.current.currentTime;
+        setStartTime(secondsToHms(currentTime));
+        setIsStartDisabled(true);
+      }
+    };
+
+    const handleEndClick = () => {
+      if (videoRef.current) {
+        const currentTime = videoRef.current.currentTime;
+        setEndTime(secondsToHms(currentTime));
+                setIsStartDisabled(false);
+
+      }
+  };
+  
   const ref1 = useRef<any>(null);
   const ref2 = useRef<any>(null);
 
@@ -256,7 +276,7 @@ export default function Stream({ params }: Props) {
       <Center mt={"lg"}>
         {streamUrl && (
           <Box display={"grid"}>
-            <video crossOrigin="anonymous" controls src={streamUrl} autoPlay width={isMobile ? "320px" : "600px"}>
+            <video crossOrigin="anonymous" controls src={streamUrl} ref={videoRef} autoPlay width={isMobile ? "320px" : "600px"}>
               O seu navegador não suporta a reprodução de vídeo.
             </video>
             <Center>
@@ -294,6 +314,27 @@ export default function Stream({ params }: Props) {
             <div>
               <Center>Selecione os Trechos para Cortar</Center>
 
+              <Flex justify="center" mt="lg">
+                {/*  <Button onClick={handleStartClick} disabled={isStartDisabled}>
+                  Marcar Início
+                </Button>
+                <Button onClick={handleEndClick} ml="md" disabled={!isStartDisabled}>
+                  Marcar Fim
+                </Button> */}
+                <Tooltip label={"Marcar Início"} withArrow position="top" color="gray">
+                  <ActionIcon onClick={handleStartClick} variant="filled" size={"lg"} aria-label="Marcar Início" disabled={isStartDisabled}>
+                    <IconVideo style={{ width: "70%", height: "70%" }} stroke={1.5} />
+                  </ActionIcon>
+                </Tooltip>
+                <Tooltip label={"Marcar Fim"} withArrow position="top" color="gray">
+                  <ActionIcon onClick={handleEndClick} variant="filled" size={"lg"} aria-label="Marcar Fim" ml="md" disabled={!isStartDisabled}>
+                    <IconVideoOff style={{ width: "70%", height: "70%" }} stroke={1.5} />
+                  </ActionIcon>
+                </Tooltip>
+              </Flex>
+
+              {/*               <Divider mt="lg" mb="lg" />
+               */}
               <Flex justify="center" align="center" mt={"md"}>
                 <TimeInput
                   ref={ref1}

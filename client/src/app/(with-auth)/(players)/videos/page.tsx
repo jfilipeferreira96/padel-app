@@ -398,8 +398,14 @@ function ReviewVideos() {
             <Text c="dimmed" size="sm">
               Dirija-se à recepção para adquirir créditos.
             </Text>
-          </Timeline.Item>
 
+            <Text size="sm" mt={4} ml={4}>
+              <b>1 crédito = 2€</b>
+            </Text>
+            <Text size="sm" mt={4} ml={4}>
+              <b>7 créditos = 10€</b>
+            </Text>
+          </Timeline.Item>
           <Timeline.Item bullet={<IconNumber2 size={16} />} title="Selecione o horário do jogo">
             <Text c="dimmed" size="sm">
               Escolha o campo e o horário em que a sua partida ocorreu.
@@ -431,22 +437,20 @@ function ReviewVideos() {
             </Text>
 
             <Flex align="center" justify="center" mb="md" mt="md" direction={{ base: "column", sm: "row" }}>
-              
-                <DateInput
-                  key={form.values.date}
-                  minDate={getMinDate()}
-                  maxDate={getMaxDate()}
-                  disabled={!creditos}
-                  valueFormat="DD-MM-YYYY"
-                  label="Selecione uma data"
-                  placeholder="DD-MM-YYYY"
-                  mr={{ sm: "lg" }}
-                  mb={{ base: "sm", sm: 0 }}
-                  withAsterisk
-                  w={{ base: "100%", sm: "auto" }}
-                  {...form.getInputProps("date")}
-                />
-              
+              <DateInput
+                key={form.values.date}
+                minDate={getMinDate()}
+                maxDate={getMaxDate()}
+                disabled={!creditos}
+                valueFormat="DD-MM-YYYY"
+                label="Selecione uma data"
+                placeholder="DD-MM-YYYY"
+                mr={{ sm: "lg" }}
+                mb={{ base: "sm", sm: 0 }}
+                withAsterisk
+                w={{ base: "100%", sm: "auto" }}
+                {...form.getInputProps("date")}
+              />
 
               <TimeInput
                 label="Hora de Ínicio"
@@ -499,16 +503,17 @@ function ReviewVideos() {
             </Center>
 
             <Modal opened={opened} onClose={close} size="auto" title="Aviso" centered>
-              Obrigado pela requisição.<br />
-              Este terá de ser aprovado pela gerência, ficando posteriormente disponível.<br />
+              Obrigado pela requisição.
+              <br />
+              Este terá de ser aprovado pela gerência, ficando posteriormente disponível.
+              <br />
               Este processo poderá demorar até 60 minutos após validação.
               <Center>
-              <Button mt={"md"} variant="light" size="sm" onClick={close}>
-                Compreendido
-              </Button>
-            </Center>
+                <Button mt={"md"} variant="light" size="sm" onClick={close}>
+                  Compreendido
+                </Button>
+              </Center>
             </Modal>
-
           </Paper>
         </form>
       </>
