@@ -17,6 +17,13 @@ const VideoContainer = styled.div`
   position: relative;
   display: inline-block;
   width: 100%; // Full width responsive
+  &.fullscreen-active {
+    /* Ajuste o estilo no modo full screen */
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+  }
 `;
 
 const StyledVideo = styled.video`
@@ -329,39 +336,19 @@ export default function Stream({ params }: Props) {
           <Box display={"grid"}>
             <VideoContainer>
               {/* Video Element */}
-              <StyledVideo
-                crossOrigin="anonymous"
-                controls
-                src={streamUrl}
-                ref={videoRef}
-                autoPlay
-                width={isMobile ? "320px" : "600px"}
-              >
+              <StyledVideo crossOrigin="anonymous" controls src={streamUrl} ref={videoRef} autoPlay width={isMobile ? "320px" : "600px"}>
                 O seu navegador não suporta a reprodução de vídeo.
               </StyledVideo>
 
-              {!loading &&
-              <ButtonContainer>
-                  <Tooltip
-                    label={!isStartDisabled ? "Definir Início do Corte" : "Definir Fim do Corte"}
-                    withArrow
-                    position="top"
-                  >
-                    <StyledActionIcon
-                      onClick={!isStartDisabled ? handleStartClick : handleEndClick}
-                      size="lg"
-                      aria-label={isStartDisabled ? "Definir Início" : "Definir Fim"}
-                      disabled={false}
-                    >
-                      {!isStartDisabled ? (
-                        <IconPlayerRecord stroke={1.5} color="#424242" />
-                      ) : (
-                        <IconPlayerPause stroke={1.5} color="#e03131" />
-                      )}
+              {!loading && (
+                <ButtonContainer>
+                  <Tooltip label={!isStartDisabled ? "Definir Início do Corte" : "Definir Fim do Corte"} withArrow position="top">
+                    <StyledActionIcon onClick={!isStartDisabled ? handleStartClick : handleEndClick} size="lg" aria-label={isStartDisabled ? "Definir Início" : "Definir Fim"} disabled={false}>
+                      {!isStartDisabled ? <IconPlayerRecord stroke={1.5} color="#424242" /> : <IconPlayerPause stroke={1.5} color="#e03131" />}
                     </StyledActionIcon>
                   </Tooltip>
-
-              </ButtonContainer>}
+                </ButtonContainer>
+              )}
             </VideoContainer>
             <Center>
               <Flex justify="center" align="center" direction="column" mt="md">
@@ -397,7 +384,35 @@ export default function Stream({ params }: Props) {
           <div>
             <div>
               <Center>Selecione os Trechos para Cortar</Center>
-               
+
+             {/*  <Center>
+                <Tooltip label={!isStartDisabled ? "Marcar Início do Corte" : "Marcar Fim do Corte"} withArrow position="top">
+                  <StyledActionIcon onClick={!isStartDisabled ? handleStartClick : handleEndClick} size="lg" aria-label={isStartDisabled ? "Definir Início" : "Definir Fim"} disabled={false}>
+                    {!isStartDisabled ? <IconPlayerRecord stroke={1.5} color="#424242" /> : <IconPlayerPause stroke={1.5} color="#e03131" />}
+                  </StyledActionIcon>
+                </Tooltip>
+              </Center> */}
+
+              <Flex justify="center" mt="lg">
+                {/* <Tooltip label={"Definir Início do Corte"} withArrow position="top" color="gray">
+                  <ActionIcon onClick={handleStartClick} variant="filled" size={"lg"} aria-label="Marcar Início" disabled={isStartDisabled}>
+                    <IconVideo style={{ width: "70%", height: "70%" }} stroke={1.5} />
+                  </ActionIcon>
+                </Tooltip>
+                <Tooltip label={"Marcar Fim"} withArrow position="top" color="gray">
+                  <ActionIcon onClick={handleEndClick} variant="filled" size={"lg"} aria-label="Marcar Fim" ml="md" disabled={!isStartDisabled}>
+                    <IconVideoOff style={{ width: "70%", height: "70%" }} stroke={1.5} />
+                  </ActionIcon>
+                </Tooltip> */}
+
+                <Button onClick={handleStartClick} disabled={isStartDisabled} leftSection={<IconPlayerRecord stroke={1.5} />}>
+                  Marcar Início
+                </Button>
+                <Button onClick={handleEndClick} ml="md" disabled={!isStartDisabled} leftSection={<IconPlayerPause stroke={1.5} />}>
+                  Marcar Fim
+                </Button>
+              </Flex>
+
               <Flex justify="center" align="center" mt={"md"}>
                 <TimeInput
                   ref={ref1}
