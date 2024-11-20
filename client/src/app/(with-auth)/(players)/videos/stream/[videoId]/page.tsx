@@ -16,9 +16,10 @@ import styled from "styled-components";
 const VideoContainer = styled.div`
   position: relative;
   display: inline-block;
-  width: 100%; // Full width responsive
+  width: 100%;
+  
   &.fullscreen-active {
-    /* Ajuste o estilo no modo full screen */
+   
     top: 0;
     left: 0;
     width: 100vw;
