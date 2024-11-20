@@ -10,7 +10,41 @@ import useDownloader from "react-use-downloader";
 import { cutVideo, getSingleVideoProcessed } from "@/services/video.service";
 import { notifications } from "@mantine/notifications";
 import { TimeInput } from "@mantine/dates";
-import { IconVideo, IconVideoOff } from "@tabler/icons-react";
+import { IconVideo, IconVideoOff, IconPlayerRecord, IconPlayerPause } from "@tabler/icons-react";
+import styled from "styled-components";
+
+const VideoContainer = styled.div`
+  position: relative;
+  display: inline-block;
+  width: 100%; // Full width responsive
+`;
+
+const StyledVideo = styled.video`
+  display: block;
+  height: auto;
+`;
+
+const ButtonContainer = styled.div`
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: flex;
+  gap: 10px;
+  z-index: 10;
+
+  &.fullscreen-active {
+    top: 15px;
+    right: 15px;
+  }
+`;
+
+const StyledActionIcon = styled(ActionIcon)`
+  background-color: rgba(255, 255, 255, 0.8);
+  border-radius: 50%;
+  &:hover {
+    background-color: rgba(200, 200, 200, 0.9);
+  }
+`;
 
 const secondsToHms = (seconds: number) => {
   const hours = Math.floor(seconds / 3600);
@@ -261,6 +295,23 @@ export default function Stream({ params }: Props) {
   const ref1 = useRef<any>(null);
   const ref2 = useRef<any>(null);
 
+  useEffect(() => {
+    const handleFullScreenChange = () =>
+    {
+      const container = videoRef.current?.parentNode as HTMLElement;
+      if (document.fullscreenElement)
+      {
+        container?.classList.add("fullscreen-active");
+      } else
+      {
+        container?.classList.remove("fullscreen-active");
+      }
+    };
+
+    document.addEventListener("fullscreenchange", handleFullScreenChange);
+    return () => document.removeEventListener("fullscreenchange", handleFullScreenChange);
+  }, []);
+
   if (loading) {
     return (
       <Center mt={100} mih={"50vh"}>
@@ -276,9 +327,42 @@ export default function Stream({ params }: Props) {
       <Center mt={"lg"}>
         {streamUrl && (
           <Box display={"grid"}>
-            <video crossOrigin="anonymous" controls src={streamUrl} ref={videoRef} autoPlay width={isMobile ? "320px" : "600px"}>
-              O seu navegador não suporta a reprodução de vídeo.
-            </video>
+            <VideoContainer>
+              {/* Video Element */}
+              <StyledVideo
+                crossOrigin="anonymous"
+                controls
+                src={streamUrl}
+                ref={videoRef}
+                autoPlay
+                width={isMobile ? "320px" : "600px"}
+              >
+                O seu navegador não suporta a reprodução de vídeo.
+              </StyledVideo>
+
+              {!loading &&
+              <ButtonContainer>
+                  <Tooltip
+                    label={!isStartDisabled ? "Definir Início do Corte" : "Definir Fim do Corte"}
+                    withArrow
+                    position="top"
+                  >
+                    <StyledActionIcon
+                      onClick={!isStartDisabled ? handleStartClick : handleEndClick}
+                      size="lg"
+                      aria-label={isStartDisabled ? "Definir Início" : "Definir Fim"}
+                      disabled={false}
+                    >
+                      {!isStartDisabled ? (
+                        <IconPlayerRecord stroke={1.5} color="#424242" />
+                      ) : (
+                        <IconPlayerPause stroke={1.5} color="#e03131" />
+                      )}
+                    </StyledActionIcon>
+                  </Tooltip>
+
+              </ButtonContainer>}
+            </VideoContainer>
             <Center>
               <Flex justify="center" align="center" direction="column" mt="md">
                 <Flex>
@@ -313,28 +397,7 @@ export default function Stream({ params }: Props) {
           <div>
             <div>
               <Center>Selecione os Trechos para Cortar</Center>
-
-              <Flex justify="center" mt="lg">
-                {/*  <Button onClick={handleStartClick} disabled={isStartDisabled}>
-                  Marcar Início
-                </Button>
-                <Button onClick={handleEndClick} ml="md" disabled={!isStartDisabled}>
-                  Marcar Fim
-                </Button> */}
-                <Tooltip label={"Marcar Início"} withArrow position="top" color="gray">
-                  <ActionIcon onClick={handleStartClick} variant="filled" size={"lg"} aria-label="Marcar Início" disabled={isStartDisabled}>
-                    <IconVideo style={{ width: "70%", height: "70%" }} stroke={1.5} />
-                  </ActionIcon>
-                </Tooltip>
-                <Tooltip label={"Marcar Fim"} withArrow position="top" color="gray">
-                  <ActionIcon onClick={handleEndClick} variant="filled" size={"lg"} aria-label="Marcar Fim" ml="md" disabled={!isStartDisabled}>
-                    <IconVideoOff style={{ width: "70%", height: "70%" }} stroke={1.5} />
-                  </ActionIcon>
-                </Tooltip>
-              </Flex>
-
-              {/*               <Divider mt="lg" mb="lg" />
-               */}
+               
               <Flex justify="center" align="center" mt={"md"}>
                 <TimeInput
                   ref={ref1}
