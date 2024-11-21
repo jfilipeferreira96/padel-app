@@ -86,6 +86,7 @@ export default function Stream({ params }: Props) {
   const isMobile = useMediaQuery("(max-width: 657px)");
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isStartDisabled, setIsStartDisabled] = useState(false);
+  const [autoTrim, setAutoTrim] = useState<number>(0);
 
   // Dois hooks useDownloader, um para cada download
   const {
@@ -295,10 +296,17 @@ export default function Stream({ params }: Props) {
       if (videoRef.current) {
         const currentTime = videoRef.current.currentTime;
         setEndTime(secondsToHms(currentTime));
-                setIsStartDisabled(false);
-
+        setAutoTrim(autoTrim + 1);
+        setIsStartDisabled(false);
       }
-  };
+    };
+  
+  useEffect(() => {
+    if (autoTrim > 0)
+    {
+      trimVideo();
+    }
+  }, [autoTrim])
   
   const ref1 = useRef<any>(null);
   const ref2 = useRef<any>(null);
