@@ -12,18 +12,40 @@ import { notifications } from "@mantine/notifications";
 import { TimeInput } from "@mantine/dates";
 import { IconVideo, IconVideoOff, IconPlayerRecord, IconPlayerPause } from "@tabler/icons-react";
 import styled from "styled-components";
+import { VideoPlayer, VideoPlayerProps, VideoPlayerState } from "@videojs-player/react";
+import "video.js/dist/video-js.css";
+import videojs from "video.js";
+
+type VideoJsPlayer = ReturnType<typeof videojs>;
 
 const VideoContainer = styled.div`
-  position: relative;
-  display: inline-block;
-  width: 100%;
-  
-  &.fullscreen-active {
-   
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
+  @media (max-width: 768px) {
+    .video-js {
+      width: 400px;
+      height: 320px;
+    }
+    .video-js .vjs-time-control {
+      flex: none;
+      font-size: 1em;
+      line-height: 3em;
+      min-width: 0em;
+      width: auto;
+      padding-left: 4px;
+      padding-right: 4px;
+    }
+    .video-js .vjs-control{
+      width: 3em;
+    }
+  }
+  @media (max-width: 470px) {
+    .video-js {
+      width: 320px;
+      height: 260px;
+    }
+  }
+
+  .video-js .vjs-time-control {
+    display: block;
   }
 `;
 
@@ -39,19 +61,12 @@ const ButtonContainer = styled.div`
   display: flex;
   gap: 10px;
   z-index: 10;
-
-  &.fullscreen-active {
-    top: 15px;
-    right: 15px;
-  }
 `;
 
 const StyledActionIcon = styled(ActionIcon)`
-  background-color: rgba(255, 255, 255, 0.8);
+  background: rgba(0, 0, 0, 0.6) !important;
   border-radius: 50%;
-  &:hover {
-    background-color: rgba(200, 200, 200, 0.9);
-  }
+
 `;
 
 const secondsToHms = (seconds: number) => {
@@ -87,6 +102,17 @@ export default function Stream({ params }: Props) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isStartDisabled, setIsStartDisabled] = useState(false);
   const [autoTrim, setAutoTrim] = useState<number>(0);
+  const playerRef = useRef<any>();
+  const [playerState, setPlayerState] = useState<any>();
+
+  const handleMounted: VideoPlayerProps["onMounted"] = (payload) => {
+    playerRef.current = payload.player;
+    setPlayerState(payload.state);
+  };
+
+  const handleStateChange = (state: VideoPlayerState) => {
+    setPlayerState(state);
+  };
 
   // Dois hooks useDownloader, um para cada download
   const {
@@ -284,22 +310,23 @@ export default function Stream({ params }: Props) {
     return gb >= 1 ? `${gb.toFixed(2)} GB` : `${mb.toFixed(2)} MB`;
   };
 
-    const handleStartClick = () => {
-      if (videoRef.current) {
-        const currentTime = videoRef.current.currentTime;
-        setStartTime(secondsToHms(currentTime));
-        setIsStartDisabled(true);
-      }
-    };
+   const handleStartClick = () => {
+     if (playerState && playerState.currentTime !== undefined) {
+       const currentTime = playerState.currentTime;
+       setStartTime(secondsToHms(currentTime));
+       setIsStartDisabled(true);
+     }
+   };
 
-    const handleEndClick = () => {
-      if (videoRef.current) {
-        const currentTime = videoRef.current.currentTime;
-        setEndTime(secondsToHms(currentTime));
-        setAutoTrim(autoTrim + 1);
-        setIsStartDisabled(false);
-      }
-    };
+   // Função para definir o fim do corte usando playerState
+   const handleEndClick = () => {
+     if (playerState && playerState.currentTime !== undefined) {
+       const currentTime = playerState.currentTime;
+       setEndTime(secondsToHms(currentTime));
+       setAutoTrim(autoTrim + 1);
+       setIsStartDisabled(false);
+     }
+   };
   
   useEffect(() => {
     if (autoTrim > 0)
@@ -344,20 +371,41 @@ export default function Stream({ params }: Props) {
         {streamUrl && (
           <Box display={"grid"}>
             <VideoContainer>
-              {/* Video Element */}
-              <StyledVideo crossOrigin="anonymous" controls src={streamUrl} ref={videoRef} autoPlay width={isMobile ? "320px" : "600px"}>
-                O seu navegador não suporta a reprodução de vídeo.
-              </StyledVideo>
-
-              {!loading && (
-                <ButtonContainer>
-                  <Tooltip label={!isStartDisabled ? "Definir Início do Corte" : "Definir Fim do Corte"} withArrow position="top">
-                    <StyledActionIcon onClick={!isStartDisabled ? handleStartClick : handleEndClick} size="lg" aria-label={isStartDisabled ? "Definir Início" : "Definir Fim"} disabled={false}>
-                      {!isStartDisabled ? <IconPlayerRecord stroke={1.5} color="#424242" /> : <IconPlayerPause stroke={1.5} color="#e03131" />}
-                    </StyledActionIcon>
-                  </Tooltip>
-                </ButtonContainer>
-              )}
+              <VideoPlayer
+                onMounted={handleMounted}
+                onStateChange={handleStateChange}
+                crossOrigin="anonymous"
+                height={320}
+                controlBar={{ remainingTimeDisplay: false }}
+                controls
+                options={{
+                  autoplay: false,
+                  controls: true,
+                  sources: [{ src: streamUrl, type: "video/mp4" }],
+                  volume: 0.0,
+                }}
+              >
+                {({ player, state }: { player: VideoJsPlayer | any; state: VideoPlayerState }) => (
+                  <>
+                    {!loading && (
+                      <ButtonContainer>
+                        <Tooltip label={!isStartDisabled ? "Definir Início do Corte" : "Definir Fim do Corte"} withArrow position="top">
+                          <StyledActionIcon
+                            variant="filled"
+                            color="gray"
+                            size="lg"
+                            radius="xl"
+                            aria-label={isStartDisabled ? "Definir Início" : "Definir Fim"}
+                            onClick={!isStartDisabled ? handleStartClick : handleEndClick}
+                          >
+                            {!isStartDisabled ? <IconPlayerRecord stroke={1.5} color="white" /> : <IconPlayerPause stroke={1.5} color="#e03131" />}
+                          </StyledActionIcon>
+                        </Tooltip>
+                      </ButtonContainer>
+                    )}
+                  </>
+                )}
+              </VideoPlayer>
             </VideoContainer>
             <Center>
               <Flex justify="center" align="center" direction="column" mt="md">
@@ -394,25 +442,8 @@ export default function Stream({ params }: Props) {
             <div>
               <Center>Selecione os Trechos para Cortar</Center>
 
-             {/*  <Center>
-                <Tooltip label={!isStartDisabled ? "Marcar Início do Corte" : "Marcar Fim do Corte"} withArrow position="top">
-                  <StyledActionIcon onClick={!isStartDisabled ? handleStartClick : handleEndClick} size="lg" aria-label={isStartDisabled ? "Definir Início" : "Definir Fim"} disabled={false}>
-                    {!isStartDisabled ? <IconPlayerRecord stroke={1.5} color="#424242" /> : <IconPlayerPause stroke={1.5} color="#e03131" />}
-                  </StyledActionIcon>
-                </Tooltip>
-              </Center> */}
 
               <Flex justify="center" mt="lg">
-                {/* <Tooltip label={"Definir Início do Corte"} withArrow position="top" color="gray">
-                  <ActionIcon onClick={handleStartClick} variant="filled" size={"lg"} aria-label="Marcar Início" disabled={isStartDisabled}>
-                    <IconVideo style={{ width: "70%", height: "70%" }} stroke={1.5} />
-                  </ActionIcon>
-                </Tooltip>
-                <Tooltip label={"Marcar Fim"} withArrow position="top" color="gray">
-                  <ActionIcon onClick={handleEndClick} variant="filled" size={"lg"} aria-label="Marcar Fim" ml="md" disabled={!isStartDisabled}>
-                    <IconVideoOff style={{ width: "70%", height: "70%" }} stroke={1.5} />
-                  </ActionIcon>
-                </Tooltip> */}
 
                 <Button onClick={handleStartClick} disabled={isStartDisabled} leftSection={<IconPlayerRecord stroke={1.5} />}>
                   Marcar Início
@@ -475,7 +506,21 @@ export default function Stream({ params }: Props) {
             {trimmedVideoUrl && !isTrimming && (
               <Center>
                 <Box display={"grid"} style={{ marginTop: "1rem", marginBottom: "1rem" }}>
-                  <video src={trimmedVideoUrl} controls width={isMobile ? "320px" : "600px"} />
+                  <VideoContainer>
+                      <VideoPlayer
+                      src={trimmedVideoUrl}
+                      crossOrigin="anonymous"
+                      height={320}
+                      controlBar={{ remainingTimeDisplay: false }}
+                      controls
+                      options={{
+                        autoplay: false,
+                        controls: true,
+                        sources: [{ src: trimmedVideoUrl, type: "video/mp4" }],
+                        volume: 0.0,
+                      }}
+                    />
+                  </VideoContainer>
 
                   <Center>
                     <Flex justify="center" align="center" direction="column" mt="md">
