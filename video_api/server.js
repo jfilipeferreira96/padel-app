@@ -209,7 +209,7 @@ async function processQueue() {
     try {
       const { stdout, stderr } = await execPromise(info.command, { timeout: 600000 });
 
-      if (stderr) {
+      if (stderr || stdout.includes("ERRO")) {
         console.log(`Erro no script Python: ${stderr}`);
         saveExecutionStatus(videoId, "failed", info.retries, info.command);
       } else {
