@@ -42,8 +42,12 @@ function getBadge(status: string | null) {
 }
 
 // Função para obter a data mínima permitida (14 dias atrás)
-const getMinDate = () => dayjs().subtract(14, "day").toDate();
+const getMinDate = () => {
+  const startOfCurrentYear = dayjs().startOf("year");
+  const minDate = dayjs().subtract(14, "day"); 
 
+  return minDate.isBefore(startOfCurrentYear) ? startOfCurrentYear.toDate() : minDate.toDate();
+};
 // Função para obter a data máxima permitida (hoje)
 const getMaxDate = () => dayjs().endOf("day").toDate();
 
