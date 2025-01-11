@@ -27,7 +27,9 @@ function logWithTimestamp(message) {
 }
 
 app.use((req, res, next) => {
-  logWithTimestamp(`Request received: ${req.method} ${req.url}`);
+  if (req.method === "POST") {
+    logWithTimestamp(`POST request received: ${req.method} ${req.url}`);
+  }
   next();
 });
 
