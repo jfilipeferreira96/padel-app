@@ -13,7 +13,7 @@ import { useRouter } from "next/navigation";
 import { z } from "zod";
 import { notifications } from "@mantine/notifications";
 import { useForm, zodResolver } from "@mantine/form";
-import { useDisclosure } from '@mantine/hooks';
+import { useDisclosure, useMediaQuery } from '@mantine/hooks';
 
 function getBadge(status: string | null) {
   if (status === "waiting") {
@@ -169,7 +169,7 @@ function ReviewVideos() {
   const [creditos, setCreditos] = useState<number>(0);
   const [campos, setCampos] = useState<{ id: number; label: string; value: string }[]>([]);
   const [activePage, setActivePage] = useState<number>(1);
-  const [elementsPerPage, setElementsPerPage] = useState<number>(15);
+  const [elementsPerPage, setElementsPerPage] = useState<number>(10);
   const refInicio = useRef<HTMLInputElement>(null);
   const refFim = useRef<HTMLInputElement>(null);
   const [error, setError] = useState("");
@@ -178,7 +178,8 @@ function ReviewVideos() {
   const [firstLoad, setFirstLoad] = useState<boolean>(true);
   const [resetKey, setResetKey] = useState(0);
   const [opened, { open, close }] = useDisclosure(false);
-
+  const isMobile = useMediaQuery("(max-width: 768px)");
+  
   const form = useForm({
     initialValues: {
       date: undefined,
@@ -243,6 +244,9 @@ function ReviewVideos() {
     setActivePage(page);
   };
 
+  const initialIndex = (activePage - 1) * elementsPerPage;
+  const finalIndex = Math.min(initialIndex + elementsPerPage, totalElements);
+  
   const handleElementsPerPageChange = (value: string | null) => {
     if (value) {
       setElementsPerPage(parseInt(value));
@@ -341,7 +345,7 @@ function ReviewVideos() {
     }
   };
 
-  const rows = elementos?.map((element, index) => (
+  const rows = elementos?.slice(initialIndex, finalIndex).map((element, index) => (
     <Table.Tr key={element.id}>
       <Table.Td>{index + 1}</Table.Td>
       <Table.Td>{campos.find((c) => c.value === element.campo)?.label}</Table.Td>
@@ -398,14 +402,13 @@ function ReviewVideos() {
             <Text c="dimmed" size="sm">
               Dirija-se à recepção para adquirir créditos.
             </Text>
-            
+
             <Text size="sm" mt={4} ml={4}>
               1 crédito = 2€
             </Text>
             <Text size="sm" mt={4} ml={4}>
               7 créditos = 10€
             </Text>
-            
           </Timeline.Item>
           <Timeline.Item bullet={<IconNumber2 size={16} />} title="Selecione o horário do jogo">
             <Text c="dimmed" size="sm">
@@ -548,14 +551,24 @@ function ReviewVideos() {
                 <Table.Tbody>{rows}</Table.Tbody>
               </Table>
             </Table.ScrollContainer>
-            {/* {elementos.length > 0 && (
+
+            {!isMobile && (
               <Flex justify={"space-between"} mt={"lg"}>
                 <Text>
-                  A mostrar {initialIndex + 1} a {Math.min(finalIndex, totalElements)} de {totalElements} elementos
+                  A mostrar {initialIndex + 1} a {finalIndex} de {totalElements} elementos
                 </Text>
                 <MantinePagination total={Math.ceil(totalElements / elementsPerPage)} onChange={handlePageChange} />
               </Flex>
-            )} */}
+            )}
+            
+            {isMobile && (
+              <Flex direction="column" align="center" mt={"lg"}>
+                <Text>
+                  A mostrar {initialIndex + 1} a {finalIndex} de {totalElements} elementos
+                </Text>
+                <MantinePagination total={Math.ceil(totalElements / elementsPerPage)} onChange={handlePageChange} mt={"md"} />
+              </Flex>
+            )}
           </Paper>
         </>
       )}
