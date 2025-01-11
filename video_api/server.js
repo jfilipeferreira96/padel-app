@@ -8,6 +8,7 @@ const util = require("util");
 const execPromise = util.promisify(exec);
 const cors = require("cors");
 const cron = require("node-cron");
+const moment = require("moment");
 
 // Configuração do CORS para permitir todos os tipos de pedidos
 app.use(cors());
@@ -326,7 +327,11 @@ app.post("/script", (req, res) => {
     const formattedEndTime = end_time.includes(":00") ? end_time : `${end_time}:00`;
 
     const formattedStartDateTime = `${formattedDate} ${formattedStartTime}`.trim();
-    const formattedEndDateTime = `${formattedDate} ${formattedEndTime}`.trim();
+    let formattedEndDateTime = `${formattedDate} ${formattedEndTime}`.trim();
+
+    // Adicionar 30 minutos ao formattedEndDateTime
+    formattedEndDateTime = moment(formattedEndDateTime, "YYYY-MM-DD HH:mm:ss").add(30, "minutes").format("YYYY-MM-DD HH:mm:ss");
+
     const fileName = videoId;
 
     const pythonScriptPath = "/root/scripts/padel.py";
