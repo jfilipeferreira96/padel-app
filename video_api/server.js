@@ -21,6 +21,16 @@ app.use((req, res, next) => {
   next();
 });
 
+function logWithTimestamp(message) {
+  const timestamp = moment().format("YYYY-MM-DD HH:mm:ss");
+  console.log(`[${timestamp}] ${message}`);
+}
+
+app.use((req, res, next) => {
+  logWithTimestamp(`Request received: ${req.method} ${req.url}`);
+  next();
+});
+
 // Função para limpar entradas antigas do JSON
 function cleanOldEntries() {
   const filePath = path.join(__dirname, "execution_status.json");
@@ -101,7 +111,7 @@ app.get("/stream", async (req, res) => {
       videoStream.pipe(res);
     }
   } catch (err) {
-    console.log("Erro no streaming de vídeo:", err);
+    logWithTimestamp("Erro no streaming de vídeo:", err);
     res.json({ status: false, message: "Erro no streaming de vídeo" });
   }
 });
@@ -126,7 +136,7 @@ app.get("/check-file", async (req, res) => {
       }
     });
   } catch (err) {
-    console.log("Erro ao verificar o arquivo:", err);
+    logWithTimestamp("Erro ao verificar o arquivo:", err);
     res.json({ status: false, message: "Erro ao verificar o arquivo" });
   }
 });
@@ -146,7 +156,7 @@ app.get("/download-file", async (req, res) => {
       // Faz o download do arquivo
       res.download(fullPath, (err) => {
         if (err) {
-          console.log("Erro ao fazer o download:", err);
+          logWithTimestamp("Erro ao fazer o download:", err);
           res.send("Erro ao fazer o download do arquivo.");
         }
       });
@@ -154,7 +164,7 @@ app.get("/download-file", async (req, res) => {
       return res.send("Arquivo não encontrado.");
     }
   } catch (err) {
-    console.log("Erro no download de arquivo:", err);
+    logWithTimestamp("Erro no download de arquivo:", err);
     res.json({ status: false, message: "Erro ao fazer o download do arquivo" });
   }
 });
@@ -211,14 +221,14 @@ async function processQueue() {
       const { stdout, stderr } = await execPromise(info.command, { timeout: 600000 });
 
       if (stderr || stdout.includes("ERRO")) {
-        console.log(`Erro no script Python: ${stderr}`);
+        logWithTimestamp(`Erro no script Python: ${stderr}`);
         saveExecutionStatus(videoId, "failed", info.retries, info.command);
       } else {
-        console.log(`Saída do script Python: ${stdout}`);
+        logWithTimestamp(`Saída do script Python: ${stdout}`);
         saveExecutionStatus(videoId, "completed", info.retries, info.command);
       }
     } catch (error) {
-      console.log(`Erro ao executar o script Python: ${error.message}`);
+      logWithTimestamp(`Erro ao executar o script Python: ${error.message}`);
       saveExecutionStatus(videoId, "failed", info.retries, info.command);
     }
 
@@ -248,11 +258,11 @@ async function checkAndRestartFailedScripts() {
 
     if (info.status === "failed" || (info.status === "pending" && info.retries < 5 && !videoExists)) {
       if (info.retries < 5) {
-        console.log(`Reexecutando script para o vídeo ${videoId}, tentativa ${info.retries + 1}`);
+        logWithTimestamp(`Reexecutando script para o vídeo ${videoId}, tentativa ${info.retries + 1}`);
         saveExecutionStatus(videoId, "retrying", info.retries + 1, info.command);
         processQueue(); // Adiciona ao processamento
       } else {
-        console.log(`Script para o vídeo ${videoId} excedeu o número máximo de tentativas.`);
+        logWithTimestamp(`Script para o vídeo ${videoId} excedeu o número máximo de tentativas.`);
         saveExecutionStatus(videoId, "exceeded_retries", info.retries, info.command);
       }
     } else if (videoExists && info.status !== "completed") {
@@ -294,7 +304,7 @@ app.post("/cut-video", async (req, res) => {
     // Comando FFmpeg para cortar o vídeo
     const command = `ffmpeg -i ${inputFilePath} -ss ${startTime} -t ${cutDuration} -c copy ${outputFilePath}`;
 
-    console.log("Executando comando:", command);
+    logWithTimestamp("Executando comando:", command);
 
     // Executar o comando com FFmpeg
     await execPromise(command);
@@ -306,7 +316,7 @@ app.post("/cut-video", async (req, res) => {
       return res.json({ status: false, message: "Erro: vídeo não foi cortado." });
     }
   } catch (err) {
-    console.log("Erro ao cortar vídeo:", err);
+    logWithTimestamp("Erro ao cortar vídeo:", err);
     res.json({ status: false, message: "Erro ao cortar o vídeo" });
   }
 });
@@ -338,14 +348,14 @@ app.post("/script", (req, res) => {
     const campoLocation = campo_location.toLowerCase().includes("lamas") ? "lamas" : "padel";
     const command = `python3 ${pythonScriptPath} '${formattedStartDateTime}' '${formattedEndDateTime}' ${campoLocation} ${campo} ${fileName}`;
 
-    console.log("Comando a ser executado:", command);
+    logWithTimestamp("Comando a ser executado:", command);
 
     // Salvar o status de execução como "pending" no JSON
     addToQueue(command, videoId);
 
     return res.json({ status: true, message: "Comando Python adicionado à fila. Processamento será feito em sequência." });
   } catch (err) {
-    console.log("Erro no endpoint de script:", err);
+    logWithTimestamp("Erro no endpoint de script:", err);
     res.json({ status: false, message: "Erro ao chamar o script" });
   }
 });
@@ -356,7 +366,7 @@ cron.schedule("*/5 * * * *", () => {
 });
 
 const server = app.listen(port, () => {
-  console.log(`Servidor à escuta na porta ${port}`);
+  logWithTimestamp(`Servidor à escuta na porta ${port}`);
 });
 
 // Aumentar o timeout do servidor Express para 5 minutos (1200000 milissegundos)
