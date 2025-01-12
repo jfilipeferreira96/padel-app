@@ -140,7 +140,7 @@ const schema = z
     }
   )
   // Verifica se a diferença entre timeInicio e timeFim não é superior a 90m
-  .refine(
+  /* .refine(
     (data) => {
       const [hoursInicio, minutesInicio] = data.timeInicio.split(":").map(Number);
       const [hoursFim, minutesFim] = data.timeFim.split(":").map(Number);
@@ -163,7 +163,7 @@ const schema = z
       message: "A diferença entre Hora de Início e Hora de Fim não pode ser superior a 90 minutos",
       path: ["manual"],
     }
-  );
+  ) */;
 
 function ReviewVideos() {
   const { user } = useSession();
