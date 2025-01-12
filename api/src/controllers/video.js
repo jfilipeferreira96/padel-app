@@ -628,7 +628,7 @@ class VideoController {
 
       // Busca todos os campos disponíveis
       const camposQuery = `
-        SELECT * FROM campos;
+        SELECT * FROM campos ORDER BY FIELD(name, 'Lamas - SusyPetros', 'Lamas - Campo 2', 'Lamas - Carlsberg', 'Lamas - BalizasLandia', 'Lamas - Campo AQS');
       `;
       const { rows: camposRows } = await db.query(camposQuery);
 
