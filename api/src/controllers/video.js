@@ -171,8 +171,12 @@ class VideoController {
       }
 
       if (below_48h) {
-        query += ` AND vp.validated_at >= NOW() - INTERVAL 48 HOUR`;
-        totalCountQuery += ` AND vp.validated_at >= NOW() - INTERVAL 48 HOUR`;
+        query += `
+          AND (vp.validated_at IS NULL OR vp.validated_at >= NOW() - INTERVAL 48 HOUR)
+        `;
+        totalCountQuery += `
+          AND (vp.validated_at IS NULL OR vp.validated_at >= NOW() - INTERVAL 48 HOUR)
+        `;
       }
 
       const offset = (page - 1) * limit;
