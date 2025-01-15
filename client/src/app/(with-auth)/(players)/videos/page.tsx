@@ -328,8 +328,7 @@ function ReviewVideos() {
     return () => clearInterval(interval);
   }, []);
 
-  /* const initialIndex = (activePage - 1) * elementsPerPage;
-  const finalIndex = initialIndex + elementsPerPage; */
+
   const pickerControl1 = (
     <ActionIcon disabled={!creditos} variant="subtle" color="gray" onClick={() => refInicio.current?.showPicker()}>
       <IconClock style={{ width: rem(16), height: rem(16) }} stroke={1.5} />
@@ -351,7 +350,7 @@ function ReviewVideos() {
 
   const rows = elementos?.slice(initialIndex, finalIndex).map((element, index) => (
     <Table.Tr key={element.id}>
-      <Table.Td>{index + 1}</Table.Td>
+      <Table.Td>{index + 1 + initialIndex}</Table.Td>
       <Table.Td>{campos.find((c) => c.value === element.campo)?.label}</Table.Td>
       <Table.Td>{dayjs(element.date).format("YYYY-MM-DD")}</Table.Td>
       <Table.Td>{element.start_time.slice(0, -3)}</Table.Td>
