@@ -28,7 +28,7 @@ authRoutes.post("/register", UserController.register);
 // Rota responsável por realizar um novo login 'User': (POST): localhost:5000/api/auth/login
 authRoutes.post("/login", UserController.login);
 
-authRoutes.post("/forgot-password", UserController.forgotPassword);
+authRoutes.post("/forgotpassword", UserController.forgotPassword);
 authRoutes.post("/reset-password", UserController.resetPassword);
 authRoutes.get("/checktoken/:token", UserController.checkToken);
 
