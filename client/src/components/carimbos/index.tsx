@@ -4,6 +4,8 @@ import { notifications } from "@mantine/notifications";
 import { getUserPunchCard } from "@/services/user.service";
 import { CartaoJogos } from "@/components/padel-racket/cartao-jogos";
 import classes from "./classes.module.css";
+import dayjs from "dayjs";
+import "dayjs/locale/pt";
 
 interface CarimbosProps {
   userId: number | string;
@@ -12,6 +14,7 @@ interface CarimbosProps {
 const Carimbos: React.FC<CarimbosProps> = ({ userId }) => {
   const [rackets, setRackets] = useState<{ isFilled: boolean }[]>(Array(10).fill({ isFilled: false }));
   const [isLoading, setIsLoading] = useState(true);
+  const [lastCardFilledAt, setLastCardFilledAt] =  useState<Date | null>(null);
 
   // Function to fetch card data
   const fetchCard = async () => {
@@ -20,9 +23,11 @@ const Carimbos: React.FC<CarimbosProps> = ({ userId }) => {
 
       if (response.status) {
         const card = response.actual_card[0];
+        const lastCompletedCard = response.last_completed_card;
+
         if (card) {
           const entryCount = card.entry_count ?? 0;
-          let updatedRackets = [];
+          const updatedRackets = [];
 
           for (let i = 1; i <= 10; i++) {
             updatedRackets.push({ isFilled: i <= entryCount });
@@ -30,6 +35,11 @@ const Carimbos: React.FC<CarimbosProps> = ({ userId }) => {
 
           setRackets(updatedRackets);
         }
+
+        if (lastCompletedCard?.reached_on) {
+          setLastCardFilledAt(lastCompletedCard.reached_on);
+        }
+
         setIsLoading(false);
       }
     } catch (error) {
@@ -79,6 +89,13 @@ const Carimbos: React.FC<CarimbosProps> = ({ userId }) => {
         <Text ta={"center"} mt="lg" fw={600} className={classes.label}>
           Válido para jogos com duração de 1h30 em ambos os clubes Mozelos e Santa Maria de Lamas
         </Text>
+        {lastCardFilledAt && (
+          <Center>
+            <Text c="dimmed" size="xs" tt="uppercase" fw={700}>
+              Completou o seu último cartão no dia: {dayjs(lastCardFilledAt).format("YYYY-MM-DD HH:mm")}
+            </Text>
+          </Center>
+        )}
       </Card>
     </div>
   );

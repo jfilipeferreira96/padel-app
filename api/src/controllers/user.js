@@ -15,7 +15,6 @@ class UserController {
     }
 
     return jwt.sign(user, secret, { expiresIn: "30d" });
-
   }
 
   static async login(req, res, next) {
@@ -477,15 +476,45 @@ class UserController {
       }
 
       // Consultar os cartões de entrada do utilizador
-      const query = `
+      const activeCardsQuery = `
         SELECT *
         FROM entry_cards 
         WHERE entry_cards.user_id = ? AND entry_cards.is_active = 1
       `;
 
-      const { rows } = await db.query(query, [userId]);
+      const { rows: activeCards } = await db.query(activeCardsQuery, [userId]);
 
-      return res.status(200).json({ status: true, actual_card: rows });
+      const lastCompletedCardQuery = `
+        SELECT 
+          ec.card_id,
+          ec.user_id,
+          ec.created_at AS card_created_at,
+          SUM(ce.num_of_entries) AS total_entries,
+          MAX(e.entry_time) AS reached_on
+        FROM 
+          entry_cards ec
+        JOIN 
+          card_entries ce ON ec.card_id = ce.card_id
+        JOIN 
+          entries e ON ce.entry_id = e.entry_id
+        WHERE 
+          ec.user_id = ?
+        GROUP BY 
+          ec.card_id
+        HAVING 
+          total_entries >= 10
+        ORDER BY 
+          reached_on DESC
+        LIMIT 1
+    `;
+
+      const { rows: completedCard } = await db.query(lastCompletedCardQuery, [userId]);
+
+      return res.status(200).json({
+        status: true,
+        actual_card: activeCards,
+        last_completed_card: completedCard.length ? completedCard[0] : null,
+      });
     } catch (ex) {
       Logger.error("An error occurred while fetching user entry cards.", ex);
       res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: "Internal Server Error", message: ex.message });
@@ -633,7 +662,7 @@ class UserController {
 
   static async resetPassword(req, res) {
     const { token, newPassword } = req.body;
-    
+
     try {
       const query = "SELECT * FROM users WHERE reset_password_token IS NOT NULL AND reset_password_expires > NOW()";
       const { rows } = await db.query(query);
