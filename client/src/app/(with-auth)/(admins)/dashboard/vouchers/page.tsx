@@ -10,20 +10,16 @@ import { notifications } from "@mantine/notifications";
 import EditBalanceModal from "@/components/user-modal/balance-voucher-modal";
 import ModalTransactions from "@/components/user-modal/modal-transactions";
 
-function getBadge(activated_by: string | null)
-{
-  if (!activated_by)
-  {
+function getBadge(activated_by: string | null) {
+  if (!activated_by) {
     return { name: "Por Ativar", color: "red" };
-  } else
-  {
+  } else {
     return { name: "Ativo", color: "green" };
   }
 }
 
 // Interface para os vouchers
-interface Voucher
-{
+interface Voucher {
   user_voucher_id: number;
   voucher_id: number;
   voucher_name: string;
@@ -44,12 +40,10 @@ interface Voucher
   is_active: boolean;
 }
 
-function VoucherHistory()
-{
+function VoucherHistory() {
   const pathname = usePathname();
   const [activePage, setActivePage] = useState<number>(1);
-  const [elementsPerPage, setElementsPerPage] = useState<number>(() =>
-  {
+  const [elementsPerPage, setElementsPerPage] = useState<number>(() => {
     const storedValue = localStorage.getItem(pathname);
     return storedValue ? parseInt(storedValue) : 10;
   });
@@ -60,8 +54,7 @@ function VoucherHistory()
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [opened, { open, close }] = useDisclosure(false);
   const [deleteId, setDeleteId] = useState<number | null>(null);
-  const [filterOption, setFilterOption] = useState<string | null>(() =>
-  {
+  const [filterOption, setFilterOption] = useState<string | null>(() => {
     const storedValue = localStorage.getItem("filterVoucher");
     return storedValue ? storedValue : null;
   });
@@ -76,11 +69,9 @@ function VoucherHistory()
     setOpenedTransactions(true);
   };
 
-  const fetchData = async () =>
-  {
+  const fetchData = async () => {
     setLoading(true);
-    try
-    {
+    try {
       const pagination = {
         page: activePage,
         limit: elementsPerPage,
@@ -94,47 +85,39 @@ function VoucherHistory()
         phone: searchTerm ?? null,
       };
 
-      if (filterOption === "Ver ativados")
-      {
+      if (filterOption === "Ver ativados") {
         filters.validated_by = false;
-      } else if (filterOption === "Ver não ativados")
-      {
+      } else if (filterOption === "Ver não ativados") {
         filters.validated_by = true;
       }
 
       const response = await getAllVouchersHistory(pagination, filters);
 
-      if (response.status)
-      {
+      if (response.status) {
         setVouchers(response.data);
         setTotalVouchers(response.pagination.total || 0);
         setActivePage(response.pagination.page || 1);
       }
 
       setLoading(false);
-    } catch (error)
-    {
+    } catch (error) {
       console.error("Error fetching data:", error);
       setLoading(false);
     }
   };
 
-  const onValidate = async (id: number) =>
-  {
-    try
-    {
+  const onValidate = async (id: number) => {
+    try {
       const response = await ativarVoucher(id);
 
-      if (response.status)
-      {
+      if (response.status) {
         notifications.show({
           title: "Sucesso",
           message: "",
           color: "green",
         });
       }
-      if (response.status === false)
-      {
+      if (response.status === false) {
         notifications.show({
           message: response.message,
           color: "red",
@@ -142,8 +125,7 @@ function VoucherHistory()
       }
 
       fetchData();
-    } catch (error)
-    {
+    } catch (error) {
       notifications.show({
         title: "Erro",
         message: "Algo correu mal",
@@ -152,42 +134,37 @@ function VoucherHistory()
     }
   };
 
-  const handleFilterChange = (value: string | null) =>
-  {
+  const handleFilterChange = (value: string | null) => {
     setFilterOption(value);
     localStorage.setItem("filterVoucher", value || "");
   };
 
-  useEffect(() =>
-  {
+  useEffect(() => {
     fetchData();
   }, [activePage, elementsPerPage, searchTerm, filterOption]);
 
-  const handlePageChange = (page: number) =>
-  {
+  const handlePageChange = (page: number) => {
     setActivePage(page);
   };
 
-  const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) =>
-  {
+  const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(event.currentTarget.value);
   };
 
-  const handleEditBalanceClick = (voucher: Voucher) =>
-  {
+  const handleEditBalanceClick = (voucher: Voucher) => {
     setSelectedVoucher(voucher);
     setEditModalOpened(true);
   };
 
-  const handleSaveCreditBalance = async () =>
-  {
-
+  const handleSaveCreditBalance = async () => { };
+  
+  const onDelete = (id: number) => {
+    setDeleteId(id);
+    open(); 
   };
 
-  const handleElementsPerPageChange = (value: string | null) =>
-  {
-    if (value)
-    {
+  const handleElementsPerPageChange = (value: string | null) => {
+    if (value) {
       setElementsPerPage(parseInt(value));
       setActivePage(1); // Reset to first page whenever elements per page change
       localStorage.setItem(pathname, value);
@@ -235,8 +212,7 @@ function VoucherHistory()
             <></>
           ) : (
             <Tooltip label={"Ativar voucher"} withArrow position="top">
-              <ActionIcon className="action-icon-size"
-              variant="filled" color="green" onClick={() => onValidate(voucher.user_voucher_id)}>
+              <ActionIcon className="action-icon-size" variant="filled" color="green" onClick={() => onValidate(voucher.user_voucher_id)}>
                 <IconCheck style={{ width: rem(20), height: rem(20) }} stroke={1.5} />
               </ActionIcon>
             </Tooltip>
@@ -244,14 +220,12 @@ function VoucherHistory()
           {voucher.credit_limit > 0 && (
             <>
               <Tooltip label="Editar Saldo" withArrow position="top">
-                <ActionIcon className="action-icon-size"
-              variant="filled" onClick={() => handleEditBalanceClick(voucher)} color="blue">
+                <ActionIcon className="action-icon-size" variant="filled" onClick={() => handleEditBalanceClick(voucher)} color="blue">
                   <IconCurrencyEuro style={{ width: rem(20), height: rem(20) }} stroke={1.5} />
                 </ActionIcon>
               </Tooltip>
               <Tooltip label="Ver Transações" withArrow position="top">
-                <ActionIcon className="action-icon-size"
-              variant="filled" onClick={() => openTransactionModal(voucher.user_voucher_id)} color="gray">
+                <ActionIcon className="action-icon-size" variant="filled" onClick={() => openTransactionModal(voucher.user_voucher_id)} color="gray">
                   <IconEye style={{ width: rem(20), height: rem(20) }} stroke={1.5} />
                 </ActionIcon>
               </Tooltip>
@@ -350,8 +324,7 @@ function VoucherHistory()
           <Group>
             <Select placeholder="Seleciona filtros" data={["Ver ativados", "Ver não ativados"]} value={filterOption} onChange={(value) => handleFilterChange(value)} />
             <Tooltip label={"Atualizar Tabela"} withArrow position="top">
-              <ActionIcon className="action-icon-size"
-              variant="filled" color="green" onClick={() => fetchData()} size="lg">
+              <ActionIcon className="action-icon-size" variant="filled" color="green" onClick={() => fetchData()} size="lg">
                 <IconRefresh size={18} />
               </ActionIcon>
             </Tooltip>
@@ -395,8 +368,3 @@ function VoucherHistory()
 }
 
 export default VoucherHistory;
-function onDelete(user_voucher_id: number)
-{
-  throw new Error("Function not implemented.");
-}
-
