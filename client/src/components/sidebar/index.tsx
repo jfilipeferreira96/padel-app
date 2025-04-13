@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Group, Code, Text, Select, Modal, Button } from "@mantine/core";
-import { IconFingerprint, IconLicense, IconShoppingCart, IconUser, IconSettings, IconSwitchHorizontal, IconLogout, IconHome, IconBrandProducthunt, IconCards, IconNews, IconGift } from "@tabler/icons-react";
+import { IconFingerprint, IconLicense, IconShoppingCart, IconUser, IconSettings, IconSwitchHorizontal, IconLogout, IconHome, IconBrandProducthunt, IconCards, IconNews, IconGift, IconListCheck } from "@tabler/icons-react";
 import classes from "./NavbarSimpleColored.module.css";
 import { useSession } from "@/providers/SessionProvider";
 import { useLocation } from "@/providers/LocationProvider";
@@ -16,6 +16,7 @@ const data = [
   { label: "Vouchers", icon: IconGift, url: routes.dashboard.vouchers },
   { label: "Noticias", icon: IconNews, url: routes.dashboard.articles },
   { label: "Créditos para Vídeos", icon: IconBrandZoom, url: routes.dashboard.videoCredits },
+  { label: "Verificar Ofertas", icon: IconListCheck, url: routes.dashboard.ofertas },
   /*   { label: "Vendas", icon: IconShoppingCart, url: routes.dashboard.orders }, */
   { label: "Utilizadores do Sistema", icon: IconUser, url: routes.dashboard.users },
   { label: "Outras Configurações", icon: IconSettings, url: routes.dashboard.configurations },

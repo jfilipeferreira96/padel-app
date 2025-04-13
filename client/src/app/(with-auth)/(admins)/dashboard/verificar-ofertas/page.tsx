@@ -3,17 +3,16 @@ import { routes } from "@/config/routes";
 import { Card, Table, Group, Text, ActionIcon, Tooltip, TableScrollContainer, Pagination, Center, Title, Loader } from "@mantine/core";
 import { IconRefresh } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
-/* import { getDailyOffersData } from "@/api/ofertas";
- */
 import { DatePickerInput } from "@mantine/dates";
 import dayjs from "dayjs";
 import "@mantine/dates/styles.css";
+import { getDailyOffersData } from "@/services/dashboard.service";
 
 function VerificarOfertas() {
   const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
   const [loading, setLoading] = useState<boolean>(false);
   const [completedCards, setCompletedCards] = useState<any[]>([]);
-  const [usedOffers, setUsedOffers] = useState<any[]>([]);
+  const [creditVoucherTransactions, setCreditVoucherTransactions] = useState<any[]>([]);
   const [activatedVouchers, setActivatedVouchers] = useState<any[]>([]);
 
   // Paginação individual
@@ -26,17 +25,17 @@ function VerificarOfertas() {
     if (!selectedDate) return;
     setLoading(true);
     try {
-      /*  const dateStr = dayjs(selectedDate).format("YYYY-MM-DD");
+      const dateStr = dayjs(selectedDate).format("YYYY-MM-DD");
       const response = await getDailyOffersData(dateStr);
-
+      console.log(response);
       if (response.status) {
-        setCompletedCards(response.completed_cards);
-        setUsedOffers(response.used_offers);
-        setActivatedVouchers(response.activated_vouchers);
+        setCompletedCards(response.cardsCompleted);
+        setCreditVoucherTransactions(response.creditVoucherTransactions);
+        setActivatedVouchers(response.activatedVouchers);
         setPage1(1);
         setPage2(1);
         setPage3(1);
-      } */
+      }
     } catch (err) {
       console.error("Erro ao buscar ofertas:", err);
     }
@@ -108,32 +107,52 @@ function VerificarOfertas() {
       ) : (
         <>
           {/* Tabela 1 - Cartões com 10 carimbos */}
-          {renderTable("Cartões completados (10 carimbos)", ["Nome", "Email", "Telefone", "Data Completo"], completedCards, page1, setPage1, (row, i) => (
+          {renderTable("Cartões completados (10 carimbos)", ["Nome", "Email", "Telefone", "Data"], completedCards, page1, setPage1, (row, i) => (
             <Table.Tr key={i}>
-              <Table.Td>{row.user_name}</Table.Td>
-              <Table.Td>{row.email}</Table.Td>
-              <Table.Td>{row.phone}</Table.Td>
-              <Table.Td>{dayjs(row.reached_on).format("DD/MM/YYYY HH:mm")}</Table.Td>
+              <Table.Td>
+                {row.first_name} {row.last_name}
+              </Table.Td>
+              <Table.Td>{row.email ?? "-"}</Table.Td>
+              <Table.Td>{row.phone ?? "-"}</Table.Td>
+              <Table.Td>{row.last_updated ? dayjs(row.last_updated).format("DD/MM/YYYY HH:mm") : "-"}</Table.Td>
             </Table.Tr>
           ))}
 
-          {/* Tabela 2 - Descontos de ofertas */}
-          {renderTable("Ofertas Descontadas (Carimbos Usados)", ["Nome", "Email", "Desconto", "Data"], usedOffers, page2, setPage2, (row, i) => (
-            <Table.Tr key={i}>
-              <Table.Td>{row.user_name}</Table.Td>
-              <Table.Td>{row.email}</Table.Td>
-              <Table.Td>{row.discount_amount}€</Table.Td>
-              <Table.Td>{dayjs(row.used_on).format("DD/MM/YYYY HH:mm")}</Table.Td>
-            </Table.Tr>
-          ))}
+          {/* Tabela 2 - Descontos de vouchers monetários */}
+          {renderTable(
+            "Descontos de vouchers monetários",
+            ["Voucher", "Utilizador", "Email", "Telemóvel", "Crédito Antes", "Crédito Depois", "Valor Desconto", "Aplicado Por", "Data Transação"],
+            creditVoucherTransactions,
+            page2,
+            setPage2,
+            (transaction, i) => (
+              <Table.Tr key={i}>
+                <Table.Td>{transaction.voucher_name}</Table.Td>
+                <Table.Td>
+                  {transaction.user_first_name} {transaction.user_last_name}
+                </Table.Td>
+                <Table.Td>{transaction.user_email ?? "-"}</Table.Td>
+                <Table.Td>{transaction.phone ?? "-"}</Table.Td>
+                <Table.Td>{transaction.credits_before}€</Table.Td>
+                <Table.Td>{transaction.credits_after}€</Table.Td>
+                <Table.Td>{transaction.discount_amount}€</Table.Td>
+                <Table.Td>{transaction.admin_first_name ? `${transaction.admin_first_name} ${transaction.admin_last_name}` : "Sistema/Não definido"}</Table.Td>
+                <Table.Td>{transaction.transaction_time ? dayjs(transaction.transaction_time).format("DD/MM/YYYY HH:mm") : "-"}</Table.Td>
+              </Table.Tr>
+            )
+          )}
 
-          {/* Tabela 3 - Vouchers ativados */}
-          {renderTable("Vouchers Ativados", ["Nome", "Voucher", "Email", "Data Ativação"], activatedVouchers, page3, setPage3, (row, i) => (
+          {/* Tabela 3 - Vouchers Ativados */}
+          {renderTable("Vouchers Ativados", ["Voucher", "Utilizador", "Email", "Telemóvel", "Ativado Por", "Data de Ativação"], activatedVouchers, page3, setPage3, (voucher, i) => (
             <Table.Tr key={i}>
-              <Table.Td>{row.user_name}</Table.Td>
-              <Table.Td>{row.voucher_name}</Table.Td>
-              <Table.Td>{row.email}</Table.Td>
-              <Table.Td>{dayjs(row.activated_at).format("DD/MM/YYYY HH:mm")}</Table.Td>
+              <Table.Td>{voucher.voucher_name}</Table.Td>
+              <Table.Td>
+                {voucher.user_first_name} {voucher.user_last_name}
+              </Table.Td>
+              <Table.Td>{voucher.user_email ?? "-"}</Table.Td>
+              <Table.Td>{voucher.phone ?? "-"}</Table.Td>
+              <Table.Td>{voucher.admin_first_name ? `${voucher.admin_first_name} ${voucher.admin_last_name}` : "Não definido"}</Table.Td>
+              <Table.Td>{voucher.activated_at ? dayjs(voucher.activated_at).format("DD/MM/YYYY HH:mm") : "-"}</Table.Td>
             </Table.Tr>
           ))}
         </>

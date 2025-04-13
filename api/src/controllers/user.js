@@ -485,12 +485,12 @@ class UserController {
       const { rows: activeCards } = await db.query(activeCardsQuery, [userId]);
 
       const lastCompletedCardQuery = `
-        SELECT 
+          SELECT 
           ec.card_id,
           ec.user_id,
           ec.created_at AS card_created_at,
           SUM(ce.num_of_entries) AS total_entries,
-          MAX(e.entry_time) AS reached_on
+          MAX(e.entry_time) AS last_updated
         FROM 
           entry_cards ec
         JOIN 
@@ -499,14 +499,14 @@ class UserController {
           entries e ON ce.entry_id = e.entry_id
         WHERE 
           ec.user_id = ?
+          AND ec.is_active = 0
+          AND ec.entry_count = 10
         GROUP BY 
           ec.card_id
-        HAVING 
-          total_entries >= 10
         ORDER BY 
-          reached_on DESC
-        LIMIT 1
-    `;
+          last_updated DESC
+        LIMIT 1;
+      `;
 
       const { rows: completedCard } = await db.query(lastCompletedCardQuery, [userId]);
 

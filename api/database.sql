@@ -177,7 +177,7 @@ ALTER TABLE users
 ADD COLUMN phone VARCHAR(15) DEFAULT NULL UNIQUE;
 CREATE UNIQUE INDEX idx_unique_phone ON users(phone);
 
---------- New:
+-- New:
 
 ALTER TABLE users 
 ADD COLUMN reset_password_token VARCHAR(255),
@@ -315,3 +315,17 @@ INSERT INTO users (password, email, user_type, first_name, last_name, birthdate)
 VALUES ('$2b$10$8B9HU4VxyxQhIBEdsl.E9OqrJqxScn8.AuEz4Gc2gP.QDtGbMTCaa', 'admin@mail.com', 'admin', 'admin', 'admin', '1999-01-01');
 
 INSERT INTO admin_locations (admin_id, location_id) VALUES (1,1), (1,2);
+
+ALTER TABLE entry_cards
+ADD COLUMN last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP;
+
+UPDATE entry_cards ec
+JOIN (
+    SELECT 
+        ce.card_id,
+        MAX(e.entry_time) AS last_entry_time
+    FROM card_entries ce
+    JOIN entries e ON ce.entry_id = e.entry_id
+    GROUP BY ce.card_id
+) latest_entry ON ec.card_id = latest_entry.card_id
+SET ec.last_updated = latest_entry.last_entry_time;

@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { Card, Table, Checkbox, Pagination as MantinePagination, Center, Text, Select, Flex, Badge, SimpleGrid, Skeleton, Grid, Tooltip, ActionIcon, rem, Group, Button, Modal, TextInput } from "@mantine/core";
 import { deleteUser, getAllUsers } from "@/services/user.service";
-import { IconBrandZoom, IconCards, IconEye, IconGift, IconPencil, IconPlus, IconSearch, IconSticker, IconTrash } from "@tabler/icons-react";
+import { IconBrandZoom, IconCards, IconEye, IconGift, IconListCheck, IconPencil, IconPlus, IconSearch, IconSticker, IconTrash } from "@tabler/icons-react";
 import AddUserModal from "@/components/user-modal/add";
 import { useDisclosure } from "@mantine/hooks";
 import EditUserModal from "@/components/user-modal/edit";
@@ -12,6 +12,7 @@ import AsignOffpeakModal from "@/components/user-modal/assign-offpick";
 import CarimbosModal from "@/components/user-modal/carimbos-modal";
 import ModalVoucher from "@/components/user-modal/modal-voucher";
 import VideosModal from "@/components/user-modal/videos-modal";
+import ModalOfertas from "@/components/user-modal/modal-ofertas";
 
 function getBadge(user_type: string){
   if (user_type === 'admin')
@@ -51,6 +52,7 @@ function Users() {
   const [isModalOpenCarimbos, setIsModalOpenCarimbos] = useState<boolean>(false);
   const [isModalOpenVouchers, setIsModalOpenVouchers] = useState<boolean>(false);
   const [isModalOpenVideoCredits, setIsModalOpenVideoCredits] = useState<boolean>(false);
+  const [isModalOpenOfertas, setIsModalOpenOfertas] = useState<boolean>(false);
   const [editUserId, setEditUserId] = useState<number | null>(null);
   const [deleteUserId, setDeleteUserId] = useState<number | null>(null);
   const [opened, { open, close }] = useDisclosure(false);
@@ -122,6 +124,11 @@ function Users() {
      setEditUserId(userId);
      setIsModalOpenVideoCredits(true);
   };
+
+   const handleUserOfertas = (userId: number) => {
+     setEditUserId(userId);
+     setIsModalOpenOfertas(true);
+   };
   
   const handleElementsPerPageChange = (value: string | null) => {
 
@@ -157,7 +164,8 @@ function Users() {
         <Group gap={0} justify="center">
           <Tooltip label={"Apagar Utilizador"} withArrow position="top">
             <ActionIcon
-              variant="filled" className="action-icon-size"
+              variant="filled"
+              className="action-icon-size"
               color="red"
               onClick={() => {
                 setDeleteUserId(element.user_id);
@@ -179,7 +187,7 @@ function Users() {
               <IconCards size={20} stroke={1.5} />
             </ActionIcon>
           </Tooltip>
-          
+
           <Tooltip label={"Ver/Editar Carimbos"} withArrow position="top">
             <ActionIcon color="yellow" variant="filled" className="action-icon-size" onClick={() => handleCarimbos(element.user_id)}>
               <IconSticker size={20} stroke={1.5} />
@@ -195,6 +203,12 @@ function Users() {
           <Tooltip label={"Atribuir Créditos"} withArrow position="top">
             <ActionIcon color="gray" variant="filled" className="action-icon-size" onClick={() => handleVideoCredits(element.user_id)}>
               <IconBrandZoom size={20} stroke={1.5} />
+            </ActionIcon>
+          </Tooltip>
+
+          <Tooltip label={"Ver Histórico de Ofertas"} withArrow position="top">
+            <ActionIcon color="blue.4" variant="filled" className="action-icon-size" onClick={() => handleUserOfertas(element.user_id)}>
+              <IconListCheck size={20} stroke={1.5} />
             </ActionIcon>
           </Tooltip>
         </Group>
@@ -214,6 +228,8 @@ function Users() {
       <ModalVoucher isModalOpen={isModalOpenVouchers} setIsModalOpen={setIsModalOpenVouchers} fetchData={fetchData} userId={editUserId} />
 
       <VideosModal isModalOpen={isModalOpenVideoCredits} setIsModalOpen={setIsModalOpenVideoCredits} fetchData={fetchData} userId={editUserId} />
+
+      <ModalOfertas isModalOpen={isModalOpenOfertas} setIsModalOpen={setIsModalOpenOfertas} fetchData={fetchData} userId={editUserId} />
 
       <Modal opened={opened} onClose={close} withCloseButton={false}>
         <Center>

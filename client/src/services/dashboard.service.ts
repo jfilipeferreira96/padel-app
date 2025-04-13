@@ -56,3 +56,21 @@ export const createUserCardCarimbos = async (id: string) => {
     throw error;
   }
 };
+
+export const getDailyOffersData = async (date: string) => {
+  try {
+    const response = await api.get(`${endpoints.ofertasRoute}/${date}`);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const getUserOffers = async (id: number) => {
+  try {
+    const response = await api.get(`${endpoints.userOfertasRoute}/${id}`);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};

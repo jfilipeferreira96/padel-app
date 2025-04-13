@@ -237,6 +237,207 @@ class DashboardController {
       return res.status(200).json({ status: false, message: "Erro ao criar cartão de entrada." });
     }
   }
+
+  static async getDailyOfertas(req, res) {
+    const date = req.params.date; // formato esperado: 'YYYY-MM-DD'
+
+    try {
+      // Verificar se o utilizador solicitado é o mesmo que está a fazer a requisição
+      if (req.user?.user_type !== "admin") {
+        return res.status(403).json({ status: false, error: "Proibido", message: "Acesso não permitido a este recurso." });
+      }
+
+      // 1. Cartões com 10 entradas na data
+      const completedCardsQuery = `
+      SELECT 
+        u.user_id,
+        u.first_name,
+        u.last_name,
+        u.email,
+        u.phone,
+        ec.card_id,
+        ec.entry_count,
+        MAX(e.entry_time) AS last_updated
+      FROM entry_cards ec
+      JOIN card_entries ce ON ec.card_id = ce.card_id
+      JOIN entries e ON ce.entry_id = e.entry_id
+      JOIN users u ON ec.user_id = u.user_id
+      WHERE 
+        ec.entry_count = 10
+      GROUP BY ec.card_id
+      HAVING DATE(MAX(e.entry_time)) = ?
+    `;
+      const { rows: cardsCompleted } = await db.query(completedCardsQuery, [date]);
+
+      // 2. Desconto monetário de vouchers (voucher_type = 'credito')
+      const creditVoucherTransactionsQuery = `
+      SELECT
+          u.user_id,
+          u.first_name AS user_first_name,
+          u.last_name AS user_last_name,
+          u.email AS user_email,
+          u.phone,
+          admin.first_name AS admin_first_name, 
+          admin.last_name AS admin_last_name,
+          v.name as voucher_name,
+          vt.credits_before,                  
+          vt.credits_after,                  
+          (vt.credits_before - vt.credits_after) AS discount_amount,
+          vt.created_at AS transaction_time     
+      FROM voucher_transactions vt
+      JOIN user_vouchers uv ON vt.user_voucher_id = uv.user_voucher_id
+      JOIN users u ON uv.assigned_to = u.user_id
+      LEFT JOIN users admin ON vt.changed_by = admin.user_id 
+      JOIN vouchers v ON uv.voucher_id = v.voucher_id
+      WHERE v.voucher_type = 'credito'
+        AND DATE(vt.created_at) = ?
+        AND vt.credits_before > vt.credits_after 
+    `;
+      const { rows: creditVoucherTransactions } = await db.query(creditVoucherTransactionsQuery, [date]);
+
+      // 3. Vouchers ativados na data
+      const activatedVouchersQuery = `
+      SELECT
+          u.user_id,
+          u.first_name AS user_first_name,
+          u.last_name AS user_last_name,
+          u.email AS user_email,
+          u.phone,
+          admin.first_name AS admin_first_name, 
+          admin.last_name AS admin_last_name,
+          v.name as voucher_name, 
+          uv.activated_at  
+      FROM user_vouchers uv
+      JOIN users u ON uv.assigned_to = u.user_id
+      LEFT JOIN users admin ON uv.activated_by = admin.user_id 
+      JOIN vouchers v ON uv.voucher_id = v.voucher_id
+      WHERE DATE(uv.activated_at) = ?
+        AND uv.activated_by IS NOT NULL
+    `;
+      const { rows: activatedVouchers } = await db.query(activatedVouchersQuery, [date]);
+
+      return res.status(200).json({
+        status: true,
+        date,
+        cardsCompleted,
+        creditVoucherTransactions,
+        activatedVouchers,
+      });
+    } catch (err) {
+      Logger.error("Error on getDailyActivityReport", err);
+      return res.status(500).json({
+        status: false,
+        message: "Erro interno ao buscar dados",
+        error: err.message,
+      });
+    }
+  }
+
+  static async getUserActivity(req, res) {
+    const userId = req.params.userId;
+
+    // Validar userId
+    const targetUserId = parseInt(userId, 10);
+    if (isNaN(targetUserId)) {
+      return res.status(400).json({ status: false, message: "User ID inválido." });
+    }
+
+    try {
+      // Verificar permissões
+      if (!req.user || !req.user.id) {
+        return res.status(401).json({ status: false, message: "Autenticação necessária." });
+      }
+
+      if (req.user.user_type !== "admin") {
+        return res.status(403).json({ status: false, message: "Acesso não permitido a este recurso." });
+      }
+
+      // 1. Cartões com 10 entradas PARA ESTE USER
+      const completedCardsQuery = `
+        SELECT
+            u.user_id,
+            u.first_name,
+            u.last_name,
+            u.email,
+            u.phone,
+            ec.card_id,
+            ec.entry_count,
+            MAX(e.entry_time) AS last_updated
+        FROM entry_cards ec
+        JOIN card_entries ce ON ec.card_id = ce.card_id
+        JOIN entries e ON ce.entry_id = e.entry_id
+        JOIN users u ON ec.user_id = u.user_id
+        WHERE
+            ec.entry_count = 10
+            AND u.user_id = ?   
+        GROUP BY ec.card_id
+      `;
+      const { rows: cardsCompleted } = await db.query(completedCardsQuery, [targetUserId]);
+
+      // 2. Desconto monetário de vouchers (credito) PARA ESTE USER
+      const creditVoucherTransactionsQuery = `
+        SELECT
+            u.user_id,
+            u.first_name AS user_first_name,
+            u.last_name AS user_last_name,
+            u.email AS user_email,
+            u.phone,
+            admin.first_name AS admin_first_name,
+            admin.last_name AS admin_last_name,
+            v.name as voucher_name,
+            vt.credits_before,
+            vt.credits_after,
+            (vt.credits_before - vt.credits_after) AS discount_amount,
+            vt.created_at AS transaction_time
+        FROM voucher_transactions vt
+        JOIN user_vouchers uv ON vt.user_voucher_id = uv.user_voucher_id
+        JOIN users u ON uv.assigned_to = u.user_id
+        LEFT JOIN users admin ON vt.changed_by = admin.user_id
+        JOIN vouchers v ON uv.voucher_id = v.voucher_id
+        WHERE v.voucher_type = 'credito'
+          AND vt.credits_before > vt.credits_after
+          AND u.user_id = ?     
+      `;
+      const { rows: creditVoucherTransactions } = await db.query(creditVoucherTransactionsQuery, [targetUserId]);
+
+      // 3. Vouchers ativados na data PARA ESTE USER
+      const activatedVouchersQuery = `
+        SELECT
+            u.user_id,
+            u.first_name AS user_first_name,
+            u.last_name AS user_last_name,
+            u.email AS user_email,
+            u.phone,
+            admin.first_name AS admin_first_name,
+            admin.last_name AS admin_last_name,
+            v.name as voucher_name,
+            uv.activated_at
+        FROM user_vouchers uv
+        JOIN users u ON uv.assigned_to = u.user_id
+        LEFT JOIN users admin ON uv.activated_by = admin.user_id
+        JOIN vouchers v ON uv.voucher_id = v.voucher_id
+        WHERE uv.activated_by IS NOT NULL
+          AND u.user_id = ?       -- Filtro pelo User ID
+      `;
+      const { rows: activatedVouchers } = await db.query(activatedVouchersQuery, [targetUserId]);
+
+      // Retornar os resultados das três queries
+      return res.status(200).json({
+        status: true,
+        userId: targetUserId,
+        cardsCompleted,
+        creditVoucherTransactions,
+        activatedVouchers,
+      });
+    } catch (err) {
+      Logger.error(`Error fetching daily activity for user ${targetUserId}`, err);
+      return res.status(500).json({
+        status: false,
+        message: "Erro interno ao buscar relatório do utilizador.",
+        error: err.message,
+      });
+    }
+  }
 }
 
 module.exports = DashboardController;

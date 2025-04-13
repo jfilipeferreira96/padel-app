@@ -23,6 +23,8 @@ export const endpoints = {
   manuallyCreateCard: `/api/dashboard/manually-card`,
   dashboardCardsRoute: `/api/dashboard/cards`,
   configRoute: `/api/dashboard/configs`,
+  ofertasRoute: `/api/dashboard/ofertas`,
+  userOfertasRoute: `/api/dashboard/user-ofertas`,
   /*################## ACESSOS #############################*/
   acessosEntryRoute: `/api/acessos/entry`,
   acessosValidateRoute: `/api/acessos/validate`,
@@ -124,5 +126,6 @@ export const routes = {
     users: "/dashboard/users",
     validations: "/dashboard/validations",
     configurations: "/dashboard/configurations",
+    ofertas: "/dashboard/verificar-ofertas",
   },
 };
