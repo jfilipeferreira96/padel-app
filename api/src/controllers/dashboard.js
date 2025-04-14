@@ -352,7 +352,7 @@ class DashboardController {
         return res.status(403).json({ status: false, message: "Acesso não permitido a este recurso." });
       }
 
-      // 1. Cartões com 10 entradas PARA ESTE USER
+      // 1. Cartões com 10 entradas PARA ESTE USER (ordenado por última entrada DESC)
       const completedCardsQuery = `
         SELECT
             u.user_id,
@@ -371,10 +371,11 @@ class DashboardController {
             ec.entry_count = 10
             AND u.user_id = ?   
         GROUP BY ec.card_id
+        ORDER BY last_updated DESC
       `;
       const { rows: cardsCompleted } = await db.query(completedCardsQuery, [targetUserId]);
 
-      // 2. Desconto monetário de vouchers (credito) PARA ESTE USER
+      // 2. Desconto monetário de vouchers PARA ESTE USER (ordenado por data de transação DESC)
       const creditVoucherTransactionsQuery = `
         SELECT
             u.user_id,
@@ -396,11 +397,12 @@ class DashboardController {
         JOIN vouchers v ON uv.voucher_id = v.voucher_id
         WHERE v.voucher_type = 'credito'
           AND vt.credits_before > vt.credits_after
-          AND u.user_id = ?     
+          AND u.user_id = ?
+        ORDER BY vt.created_at DESC
       `;
       const { rows: creditVoucherTransactions } = await db.query(creditVoucherTransactionsQuery, [targetUserId]);
 
-      // 3. Vouchers ativados na data PARA ESTE USER
+      // 3. Vouchers ativados PARA ESTE USER (ordenado por ativação DESC)
       const activatedVouchersQuery = `
         SELECT
             u.user_id,
@@ -417,11 +419,11 @@ class DashboardController {
         LEFT JOIN users admin ON uv.activated_by = admin.user_id
         JOIN vouchers v ON uv.voucher_id = v.voucher_id
         WHERE uv.activated_by IS NOT NULL
-          AND u.user_id = ?       -- Filtro pelo User ID
+          AND u.user_id = ?
+        ORDER BY uv.activated_at DESC
       `;
       const { rows: activatedVouchers } = await db.query(activatedVouchersQuery, [targetUserId]);
 
-      // Retornar os resultados das três queries
       return res.status(200).json({
         status: true,
         userId: targetUserId,
