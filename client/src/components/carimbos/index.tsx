@@ -24,7 +24,7 @@ const Carimbos: React.FC<CarimbosProps> = ({ userId }) => {
       if (response.status) {
         const card = response.actual_card[0];
         const lastCompletedCard = response.last_completed_card;
-
+        
         if (card) {
           const entryCount = card.entry_count ?? 0;
           const updatedRackets = [];
@@ -36,8 +36,8 @@ const Carimbos: React.FC<CarimbosProps> = ({ userId }) => {
           setRackets(updatedRackets);
         }
 
-        if (lastCompletedCard?.reached_on) {
-          setLastCardFilledAt(lastCompletedCard.reached_on);
+        if (lastCompletedCard?.last_updated) {
+          setLastCardFilledAt(lastCompletedCard.last_updated);
         }
 
         setIsLoading(false);

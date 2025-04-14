@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Modal, Center, Loader, NumberInput, Button, Text, TextInput } from "@mantine/core";
+import { Modal, NumberInput, Button, Text, TextInput } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { notifications } from "@mantine/notifications";
 import { updateCreditBalance } from "@/services/vouchers.service";
@@ -14,19 +14,19 @@ interface Props {
 
 const EditBalanceModal: React.FC<Props> = ({ isModalOpen, setIsModalOpen, voucherId, currentBalance, fetchData }) => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [newBalance, setNewBalance] = useState<number>(currentBalance || 0);
+  const [amountToDeduct, setAmountToDeduct] = useState<number>(0);
   const [opened, { open, close }] = useDisclosure(false);
   const [obvservation, setObvservation] = useState<string>("");
 
   useEffect(() => {
     if (isModalOpen) {
       open();
-      setNewBalance(Number(currentBalance));
+      setAmountToDeduct(0);
       setObvservation("");
     } else {
       close();
     }
-  }, [isModalOpen, open, close, currentBalance]);
+  }, [isModalOpen, open, close]);
 
   useEffect(() => {
     if (!opened) {
@@ -37,19 +37,39 @@ const EditBalanceModal: React.FC<Props> = ({ isModalOpen, setIsModalOpen, vouche
   const handleSave = async () => {
     if (!voucherId) return;
 
+    if (amountToDeduct <= 0) {
+      notifications.show({
+        title: "Erro",
+        message: "O valor a descontar deve ser maior que zero.",
+        color: "red",
+      });
+      return;
+    }
+
+    if (amountToDeduct > currentBalance) {
+      notifications.show({
+        title: "Erro",
+        message: "O valor a descontar é superior ao saldo atual.",
+        color: "red",
+      });
+      return;
+    }
+
+    const newBalance = currentBalance - amountToDeduct;
+
     try {
       setIsLoading(true);
 
       const response = await updateCreditBalance({
         user_voucher_id: voucherId,
-        new_credit_balance: typeof newBalance === "number" ? newBalance : parseFloat(newBalance),
+        new_credit_balance: newBalance,
         obvservation: obvservation,
       });
 
       if (response.status) {
         notifications.show({
           title: "Sucesso",
-          message: "Saldo atualizado com sucesso!",
+          message: "Créditos descontados com sucesso!",
           color: "green",
         });
 
@@ -63,10 +83,10 @@ const EditBalanceModal: React.FC<Props> = ({ isModalOpen, setIsModalOpen, vouche
         });
       }
     } catch (error) {
-      console.error("Erro ao atualizar saldo:", error);
+      console.error("Erro ao descontar créditos:", error);
       notifications.show({
         title: "Erro",
-        message: "Ocorreu algum erro ao guardar as alterações.",
+        message: "Ocorreu um erro ao guardar as alterações.",
         color: "red",
       });
     } finally {
@@ -75,7 +95,7 @@ const EditBalanceModal: React.FC<Props> = ({ isModalOpen, setIsModalOpen, vouche
   };
 
   return (
-    <Modal opened={isModalOpen} onClose={close} title="Editar Saldo de Créditos" size="md">
+    <Modal opened={isModalOpen} onClose={close} title="Descontar Créditos" size="md">
       <>
         <Text mb="sm">
           Saldo atual:{" "}
@@ -84,10 +104,10 @@ const EditBalanceModal: React.FC<Props> = ({ isModalOpen, setIsModalOpen, vouche
           </Text>
         </Text>
 
-        <NumberInput required label="Novo Saldo" value={newBalance} onChange={(value) => setNewBalance(Number(value || 0))} step={1} min={0} placeholder="Insira o novo saldo" />
+        <NumberInput required label="Valor a Descontar" value={amountToDeduct} onChange={(value) => setAmountToDeduct(Number(value || 0))} step={1} min={0} max={currentBalance} placeholder="Insira o valor a descontar" />
 
         <TextInput label="Observação" placeholder="Escreva uma observação" value={obvservation} onChange={(event) => setObvservation(event.currentTarget.value)} mb="sm" />
-        
+
         <Button fullWidth mt="lg" onClick={handleSave} loading={isLoading}>
           Guardar
         </Button>
