@@ -389,6 +389,7 @@ class DashboardController {
             vt.credits_before,
             vt.credits_after,
             (vt.credits_before - vt.credits_after) AS discount_amount,
+            vt.obvservation,
             vt.created_at AS transaction_time
         FROM voucher_transactions vt
         JOIN user_vouchers uv ON vt.user_voucher_id = uv.user_voucher_id

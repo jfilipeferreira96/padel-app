@@ -91,9 +91,43 @@ function VerificarOfertas() {
 
       <>
         <Group align="center">
-          <DatePickerInput value={selectedDate} onChange={setSelectedDate} label="Alterar data" placeholder="Dia" valueFormat="DD/MM/YYYY" w={150} />
+          <ActionIcon
+            variant="light"
+            color="blue"
+            onClick={() => setSelectedDate(prev => dayjs(prev).subtract(1, 'day').toDate())}
+            size="lg"
+            style={{ position: "relative", top: "12px" }}
+          >
+            ←
+          </ActionIcon>
+
+          <DatePickerInput
+            value={selectedDate}
+            onChange={setSelectedDate}
+            label="Alterar data"
+            placeholder="Dia"
+            valueFormat="DD/MM/YYYY"
+            w={150}
+          />
+
+          <ActionIcon
+            variant="light"
+            color="blue"
+            onClick={() => setSelectedDate(prev => dayjs(prev).add(1, 'day').toDate())}
+            size="lg"
+            style={{ position: "relative", top: "12px" }}
+          >
+            →
+          </ActionIcon>
+
           <Tooltip label="Atualizar" withArrow position="top">
-            <ActionIcon variant="filled" color="green" onClick={fetchData} size="lg" style={{ position: "relative", top: "12px" }}>
+            <ActionIcon
+              variant="filled"
+              color="green"
+              onClick={fetchData}
+              size="lg"
+              style={{ position: "relative", top: "12px" }}
+            >
               <IconRefresh />
             </ActionIcon>
           </Tooltip>
@@ -136,6 +170,7 @@ function VerificarOfertas() {
                 <Table.Td>{transaction.credits_before}€</Table.Td>
                 <Table.Td>{transaction.credits_after}€</Table.Td>
                 <Table.Td>{transaction.discount_amount}€</Table.Td>
+                <Table.Td>{transaction?.obvservation ?? "-"}</Table.Td>
                 <Table.Td>{transaction.admin_first_name ? `${transaction.admin_first_name} ${transaction.admin_last_name}` : "Sistema/Não definido"}</Table.Td>
                 <Table.Td>{transaction.transaction_time ? dayjs(transaction.transaction_time).format("DD/MM/YYYY HH:mm") : "-"}</Table.Td>
               </Table.Tr>
