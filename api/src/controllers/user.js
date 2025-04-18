@@ -306,7 +306,7 @@ class UserController {
         ) AS offpeaks,
 
         (
-          SELECT SUM(uv.credit_balance)
+          SELECT COALESCE(SUM(uv.credit_balance), 0) 
           FROM user_vouchers uv
           WHERE uv.assigned_to = u.user_id AND uv.is_active = 1 AND uv.credit_balance IS NOT NULL
         ) AS current_credit
