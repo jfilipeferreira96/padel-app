@@ -285,9 +285,15 @@ class UserController {
   static async getAllUsers(req, res, next) {
     try {
       const { page = 1, limit = 15, orderBy = "user_id", order = "ASC" } = req.body.pagination || {};
+      const offset = (page - 1) * limit;
+      const params = [];
 
-      let query = `
-        SELECT u.*, 
+      const allowedOrderFields = ["user_id", "first_name", "created_at", "current_credit"];
+      const orderField = allowedOrderFields.includes(orderBy) ? orderBy : "user_id";
+      const orderDirection = ["ASC", "DESC"].includes(order.toUpperCase()) ? order.toUpperCase() : "ASC";
+
+      let baseQuery = `
+      SELECT u.*, 
         (
           SELECT CONCAT('[', GROUP_CONCAT(JSON_OBJECT(
               'offpeak_card_id', uoc.offpeak_card_id,
@@ -298,7 +304,7 @@ class UserController {
               'assigned_by_first_name', IFNULL(au.first_name, ''),
               'assigned_by_last_name', IFNULL(au.last_name, ''),
               'assigned_at', uoc.assigned_at
-            ))) 
+          ))) 
           FROM user_offpeak_cards uoc
           JOIN offpeak_cards oc ON uoc.offpeak_card_id = oc.offpeak_card_id
           LEFT JOIN users au ON uoc.assigned_by = au.user_id
@@ -311,59 +317,68 @@ class UserController {
           WHERE uv.assigned_to = u.user_id AND uv.is_active = 1 AND uv.credit_balance IS NOT NULL
         ) AS current_credit
 
-        FROM users u
-        WHERE u.email != "admin1@mail.com"
+      FROM users u
+      WHERE u.email != "admin1@mail.com"
     `;
 
       let totalCountQuery = `
-        SELECT COUNT(*) as count
-        FROM users
-        WHERE users.email != "admin1@mail.com";
-      `;
-
-      const params = [];
+      SELECT COUNT(*) as count
+      FROM users
+      WHERE email != "admin1@mail.com"
+    `;
 
       if (req.body.filters) {
         const { user_type, created_at, email, name, phone } = req.body.filters;
 
         if (user_type) {
-          query += ` AND u.user_type = ?`;
+          baseQuery += ` AND u.user_type = ?`;
           totalCountQuery += ` AND user_type = ?`;
           params.push(user_type);
         }
 
         if (created_at) {
-          query += ` AND DATE(u.created_at) = ?`;
+          baseQuery += ` AND DATE(u.created_at) = ?`;
           totalCountQuery += ` AND DATE(created_at) = ?`;
           params.push(created_at);
         }
 
         const searchValue = email || name || phone;
         if (searchValue) {
-          query += ` AND (u.email LIKE ? OR u.phone LIKE ? OR u.first_name LIKE ? OR u.last_name LIKE ?)`;
+          const pattern = `%${searchValue}%`;
+          baseQuery += ` AND (u.email LIKE ? OR u.phone LIKE ? OR u.first_name LIKE ? OR u.last_name LIKE ?)`;
           totalCountQuery += ` AND (email LIKE ? OR phone LIKE ? OR first_name LIKE ? OR last_name LIKE ?)`;
-          const searchPattern = `%${searchValue}%`;
-          params.push(searchPattern, searchPattern, searchPattern, searchPattern);
+          params.push(pattern, pattern, pattern, pattern);
         }
       }
 
-      const offset = (page - 1) * limit;
+      const finalQuery = `
+      SELECT * FROM (
+        ${baseQuery}
+      ) AS subquery
+      ORDER BY ${orderField} ${orderDirection}
+      LIMIT ? OFFSET ?
+    `;
 
-      query += ` ORDER BY ${orderBy} ${order} LIMIT ? OFFSET ?`;
-      params.push(limit, offset);
-      console.log(query);
-      const { rows } = await db.query(query, params);
-      const { rows: totalCountRows } = await db.query(totalCountQuery, params.slice(0, params.length - 2));
+      const queryParams = [...params, limit, offset];
+
+      const { rows } = await db.query(finalQuery, queryParams);
+      const { rows: totalCountRows } = await db.query(totalCountQuery, params);
 
       const users = rows.map((row) => ({
         ...row,
-        offpeaks: JSON.parse(row.offpeaks),
+        offpeaks: JSON.parse(row.offpeaks ?? "[]"),
       }));
 
       return res.status(200).json({
         status: true,
         data: users,
-        pagination: { page, limit, orderBy, order, total: parseInt(totalCountRows[0].count) },
+        pagination: {
+          page,
+          limit,
+          orderBy: orderField,
+          order: orderDirection,
+          total: parseInt(totalCountRows[0].count, 10),
+        },
       });
     } catch (ex) {
       Logger.error("An error occurred while fetching users.", ex);
