@@ -287,32 +287,39 @@ class UserController {
       const { page = 1, limit = 15, orderBy = "user_id", order = "ASC" } = req.body.pagination || {};
 
       let query = `
-            SELECT u.*, 
-            (
-              SELECT CONCAT('[', GROUP_CONCAT(JSON_OBJECT(
-                  'offpeak_card_id', uoc.offpeak_card_id,
-                  'name', oc.name,
-                  'month', oc.month,
-                  'year', oc.year,
-                  'assigned_by', uoc.assigned_by,
-                  'assigned_by_first_name', IFNULL(au.first_name, ''),
-                  'assigned_by_last_name', IFNULL(au.last_name, ''),
-                  'assigned_at', uoc.assigned_at
-                )), ']') AS offpeaks
-                FROM user_offpeak_cards uoc
-                JOIN offpeak_cards oc ON uoc.offpeak_card_id = oc.offpeak_card_id
-                LEFT JOIN users au ON uoc.assigned_by = au.user_id
-                WHERE uoc.user_id = u.user_id
-            ) AS offpeaks
-            FROM users u
-            WHERE 1 = 1
-        `;
+        SELECT u.*, 
+        (
+          SELECT CONCAT('[', GROUP_CONCAT(JSON_OBJECT(
+              'offpeak_card_id', uoc.offpeak_card_id,
+              'name', oc.name,
+              'month', oc.month,
+              'year', oc.year,
+              'assigned_by', uoc.assigned_by,
+              'assigned_by_first_name', IFNULL(au.first_name, ''),
+              'assigned_by_last_name', IFNULL(au.last_name, ''),
+              'assigned_at', uoc.assigned_at
+            ))) 
+          FROM user_offpeak_cards uoc
+          JOIN offpeak_cards oc ON uoc.offpeak_card_id = oc.offpeak_card_id
+          LEFT JOIN users au ON uoc.assigned_by = au.user_id
+          WHERE uoc.user_id = u.user_id
+        ) AS offpeaks,
+
+        (
+          SELECT SUM(uv.credit_balance)
+          FROM user_vouchers uv
+          WHERE uv.assigned_to = u.user_id AND uv.is_active = 1 AND uv.credit_balance IS NOT NULL
+        ) AS current_credit
+
+        FROM users u
+        WHERE u.email != "admin1@mail.com"
+    `;
 
       let totalCountQuery = `
-            SELECT COUNT(*) as count
-            FROM users
-            WHERE 1 = 1
-        `;
+        SELECT COUNT(*) as count
+        FROM users
+        WHERE users.email != "admin1@mail.com";
+      `;
 
       const params = [];
 
@@ -344,7 +351,7 @@ class UserController {
 
       query += ` ORDER BY ${orderBy} ${order} LIMIT ? OFFSET ?`;
       params.push(limit, offset);
-
+      console.log(query);
       const { rows } = await db.query(query, params);
       const { rows: totalCountRows } = await db.query(totalCountQuery, params.slice(0, params.length - 2));
 

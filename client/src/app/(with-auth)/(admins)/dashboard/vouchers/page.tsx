@@ -136,7 +136,7 @@ function VoucherHistory() {
 
   const handleFilterChange = (value: string | null) => {
     setFilterOption(value);
-    localStorage.setItem("filterVoucher", value || "");
+    localStorage.setItem("filterUser", value || "");
   };
 
   useEffect(() => {

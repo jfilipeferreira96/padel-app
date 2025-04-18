@@ -169,6 +169,7 @@ export default function ModalVoucher({ isModalOpen, setIsModalOpen, userId, fetc
       open();
     } else
     {
+      fetchData();
       close();
     }
   }, [isModalOpen, open, close, userId, deleteFlag]);
