@@ -379,7 +379,7 @@ class UserController {
 
       const users = rows.map((row) => ({
         ...row,
-        offpeaks: JSON.parse(row.offpeaks || "[]"),
+        offpeaks: row.offpeaks ? JSON.parse(row.offpeaks) : [],
       }));
 
       return res.status(200).json({
