@@ -329,3 +329,8 @@ JOIN (
     GROUP BY ce.card_id
 ) latest_entry ON ec.card_id = latest_entry.card_id
 SET ec.last_updated = latest_entry.last_entry_time;
+
+ALTER TABLE user_vouchers
+ADD COLUMN expires_at TIMESTAMP NULL;
+
+CREATE INDEX idx_expires_at ON user_vouchers(expires_at);

@@ -89,8 +89,10 @@ export const assignVoucher = async (data: {
   reason: string;
   assigned_to: number;
   credit_limit: number | string | any;
+  expires_at?: null | undefined | string
 }) => {
   try {
+  
     const response = await api.post(endpoints.assignVoucher, data);
     return response.data;
   } catch (error) {
