@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { Card, Table, Checkbox, Pagination as MantinePagination, Center, Text, Select, Flex, Badge, SimpleGrid, Skeleton, Grid, Tooltip, ActionIcon, rem, Group, Button, Modal, TextInput } from "@mantine/core";
 import { deleteUser, getAllUsers } from "@/services/user.service";
-import { IconBrandZoom, IconCards, IconEye, IconGift, IconListCheck, IconPencil, IconPlus, IconSearch, IconSticker, IconTrash } from "@tabler/icons-react";
+import { IconBrandZoom, IconCards, IconEye, IconGift, IconListCheck, IconPencil, IconPlus, IconRefresh, IconSearch, IconSticker, IconTrash } from "@tabler/icons-react";
 import AddUserModal from "@/components/user-modal/add";
 import { useDisclosure } from "@mantine/hooks";
 import EditUserModal from "@/components/user-modal/edit";
@@ -14,12 +14,10 @@ import ModalVoucher from "@/components/user-modal/modal-voucher";
 import VideosModal from "@/components/user-modal/videos-modal";
 import ModalOfertas from "@/components/user-modal/modal-ofertas";
 
-function getBadge(user_type: string){
-  if (user_type === 'admin')
-  {
+function getBadge(user_type: string) {
+  if (user_type === "admin") {
     return { name: "Administrador", color: "blue" };
-  } else
-  {
+  } else {
     return { name: "Jogador", color: "orange" };
   }
 }
@@ -33,6 +31,7 @@ interface Elemento {
   birthdate: string;
   user_type: string;
   created_at: string;
+  current_credit: number;
 }
 
 function Users() {
@@ -57,16 +56,42 @@ function Users() {
   const [deleteUserId, setDeleteUserId] = useState<number | null>(null);
   const [opened, { open, close }] = useDisclosure(false);
   const [searchTerm, setSearchTerm] = useState<string>("");
+ const [sortOption, setSortOption] = useState<string | null>(() => {
+   const storedValue = localStorage.getItem("filterUser");
+   return storedValue ? storedValue : "data_criacao-desc"; 
+ });
+
+
+  const getOrderParams = (sortOption: string | null) => {
+    switch (sortOption) {
+      case "nome-asc":
+        return { orderBy: "first_name", order: "ASC" };
+      case "nome-desc":
+        return { orderBy: "first_name", order: "DESC" };
+      case "data_criacao-desc":
+        return { orderBy: "created_at", order: "DESC" };
+      case "data_criacao-asc":
+        return { orderBy: "created_at", order: "ASC" };
+      case "creditos-desc":
+        return { orderBy: "current_credit", order: "DESC" };
+      case "creditos-asc":
+        return { orderBy: "current_credit", order: "ASC" };
+      default:
+        return { orderBy: "user_id", order: "DESC" };
+    }
+  };
 
   const fetchData = async () => {
     setLoading(true);
     try {
+      const { orderBy, order } = getOrderParams(sortOption);
+
       const pagination = {
         page: activePage,
         limit: elementsPerPage,
-        orderBy: 'user_id',
-        order: 'DESC'
-      }
+        orderBy,
+        order,
+      };
 
       const filters = {
         email: searchTerm ?? null,
@@ -75,28 +100,25 @@ function Users() {
       };
 
       const response = await getAllUsers(pagination, filters);
-      
-      if (response)
-      {
+
+      if (response) {
         setElementos(response.data);
         setTotalElements(response.pagination.total || 0);
         setActivePage(response.pagination.page || 1);
       }
 
       setLoading(false);
-    } catch (error)
-    {
-      console.error('Error fetching data:', error);
+    } catch (error) {
+      console.error("Error fetching data:", error);
       setLoading(false);
     }
   };
 
   useEffect(() => {
     fetchData();
-  }, [activePage, elementsPerPage, searchTerm]);
+  }, [activePage, elementsPerPage, searchTerm, sortOption]);
 
-  const handlePageChange = (page: number) =>
-  {
+  const handlePageChange = (page: number) => {
     setActivePage(page);
   };
 
@@ -105,7 +127,7 @@ function Users() {
     setIsModalOpenEdit(true);
   };
 
-  const handleOffpeak = (userId: number) =>{
+  const handleOffpeak = (userId: number) => {
     setEditUserId(userId);
     setIsModalOpenOffpeak(true);
   };
@@ -119,21 +141,24 @@ function Users() {
     setEditUserId(userId);
     setIsModalOpenVouchers(true);
   };
-  
-   const handleVideoCredits = (userId: number) => {
-     setEditUserId(userId);
-     setIsModalOpenVideoCredits(true);
+
+  const handleVideoCredits = (userId: number) => {
+    setEditUserId(userId);
+    setIsModalOpenVideoCredits(true);
   };
 
-   const handleUserOfertas = (userId: number) => {
-     setEditUserId(userId);
-     setIsModalOpenOfertas(true);
-   };
-  
-  const handleElementsPerPageChange = (value: string | null) => {
+  const handleUserOfertas = (userId: number) => {
+    setEditUserId(userId);
+    setIsModalOpenOfertas(true);
+  };
 
-    if (value)
-    {
+  const handleSortChange = (value: string | null) => {
+    setSortOption(value);
+    localStorage.setItem("filterUser", value || "");
+  };
+
+  const handleElementsPerPageChange = (value: string | null) => {
+    if (value) {
       setElementsPerPage(parseInt(value));
       setActivePage(1); // Reset to first page whenever elements per page change
       localStorage.setItem(pathname, value);
@@ -143,9 +168,9 @@ function Users() {
   const initialIndex = (activePage - 1) * elementsPerPage;
   const finalIndex = initialIndex + elementsPerPage;
 
-   const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
-     setSearchTerm(event.currentTarget.value);
-   };
+  const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(event.currentTarget.value);
+  };
 
   const rows = elementos?.map((element) => (
     <Table.Tr key={element.user_id} bg={selectedRows.includes(element.user_id) ? "var(--mantine-color-blue-light)" : undefined}>
@@ -159,6 +184,7 @@ function Users() {
       </Table.Td>
       <Table.Td>{element.email}</Table.Td>
       <Table.Td>{element?.phone ? element?.phone : "-"}</Table.Td>
+      <Table.Td>{element?.current_credit ? element?.current_credit + " €" : "-"}</Table.Td>
       <Table.Td>{new Date(element.created_at).toLocaleString()}</Table.Td>
       <Table.Td>
         <Group gap={0} justify="center">
@@ -298,16 +324,33 @@ function Users() {
             <Text>entradas</Text>
           </Flex>
 
-          <Button
-            variant="light"
-            color="green"
-            rightSection={<IconPlus size={18} />}
-            onClick={() => {
-              setIsModalOpenAdd(true);
-            }}
-          >
-            Adicionar utilizador
-          </Button>
+          <Group>
+            <Select
+              miw={280}
+              placeholder="Ordenar por"
+              data={[
+                { label: "Nome (A-Z)", value: "nome-asc" },
+                { label: "Nome (Z-A)", value: "nome-desc" },
+                { label: "Data de criação (mais recente)", value: "data_criacao-desc" },
+                { label: "Data de criação (mais antiga)", value: "data_criacao-asc" },
+                { label: "Créditos (maior)", value: "creditos-desc" },
+                { label: "Créditos (menor)", value: "creditos-asc" },
+              ]}
+              value={sortOption}
+              onChange={handleSortChange}
+            />
+
+            <Button
+              variant="light"
+              color="green"
+              rightSection={<IconPlus size={18} />}
+              onClick={() => {
+                setIsModalOpenAdd(true);
+              }}
+            >
+              Adicionar utilizador
+            </Button>
+          </Group>
         </Group>
 
         <Table.ScrollContainer minWidth={500}>
@@ -318,6 +361,7 @@ function Users() {
                 <Table.Th>Nome</Table.Th>
                 <Table.Th>Email</Table.Th>
                 <Table.Th>Telemóvel</Table.Th>
+                <Table.Th>Créditos €</Table.Th>
                 <Table.Th>Data de Criação</Table.Th>
                 <Table.Th>Ações</Table.Th>
               </Table.Tr>

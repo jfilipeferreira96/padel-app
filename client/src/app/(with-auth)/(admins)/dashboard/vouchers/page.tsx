@@ -27,6 +27,7 @@ interface Voucher {
   assigned_by: number;
   activated_at: string | null;
   activated_by: number | null;
+  expires_at?: string | null;
   user_email: string;
   user_first_name: string;
   user_last_name: string;
@@ -136,7 +137,7 @@ function VoucherHistory() {
 
   const handleFilterChange = (value: string | null) => {
     setFilterOption(value);
-    localStorage.setItem("filterVoucher", value || "");
+    localStorage.setItem("filterUser", value || "");
   };
 
   useEffect(() => {
@@ -194,6 +195,7 @@ function VoucherHistory() {
       <Table.Td>{voucher.credit_limit ? voucher.credit_balance + "€" : "-"}</Table.Td>
       <Table.Td>{voucher.activated_at ? `${voucher.admin_first_name} ${voucher.admin_last_name}` : "-"}</Table.Td>
       <Table.Td>{voucher.activated_at ? new Date(voucher.activated_at).toLocaleString() : "-"}</Table.Td>
+      <Table.Td>{voucher.expires_at ? new Date(voucher.expires_at).toLocaleString() : "-"}</Table.Td>
       <Table.Td>
         <Group gap={0} justify="center">
           <Tooltip label={"Remover voucher"} withArrow position="top">
@@ -347,6 +349,7 @@ function VoucherHistory() {
                 <Table.Th>Créditos Disponíveis</Table.Th>
                 <Table.Th>Ativado Por</Table.Th>
                 <Table.Th>Data de Ativação</Table.Th>
+                <Table.Th>Data de Expiração</Table.Th>
                 <Table.Th>Ações</Table.Th>
               </Table.Tr>
             </Table.Thead>

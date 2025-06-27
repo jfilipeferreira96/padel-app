@@ -286,33 +286,49 @@ class UserController {
     try {
       const { page = 1, limit = 15, orderBy = "user_id", order = "ASC" } = req.body.pagination || {};
 
+      const validOrderFields = ["user_id", "first_name", "created_at", "current_credit"];
+      const validOrderDirections = ["ASC", "DESC"];
+
+      // Segurança extra contra SQL injection
+      const safeOrderBy = validOrderFields.includes(orderBy) ? orderBy : "user_id";
+      const safeOrder = validOrderDirections.includes(order?.toUpperCase()) ? order.toUpperCase() : "ASC";
+
       let query = `
-            SELECT u.*, 
-            (
-              SELECT CONCAT('[', GROUP_CONCAT(JSON_OBJECT(
-                  'offpeak_card_id', uoc.offpeak_card_id,
-                  'name', oc.name,
-                  'month', oc.month,
-                  'year', oc.year,
-                  'assigned_by', uoc.assigned_by,
-                  'assigned_by_first_name', IFNULL(au.first_name, ''),
-                  'assigned_by_last_name', IFNULL(au.last_name, ''),
-                  'assigned_at', uoc.assigned_at
-                )), ']') AS offpeaks
-                FROM user_offpeak_cards uoc
-                JOIN offpeak_cards oc ON uoc.offpeak_card_id = oc.offpeak_card_id
-                LEFT JOIN users au ON uoc.assigned_by = au.user_id
-                WHERE uoc.user_id = u.user_id
-            ) AS offpeaks
-            FROM users u
-            WHERE 1 = 1
-        `;
+      SELECT 
+        u.*,
+
+        (
+          SELECT CONCAT('[', GROUP_CONCAT(JSON_OBJECT(
+              'offpeak_card_id', uoc.offpeak_card_id,
+              'name', oc.name,
+              'month', oc.month,
+              'year', oc.year,
+              'assigned_by', uoc.assigned_by,
+              'assigned_by_first_name', IFNULL(au.first_name, ''),
+              'assigned_by_last_name', IFNULL(au.last_name, ''),
+              'assigned_at', uoc.assigned_at
+            )), ']') AS offpeaks
+            FROM user_offpeak_cards uoc
+            JOIN offpeak_cards oc ON uoc.offpeak_card_id = oc.offpeak_card_id
+            LEFT JOIN users au ON uoc.assigned_by = au.user_id
+            WHERE uoc.user_id = u.user_id
+        ) AS offpeaks,
+
+        (
+          SELECT SUM(uv.credit_balance)
+          FROM user_vouchers uv
+          WHERE uv.assigned_to = u.user_id AND uv.is_active = 1 AND uv.credit_balance IS NOT NULL
+        ) AS current_credit
+
+      FROM users u
+      WHERE u.email != "admin1@mail.com"
+    `;
 
       let totalCountQuery = `
-            SELECT COUNT(*) as count
-            FROM users
-            WHERE 1 = 1
-        `;
+      SELECT COUNT(*) as count
+      FROM users
+      WHERE email != "admin1@mail.com"
+    `;
 
       const params = [];
 
@@ -350,14 +366,27 @@ class UserController {
             OR last_name LIKE ?
             OR CONCAT(first_name, ' ', last_name) LIKE ?
           )`;
-          const searchPattern = `%${searchValue}%`;
-          params.push(searchPattern, searchPattern, searchPattern, searchPattern);
+          const pattern = `%${searchValue}%`;
+          params.push(pattern, pattern, pattern, pattern);
         }
       }
 
       const offset = (page - 1) * limit;
 
-      query += ` ORDER BY ${orderBy} ${order} LIMIT ? OFFSET ?`;
+      let orderByClause;
+      if (safeOrderBy === "current_credit") {
+        orderByClause = `
+        ORDER BY (
+          SELECT SUM(uv.credit_balance)
+          FROM user_vouchers uv
+          WHERE uv.assigned_to = u.user_id AND uv.is_active = 1 AND uv.credit_balance IS NOT NULL
+        ) ${safeOrder}
+      `;
+      } else {
+        orderByClause = `ORDER BY u.${safeOrderBy} ${safeOrder}`;
+      }
+
+      query += ` ${orderByClause} LIMIT ? OFFSET ?`;
       params.push(limit, offset);
 
       const { rows } = await db.query(query, params);
@@ -365,17 +394,26 @@ class UserController {
 
       const users = rows.map((row) => ({
         ...row,
-        offpeaks: JSON.parse(row.offpeaks),
+        offpeaks: row.offpeaks ? JSON.parse(row.offpeaks) : [],
       }));
 
       return res.status(200).json({
         status: true,
         data: users,
-        pagination: { page, limit, orderBy, order, total: parseInt(totalCountRows[0].count) },
+        pagination: {
+          page,
+          limit,
+          orderBy: safeOrderBy,
+          order: safeOrder,
+          total: parseInt(totalCountRows[0].count),
+        },
       });
     } catch (ex) {
-      Logger.error("An error occurred while fetching users.", ex);
-      res.status(500).json({ error: "Internal Server Error", message: ex.message });
+      Logger.error("Erro ao buscar utilizadores", ex);
+      res.status(500).json({
+        error: "Erro Interno do Servidor",
+        message: ex.message,
+      });
     }
   }
 

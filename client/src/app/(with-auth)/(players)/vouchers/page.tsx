@@ -30,6 +30,7 @@ function VouchersPage() {
       credit_balance: number;
       voucher_type: string;
       is_active: number;
+      expires_at: string;
     }[]
   >([]);
   const [page, setPage] = useState(1);
@@ -78,8 +79,18 @@ function VouchersPage() {
   }
 
   // Filtering vouchers based on their status
-  const vouchersPorUsar = vouchers.filter((voucher) => !voucher.activated_at && voucher.voucher_type !== "credito");
-  const vouchersUsados = vouchers.filter((voucher) => voucher.activated_at && voucher.voucher_type !== "credito");
+  const now = dayjs();
+
+  const vouchersPorUsar = vouchers.filter((voucher) => {
+    const isExpired = voucher.expires_at ? dayjs(voucher.expires_at).endOf("day").isBefore(now) : false;
+    return !voucher.activated_at && !isExpired && voucher.voucher_type !== "credito";
+  });
+
+  const vouchersUsados = vouchers.filter((voucher) => {
+    const isExpired = voucher.expires_at ? dayjs(voucher.expires_at).endOf("day").isBefore(now) : false;
+    return (voucher.activated_at || isExpired) && voucher.voucher_type !== "credito";
+  });
+
   const vouchersCreditos = vouchers.filter((voucher) => voucher.voucher_type === "credito" && voucher.is_active == 1);
 
   // Paginate results
@@ -114,6 +125,11 @@ function VouchersPage() {
                       <Text c="dimmed" size="xs" tt="uppercase" fw={700} mt="md">
                         Atribuído em: {dayjs(voucher.assigned_at).format("YYYY-MM-DD HH:mm")}
                       </Text>
+                      {voucher.expires_at && (
+                        <Text c="dimmed" size="xs" tt="uppercase" fw={700}>
+                          Expira a: {dayjs(voucher.expires_at).endOf("day").format("YYYY-MM-DD HH:mm")}
+                        </Text>
+                      )}
                     </Card>
                   </Grid.Col>
                 ))}
@@ -138,6 +154,11 @@ function VouchersPage() {
                       <Text c="dimmed" size="xs" tt="uppercase" fw={700} mt="md">
                         Ativado em: {dayjs(voucher.activated_at).format("YYYY-MM-DD HH:mm")}
                       </Text>
+                      {voucher.expires_at && (
+                        <Text c="dimmed" size="xs" tt="uppercase" fw={700}>
+                          Expira a: {dayjs(voucher.expires_at).endOf("day").format("YYYY-MM-DD HH:mm")}
+                        </Text>
+                      )}
                     </Card>
                   </Grid.Col>
                 ))}
@@ -155,20 +176,36 @@ function VouchersPage() {
               </Center>
             ) : (
               <Grid mb={"lg"}>
-                  {paginatedVouchersCreditos.map((voucher, index) => (
+                {paginatedVouchersCreditos.map((voucher, index) => (
                   <Grid.Col span={{ base: 12, sm: 12, md: 6, lg: 6 }} key={index}>
-                      <Card p="md" radius="md" className={classes.card} onClick={() => openTransactionModal(voucher.user_voucher_id)} style={{"cursor":"pointer"}}>
+                    <Card p="md" radius="md" className={classes.card} onClick={() => openTransactionModal(voucher.user_voucher_id)} style={{ cursor: "pointer" }}>
                       <Flex justify={"flex-end"}>
-                        {voucher.activated_at ? <Badge color="green" variant="filled">Ativo</Badge> : <Badge color="gray" variant="filled">Por ativar</Badge>}
+                        {voucher.activated_at ? (
+                          <Badge color="green" variant="filled">
+                            Ativo
+                          </Badge>
+                        ) : (
+                          <Badge color="gray" variant="filled">
+                            Por ativar
+                          </Badge>
+                        )}
                       </Flex>
                       <Image src={"./vouchers/123.png"} alt={voucher.name} />
                       <Flex justify={"space-between"}>
                         <Text c="dimmed" size="xs" tt="uppercase" fw={700} mt="md">
-                          Saldo: <Text span fw={700} c="green">{voucher.credit_balance} €</Text>
+                          Saldo:{" "}
+                          <Text span fw={700} c="green">
+                            {voucher.credit_balance} €
+                          </Text>
                         </Text>
                         <Text c="dimmed" size="xs" tt="uppercase" fw={700} mt="md">
                           Atribuído em: {dayjs(voucher.assigned_at).format("YYYY-MM-DD HH:mm")}
                         </Text>
+                        {voucher.expires_at && (
+                          <Text c="dimmed" size="xs" tt="uppercase" fw={700}>
+                            Expira a: {dayjs(voucher.expires_at).endOf("day").format("YYYY-MM-DD HH:mm")}
+                          </Text>
+                        )}
                       </Flex>
                     </Card>
                   </Grid.Col>
@@ -181,7 +218,10 @@ function VouchersPage() {
 
       <ModalTransactions
         opened={opened}
-        onClose={() => { setOpened(false); setSelectedVoucherId(null)}}
+        onClose={() => {
+          setOpened(false);
+          setSelectedVoucherId(null);
+        }}
         user_voucher_id={selectedVoucherId ?? null}
       />
 
