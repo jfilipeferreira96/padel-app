@@ -30,7 +30,7 @@ class VouchersController {
       const { page = 1, limit = 15, orderBy = "uv.voucher_id", order = "ASC" } = req.body.pagination || {};
 
       let query = `
-      SELECT uv.user_voucher_id, uv.voucher_id, v.name as voucher_name, uv.reason, uv.expires_at, uv.credit_limit, uv.credit_balance, uv.is_active, uv.assigned_at, uv.activated_at, 
+      SELECT uv.user_voucher_id, uv.voucher_id, v.name as voucher_name, uv.reason, uv.credit_limit, uv.credit_balance, uv.is_active, uv.assigned_at, uv.activated_at, 
              u.email AS user_email, u.first_name AS user_first_name, u.last_name AS user_last_name, u.phone,
              a.email AS admin_email, a.first_name AS admin_first_name, a.last_name AS admin_last_name,
              act.email AS activated_by_email, act.first_name AS activated_by_first_name, act.last_name AS activated_by_last_name
@@ -71,11 +71,11 @@ class VouchersController {
         
         totalCountQuery += `
           AND (
-            email LIKE ? 
-            OR phone LIKE ? 
-            OR first_name LIKE ? 
-            OR last_name LIKE ?
-            OR CONCAT(first_name, ' ', last_name) LIKE ?
+            u.email LIKE ? 
+            OR u.phone LIKE ? 
+            OR u.first_name LIKE ? 
+            OR u.last_name LIKE ?
+            OR CONCAT(u.first_name, ' ', u.last_name) LIKE ?
           )`;
           const searchPattern = `%${searchValue}%`;
           params.push(searchPattern, searchPattern, searchPattern, searchPattern);
@@ -218,36 +218,30 @@ class VouchersController {
 
   static async assignVoucher(req, res, next) {
     try {
-      const { voucher_id, assigned_to, reason, is_active, credit_limit, expires_at } = req.body;
+      const { voucher_id, assigned_to, reason, is_active, credit_limit } = req.body;
       const assigned_by = req.user?.id;
 
       if (!voucher_id || !assigned_by || !assigned_to || !reason) {
         return res.status(200).json({ status: false, message: "Todos os campos são obrigatórios." });
       }
 
-      let query = "";
-      let params = [];
-
       if (!is_active) {
-        query = `
-          INSERT INTO user_vouchers (
-            voucher_id, assigned_by, assigned_to, reason,
-            credit_limit, credit_balance, expires_at
-          ) VALUES (?, ?, ?, ?, ?, ?, ?)
-        `;
-        params = [voucher_id, assigned_by, assigned_to, reason, credit_limit, credit_limit, expires_at];
-      } else {
-        query = `
-          INSERT INTO user_vouchers (
-            voucher_id, assigned_by, assigned_to, reason,
-            activated_by, credit_limit, credit_balance,
-            activated_at, expires_at
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), ?)
-        `;
-        params = [voucher_id, assigned_by, assigned_to, reason, assigned_by, credit_limit, credit_limit, expires_at];
+        const query = `
+        INSERT INTO user_vouchers (voucher_id, assigned_by, assigned_to, reason, credit_limit, credit_balance)
+        VALUES (?, ?, ?, ?, ?, ?)
+      `;
+
+        await db.query(query, [voucher_id, assigned_by, assigned_to, reason, credit_limit, credit_limit]);
       }
 
-      await db.query(query, params);
+      if (is_active) {
+        const query = `
+        INSERT INTO user_vouchers (voucher_id, assigned_by, assigned_to, reason, activated_by, credit_limit, credit_balance, activated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, NOW())
+      `;
+
+        await db.query(query, [voucher_id, assigned_by, assigned_to, reason, assigned_by, credit_limit, credit_limit]);
+      }
 
       return res.status(201).json({ status: true, message: "Voucher atribuído com sucesso." });
     } catch (ex) {
@@ -294,7 +288,7 @@ class VouchersController {
       }
 
       const query = `
-        SELECT v.*, uv.assigned_at, uv.assigned_by, uv.activated_at, uv.activated_by, uv.expires_at, uv.credit_balance, uv.is_active, uv.credit_limit, uv.*
+        SELECT v.*, uv.assigned_at, uv.assigned_by, uv.activated_at, uv.activated_by, uv.credit_balance, uv.is_active, uv.credit_limit, uv.*
         FROM vouchers v
         JOIN user_vouchers uv ON v.voucher_id = uv.voucher_id
         WHERE uv.assigned_to = ?

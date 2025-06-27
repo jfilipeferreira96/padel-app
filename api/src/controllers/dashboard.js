@@ -58,13 +58,13 @@ class DashboardController {
             OR CONCAT(u.first_name, ' ', u.last_name) LIKE ?
           )`;
         
-        totalCountQuery += `
+          totalCountQuery += `
           AND (
-            email LIKE ? 
-            OR phone LIKE ? 
-            OR first_name LIKE ? 
-            OR last_name LIKE ?
-            OR CONCAT(first_name, ' ', last_name) LIKE ?
+            u.email LIKE ? 
+            OR u.phone LIKE ? 
+            OR u.first_name LIKE ? 
+            OR u.last_name LIKE ?
+            OR CONCAT(u.first_name, ' ', u.last_name) LIKE ?
           )`;
           const searchPattern = `%${searchValue}%`;
           params.push(searchPattern, searchPattern, searchPattern, searchPattern);
