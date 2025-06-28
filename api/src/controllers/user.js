@@ -357,8 +357,8 @@ class UserController {
             OR u.last_name LIKE ?
             OR CONCAT(u.first_name, ' ', u.last_name) LIKE ?
           )`;
-        
-        totalCountQuery += `
+
+          totalCountQuery += `
           AND (
             email LIKE ? 
             OR phone LIKE ? 
@@ -367,7 +367,7 @@ class UserController {
             OR CONCAT(first_name, ' ', last_name) LIKE ?
           )`;
           const pattern = `%${searchValue}%`;
-          params.push(pattern, pattern, pattern, pattern);
+          params.push(pattern, pattern, pattern, pattern, pattern);
         }
       }
 

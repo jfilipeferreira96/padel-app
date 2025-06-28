@@ -48,7 +48,7 @@ class VideoController {
             OR u.last_name LIKE ?
             OR CONCAT(u.first_name, ' ', u.last_name) LIKE ?
           )`;
-        
+
           totalCountQuery += `
           AND (
             u.email LIKE ? 
@@ -58,7 +58,7 @@ class VideoController {
             OR CONCAT(u.first_name, ' ', u.last_name) LIKE ?
           )`;
           const searchPattern = `%${searchValue}%`;
-          params.push(searchPattern, searchPattern, searchPattern, searchPattern);
+          params.push(searchPattern, searchPattern, searchPattern, searchPattern, searchPattern);
         }
 
         if (userId) {

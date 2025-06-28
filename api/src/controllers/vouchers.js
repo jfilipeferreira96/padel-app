@@ -68,8 +68,8 @@ class VouchersController {
             OR u.last_name LIKE ?
             OR CONCAT(u.first_name, ' ', u.last_name) LIKE ?
           )`;
-        
-        totalCountQuery += `
+
+          totalCountQuery += `
           AND (
             u.email LIKE ? 
             OR u.phone LIKE ? 
@@ -78,7 +78,7 @@ class VouchersController {
             OR CONCAT(u.first_name, ' ', u.last_name) LIKE ?
           )`;
           const searchPattern = `%${searchValue}%`;
-          params.push(searchPattern, searchPattern, searchPattern, searchPattern);
+          params.push(searchPattern, searchPattern, searchPattern, searchPattern, searchPattern);
         }
 
         if (validated_by !== undefined && validated_by === false) {
