@@ -36,35 +36,43 @@ class VideoController {
 
       // Filtros
       if (req.body.filters) {
-        const { email, name, phone, userId } = req.body.filters;
+        const { email, name, phone, validated_by, assigned_to } = req.body.filters;
 
         const searchValue = email || name || phone;
+
         if (searchValue) {
+          const nameParts = name ? name.trim().split(/\s+/) : [];
+
           query += `
-          AND (
-            u.email LIKE ? 
-            OR u.phone LIKE ? 
-            OR u.first_name LIKE ? 
-            OR u.last_name LIKE ?
-            OR CONCAT(u.first_name, ' ', u.last_name) LIKE ?
-          )`;
+            AND (
+              u.email LIKE ? 
+              OR u.phone LIKE ? 
+              OR u.first_name LIKE ? 
+              OR u.last_name LIKE ? 
+              OR CONCAT(u.first_name, ' ', u.last_name) LIKE ?
+              ${nameParts.length > 1 ? "OR (u.first_name LIKE ? AND u.last_name LIKE ?)" : ""}
+            )
+          `;
 
           totalCountQuery += `
-          AND (
-            u.email LIKE ? 
-            OR u.phone LIKE ? 
-            OR u.first_name LIKE ? 
-            OR u.last_name LIKE ?
-            OR CONCAT(u.first_name, ' ', u.last_name) LIKE ?
-          )`;
-          const searchPattern = `%${searchValue}%`;
-          params.push(searchPattern, searchPattern, searchPattern, searchPattern, searchPattern);
-        }
+            AND (
+              u.email LIKE ? 
+              OR u.phone LIKE ? 
+              OR u.first_name LIKE ? 
+              OR u.last_name LIKE ? 
+              OR CONCAT(u.first_name, ' ', u.last_name) LIKE ?
+              ${nameParts.length > 1 ? "OR (u.first_name LIKE ? AND u.last_name LIKE ?)" : ""}
+            )
+          `;
 
-        if (userId) {
-          query += ` AND uch.user_id = ?`;
-          totalCountQuery += ` AND uch.user_id = ?`;
-          params.push(userId);
+          const pattern = `%${searchValue}%`;
+          params.push(pattern, pattern, pattern, pattern, pattern);
+
+          if (nameParts.length > 1) {
+            const [first, ...rest] = nameParts;
+            const last = rest.join(" ");
+            params.push(`%${first}%`, `%${last}%`);
+          }
         }
       }
 
