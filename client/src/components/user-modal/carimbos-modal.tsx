@@ -7,6 +7,7 @@ import { useSession } from "@/providers/SessionProvider";
 import Carimbos from "../carimbos";
 import { updateEntryCount } from "@/services/acessos.service";
 import { createUserCardCarimbos } from "@/services/dashboard.service";
+import { useLocation } from "@/providers/LocationProvider";
 
 interface Props {
   isModalOpen: boolean;
@@ -20,6 +21,7 @@ const CarimbosModal: React.FC<Props> = ({ isModalOpen, setIsModalOpen, userId, f
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [actualCard, setActualCard] = useState<any>(null); 
   const [entryCount, setEntryCount] = useState<number | string>(0); 
+  const { location, setLocation, availableLocations } = useLocation();
   
   useEffect(() => {
     if (isModalOpen && userId) {
@@ -84,9 +86,9 @@ const CarimbosModal: React.FC<Props> = ({ isModalOpen, setIsModalOpen, userId, f
   const onSubmit = async () => {
     
     try {
-      if (!userId || !actualCard || !entryCount == null || !entryCount == undefined) return;
+      if (!userId || !actualCard || !entryCount == null || !entryCount == undefined || !location.value) return;
       
-      const response = await updateEntryCount(userId, actualCard?.card_id, entryCount as number);
+      const response = await updateEntryCount(userId, actualCard?.card_id, entryCount as number, location.value);
       
       if (response.status) {
         notifications.show({

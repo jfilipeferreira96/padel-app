@@ -38,9 +38,9 @@ export const removeEntry = async (entryId: number) => {
   }
 };
 
-export const updateEntryCount = async (userId: number | string, actualCard: number, entryCount: number) => {
+export const updateEntryCount = async (userId: number | string, actualCard: number, entryCount: number, locationId: number) => {
   try {
-    const response = await api.post(endpoints.updateEntryCountRoute, { userId, actualCard, entryCount });
+    const response = await api.post(endpoints.updateEntryCountRoute, { userId, actualCard, entryCount, locationId });
     return response.data;
   } catch (error) {
     throw error;
