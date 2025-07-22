@@ -272,29 +272,63 @@ class AcessosController {
   }
 
   static async UpdateEntryCount(req, res, next) {
-    const { userId, actualCard, entryCount } = req.body;
-    // Validar as entradas
+    const { userId, actualCard, entryCount, locationId } = req.body;
+    const adminId = req.user?.id;
+
+    // Validação básica
     if (!userId || isNaN(parseInt(userId)) || !actualCard || isNaN(parseInt(actualCard)) || entryCount === undefined || isNaN(parseInt(entryCount))) {
       return res.status(200).json({ status: false, message: "Dados de entrada inválidos" });
     }
 
+    // Apenas administradores podem executar
+    if (!adminId || req.user.user_type !== "admin") {
+      return res.status(200).json({ status: false, message: "Apenas administradores podem realizar esta operação" });
+    }
+
     try {
+      // Atualizar o cartão
       const updateQuery = `
         UPDATE entry_cards
         SET entry_count = ?
         WHERE user_id = ? AND card_id = ?
       `;
-
       const result = await db.query(updateQuery, [entryCount, userId, actualCard]);
 
       if (result.affectedRows === 0) {
-        return res.status(200).json({ status: false, message: "Utilizador não encontrado ou nenhuma linha atualizada" });
+        return res.status(200).json({ status: false, message: "Utilizador ou cartão não encontrados" });
       }
 
-      return res.status(200).json({ status: true, message: "Contagem de entradas atualizada com sucesso" });
+      if (!locationId) {
+        const locationQuery = `SELECT location_id FROM locations WHERE is_default = 1 LIMIT 1`;
+        const { rows: locationRows } = await db.query(locationQuery);
+        locationId = locationRows[0]?.location_id;
+
+        if (!locationId) {
+          return res.status(200).json({ status: false, message: "Localização não fornecida e nenhuma localização padrão definida." });
+        }
+      }
+
+      // Criar entradas + associar ao cartão
+      const insertEntryQuery = `
+        INSERT INTO entries (user_id, location_id, validated_by, validated_at)
+        VALUES (?, ?, ?, NOW())
+      `;
+      const insertCardEntryQuery = `
+        INSERT INTO card_entries (card_id, entry_id, num_of_entries)
+        VALUES (?, ?, 1)
+      `;
+
+      for (let i = 0; i < entryCount; i++) {
+        const { rows: entryResult } = await db.query(insertEntryQuery, [userId, locationId, adminId]);
+        const entryId = entryResult.insertId;
+
+        await db.query(insertCardEntryQuery, [actualCard, entryId]);
+      }
+
+      return res.status(200).json({ status: true, message: `Contagem atualizada e ${entryCount} entradas registadas com sucesso.` });
     } catch (error) {
-      Logger.error(`Erro ao atualizar a contagem de entradas para o utilizador com ID ${userId}:`, error);
-      return res.status(200).json({ status: false, message: "Erro Interno do Servidor" });
+      Logger.error(`Erro ao atualizar e registar entradas para o utilizador ${userId}:`, error);
+      return res.status(200).json({ status: false, message: "Erro interno ao registar entradas." });
     }
   }
 }

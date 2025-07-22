@@ -349,25 +349,38 @@ class UserController {
 
         const searchValue = email || name || phone;
         if (searchValue) {
+          const nameParts = name ? name.trim().split(/\s+/) : [];
+
           query += `
-          AND (
-            u.email LIKE ? 
-            OR u.phone LIKE ? 
-            OR u.first_name LIKE ? 
-            OR u.last_name LIKE ?
-            OR CONCAT(u.first_name, ' ', u.last_name) LIKE ?
-          )`;
-        
-        totalCountQuery += `
-          AND (
-            email LIKE ? 
-            OR phone LIKE ? 
-            OR first_name LIKE ? 
-            OR last_name LIKE ?
-            OR CONCAT(first_name, ' ', last_name) LIKE ?
-          )`;
+            AND (
+              u.email LIKE ? 
+              OR u.phone LIKE ? 
+              OR u.first_name LIKE ? 
+              OR u.last_name LIKE ? 
+              OR CONCAT(u.first_name, ' ', u.last_name) LIKE ?
+              ${nameParts.length > 1 ? "OR (u.first_name LIKE ? AND u.last_name LIKE ?)" : ""}
+            )
+          `;
+
+          totalCountQuery += `
+            AND (
+              email LIKE ? 
+              OR phone LIKE ? 
+              OR first_name LIKE ? 
+              OR last_name LIKE ? 
+              OR CONCAT(first_name, ' ', last_name) LIKE ?
+              ${nameParts.length > 1 ? "OR (first_name LIKE ? AND last_name LIKE ?)" : ""}
+            )
+          `;
+
           const pattern = `%${searchValue}%`;
-          params.push(pattern, pattern, pattern, pattern);
+          params.push(pattern, pattern, pattern, pattern, pattern);
+
+          if (nameParts.length > 1) {
+            const [first, ...rest] = nameParts;
+            const last = rest.join(" ");
+            params.push(`%${first}%`, `%${last}%`);
+          }
         }
       }
 
