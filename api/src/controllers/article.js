@@ -51,7 +51,7 @@ class ArticlesController {
       const { page = 1, limit = 15, orderBy = "id", order = "ASC" } = req.body.pagination || {};
 
       let query = `
-        SELECT *
+        SELECT articles.*, users.first_name, users.last_name
         FROM articles
         LEFT JOIN users ON articles.user_id = users.user_id
         WHERE 1 = 1
