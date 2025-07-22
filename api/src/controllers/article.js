@@ -71,8 +71,8 @@ class ArticlesController {
         const { title } = req.body.filters;
 
         if (title) {
-          query += ` AND title LIKE ?`;
-          totalCountQuery += ` AND title LIKE ?`;
+          query += ` AND articles.title LIKE ?`;
+          totalCountQuery += ` AND articles.title LIKE ?`;
           params.push(`%${title}%`);
         }
       }
