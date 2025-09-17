@@ -14,7 +14,7 @@ class UserController {
       Logger.error("JWT_SECRET is not defined in the environment.");
     }
 
-    return jwt.sign(user, secret, { expiresIn: "30d" });
+    return jwt.sign(user, secret, { expiresIn: "360d" });
   }
 
   static async login(req, res, next) {
